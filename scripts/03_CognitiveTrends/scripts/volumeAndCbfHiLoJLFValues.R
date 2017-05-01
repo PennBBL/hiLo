@@ -3,9 +3,9 @@
 
 ## Load Library(s)
 source("/home/adrose/adroseHelperScripts/R/afgrHelpFunc.R")
-source("/home/adrose/produceMeanGenderGraphs/scripts/wm2Functions.R")
-source("/home/adrose/produceMeanGenderGraphs/scripts/wm1Functions2.R")
-source("/home/adrose/tylerJeffScripts/scripts/functions-forJLF.R")
+source("/home/adrose/hiLo/scripts/03_CognitiveTrends/functions/wm2Functions.R")
+source("/home/adrose/hiLo/scripts/03_CognitiveTrends/functions/wm1Functions2.R")
+source("/home/adrose/hiLo/scripts/03_CognitiveTrends/functions/functions-forJLF.R")
 install_load('plyr', 'ggplot2', 'reshape2', 'grid', 'gridExtra', 'labeling', 'data.table')
 
 # Declare any functions

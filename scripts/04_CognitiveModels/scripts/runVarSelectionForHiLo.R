@@ -4,7 +4,7 @@
 # It is important to also note that this is performed within sex
 
 # First thing we need to do is load our library(s)
-source('/home/adrose/varSelectionHiLo/scripts/functions.R')
+source('/home/adrose/hiLo/scripts/04_CognitiveModels/functions/functions.R')
 install_load('foreach', 'doParallel', 'glmnet', 'bootstrap', 'psych', 'ggplot2', 'reshape2')
 
 # Now we need to load the data 

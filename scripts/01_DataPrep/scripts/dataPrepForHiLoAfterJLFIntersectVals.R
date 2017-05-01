@@ -10,7 +10,7 @@
 # have I had to re-do these freaking tasks...... toooo many.
 
 # Load library(s)
-source('/home/adrose/dataPrepForHiLoPaper/scripts/functions.R')
+source('/home/adrose/hiLo/scripts/01_DataPrep/functions/functions.R')
 
 # Now load the data
 data.values <- read.csv('/home/analysis/redcap_data/201511/go1/n1601_go1_datarel_113015.csv')
