@@ -5,7 +5,7 @@
 
 ## Load library(s)
 source('/home/adrose/adroseHelperScripts/R/afgrHelpFunc.R')
-source("/home/adrose/hiLo/scripts/02_DevelopmentalTrends/functions.R")
+source("/home/adrose/hiLo/scripts/02_DevelopmentalTrends/functions/functions.R")
 install_load('plyr', 'ggplot2', 'reshape2', 'grid', 'gridExtra', 'labeling', 'data.table', 'cowplot')
 
 
