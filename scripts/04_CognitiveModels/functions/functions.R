@@ -51,23 +51,55 @@ runLassoforHiLo <- function(x, y, trainingIterations = 100, nCor=3, nofFolds=10,
     install_load('glmnet', 'bootstrap', 'psych')
 
     # First find the optimum values to use for glmnet
-    optVals <- tuneAlpha(inputData, y, alphaSequence, nofFolds)
+    optVals <- tuneAlpha(inputData, y, alphaSequence, nofFolds)[1]
 
 
     # Now we need to create our final model with our opt vals
     mod <- glmnet(inputData, y, standardize=F, alpha=optVals[1], lambda=optVals[2], maxit=100000000)
 
     # Now return our values
-    valsToReturn <- as.numeric(mod$beta)
+    valsToReturn <- optVals[1]
   }
   # Kill our cluster
   stopCluster(cl)
 
   # Now return our output  
   outputMatrix[,2:ncol(outputMatrix)] <- output
+  #outputMatrix <- output
   return(outputMatrix)
 }
 
+# Now create a vector of the optVals
+returnOptAlpha <- function(x, y, trainingIterations = 100, nCor=3, nofFolds=10, alphaSequence=seq(0,1,by=0.05)){
+  # Now we need to make sure our inputs are the correct formats
+  inputData <- as.matrix(x)
+
+  # Now set up our parallel environment
+  cl <- makeCluster(nCor)
+  registerDoParallel(cl)
+
+  # Now lets run through each iteration and perform the following steps
+  # 1.) Tune to find the optimal alpha for each fold - using tuneAlpha function
+  # 2.) create a model using glmnet
+  # 3.) return the betas as a numeric vector
+  # All of this is going to be done inparallel ... so should be good
+  output <- foreach(i=seq(1,trainingIterations), .combine='c') %dopar% {
+    # First load required library(s)
+    source('/home/adrose/adroseHelperScripts/R/afgrHelpFunc.R')
+    source('/home/adrose/varSelectionHiLo/scripts/functions.R')
+    install_load('glmnet', 'bootstrap', 'psych')
+
+    # First find the optimum values to use for glmnet
+    tuneAlpha(inputData, y, alphaSequence, nofFolds)[1]
+
+  }
+  # Kill our cluster
+  stopCluster(cl)
+
+  # Now return our output  
+  outputMatrix <- output
+  return(outputMatrix)
+}
 
 # Now create a function which will return a booliean value for which 
 # rows meet the cut off threshold for times slected 
@@ -130,6 +162,38 @@ computeModelFitMetrics <- function(x, y, seedValue=1, nGroups=10, returnBetas=F)
   adjRSquared <- cor(y, modm$fitted.values)^2 - 
                 (1 - cor(y, modm$fitted.values)^2)*(p/(n-p-1))
   
+  # now create our output
+  output <- as.data.frame(cbind(n,p,rawRSquared,cvRSquared,rawICC,cvICC,rawRMSE,cvRMSE,adjRSquared))
+   colnames(output) <- c('n','p','R2', 'CVR2', 'ICC', 'CVICC', 'RMSE', 'CVRMSE', 'ADJR2')
+  # Now see if the user would like the betas to be returned
+  if(returnBetas=='TRUE'){
+    outputList <- list()
+    outputList[[1]] <- output
+    outputList[[2]] <- coefficients(modm)
+    output <- outputList
+  }
+  return(output)
+}
+
+# Now create a function which will compute our model fit's metrics w/ a predefined trianing and validation data sets
+computeModelFitMetrics2 <- function(xTrain, xValid, yTrain,yValid,returnBetas=F){
+  # First thing we need to do is run the final model
+  tmp1 <- as.data.frame(cbind(yTrain, xTrain))
+  tmp2 <- as.data.frame(cbind(yValid, xValid)) 
+  modm <- lm(yTrain ~ ., tmp1)
+  modmValid <- predict(modm, newdata=tmp2)
+  # Now get some values
+  n <- dim(xTrain)[1]
+  p <- dim(xTrain)[2]  
+  # Now get our output metrics 
+  rawRSquared <- cor(yTrain, modm$fitted.values)^2
+  cvRSquared <- cor(yValid, modmValid)^2
+  rawICC <- ICC(cbind(yTrain, modm$fitted.values))$results[4,2]
+  cvICC <- ICC(cbind(yValid, modmValid))$results[4,2]
+  rawRMSE <- sqrt(mean((yTrain-modm$fitted.values)^2))
+  cvRMSE <- sqrt(mean((yValid-modmValid)^2))
+  adjRSquared <- cor(yTrain, modm$fitted.values)^2 - 
+                (1 - cor(yTrain, modm$fitted.values)^2)*(p/(n-p-1))  
   # now create our output
   output <- as.data.frame(cbind(n,p,rawRSquared,cvRSquared,rawICC,cvICC,rawRMSE,cvRMSE,adjRSquared))
    colnames(output) <- c('n','p','R2', 'CVR2', 'ICC', 'CVICC', 'RMSE', 'CVRMSE', 'ADJR2')

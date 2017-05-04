@@ -5,7 +5,7 @@
 
 # First thing we need to do is load our library(s)
 source('/home/adrose/hiLo/scripts/04_CognitiveModels/functions/functions.R')
-install_load('foreach', 'doParallel', 'glmnet', 'bootstrap', 'psych', 'ggplot2', 'reshape2')
+install_load('foreach', 'doParallel', 'glmnet', 'bootstrap', 'psych', 'ggplot2', 'reshape2', 'caret', 'randomForest')
 
 # Now we need to load the data 
 vol.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeRegModalReg/volumeData.csv')
@@ -71,6 +71,7 @@ male.vol.outcome <- male.vol.outcome[complete.cases(male.vol.data[,vol.col])]
 male.vol.values <- male.vol.values[complete.cases(male.vol.data[,vol.col]),]
 # Now run the variable selection
 maleVolBetaMatrix <- runLassoforHiLo(male.vol.values, male.vol.outcome, nCor=30)
+maleVolAlphaVector <- returnOptAlpha(male.vol.values, male.vol.outcome, nCor=30)
 maleVolValues <- rmFat(maleVolBetaMatrix, male.vol.values)
 maleVolFitStats <- computeModelFitMetrics(returnBetas=T,x = maleVolValues, y= male.vol.outcome)
 
@@ -354,8 +355,8 @@ write.csv(output, 'femaleFitBetas.csv', quote=F, row.names=F)
 tmp <- merge(vol.data, cbf.data, by=c('bblid', 'scanid'))
 tmp <- merge(tmp, gmd.data,  by=c('bblid', 'scanid'))
 tmp <- merge(tmp, ct.data,  by=c('bblid', 'scanid'))
-#tmp <- merge(tmp, reho.data,  by=c('bblid', 'scanid'))
-#tmp <- merge(tmp, alff.data,  by=c('bblid', 'scanid'))
+tmp <- merge(tmp, reho.data,  by=c('bblid', 'scanid'))
+tmp <- merge(tmp, alff.data,  by=c('bblid', 'scanid'))
 tmp <- merge(tmp, ad.data,  by=c('bblid', 'scanid'))
 tmp <- merge(tmp, rd.data,  by=c('bblid', 'scanid'))
 tmp <- merge(tmp, tr.data,  by=c('bblid', 'scanid'))
@@ -383,3 +384,23 @@ female.all.outcome <- scale(female.all.data$F1_Exec_Comp_Cog_Accuracy)[,1]
 femaleAllBetaMatrix <- runLassoforHiLo(female.all.values, female.all.outcome, nCor=30)
 femaleAllValues <- rmFat(femaleAllBetaMatrix, female.all.values)
 femaleAllFitStats <- computeModelFitMetrics(returnBetas=T,x = femaleAllValues, y= female.all.outcome)
+
+# Now explore forward step wise variable selection
+set.seed(16)
+maleFolds <- createFolds(male.all.data$F1_Exec_Comp_Cog_Accuracy, k=10, list=T, returnTrain=T)
+index <- unlist(maleFolds[1])
+male.all.data.train <- as.data.frame(cbind(male.all.outcome[index], male.all.values[index,]))
+male.all.data.valid <- as.data.frame(cbind(male.all.outcome[-index], male.all.values[-index,]))
+
+# Now run step wise regression
+null <- lm(V1 ~ 1, data=male.all.data.train)
+full <- lm(V1 ~ ., data=male.all.data.train)
+maleModel <-  step(null, scope=list(lower=null, upper=full), direction='forward')
+male.values <- male.all.data.train[,names(male.all.data.train) %in% names(maleModel$coefficients)[-1]]
+male.values.valid <- male.all.data.valid[,names(male.all.data.valid) %in% names(maleModel$coefficients)[-1]]
+male.outcome <- male.all.data.train$V1
+male.outcome.valid <- male.all.data.valid$V1
+maleAllFitStats <- computeModelFitMetrics2(xTrain=male.values, xValid=male.values.valid, yTrain=male.outcome, yValid=male.outcome.valid, returnBetas=F)
+
+# Now try random forest
+maleModel <- randomForest(formula=V1 ~ ., data=male.all.data.train, ntree=800, maxnode=100)
