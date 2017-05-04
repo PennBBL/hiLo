@@ -28,45 +28,44 @@ tuneAlpha <- function(x, y, alphaSequence, nFolds){
 # Create a function which will take a y and an input set of data (x)
 # run cv lasso with alpha tuning
 runLassoforHiLo <- function(x, y, trainingIterations = 100, nCor=3, nofFolds=10, alphaSequence=seq(0,1,by=0.05)){
-  # First thing we have to do is prepare our output
-  outputMatrix <- matrix(0, ncol(x), trainingIterations+1)
-  outputMatrix[,1] <- colnames(x)
-
-  # Now we need to make sure our inputs are the correct formats
-  inputData <- as.matrix(x)
-
-  # Now set up our parallel environment
-  cl <- makeCluster(nCor)
-  registerDoParallel(cl)
-
-  # Now lets run through each iteration and perform the following steps
-  # 1.) Tune to find the optimal alpha for each fold - using tuneAlpha function
-  # 2.) create a model using glmnet
-  # 3.) return the betas as a numeric vector
-  # All of this is going to be done inparallel ... so should be good
-  output <- foreach(i=seq(1,trainingIterations), .combine='rbind') %dopar% {
-    # First load required library(s)
-    source('/home/adrose/adroseHelperScripts/R/afgrHelpFunc.R')
-    source('/home/adrose/varSelectionHiLo/scripts/functions.R')
-    install_load('glmnet', 'bootstrap', 'psych')
-
-    # First find the optimum values to use for glmnet
-    optVals <- tuneAlpha(inputData, y, alphaSequence, nofFolds)[1]
-
-
-    # Now we need to create our final model with our opt vals
-    mod <- glmnet(inputData, y, standardize=F, alpha=optVals[1], lambda=optVals[2], maxit=100000000)
-
-    # Now return our values
-    valsToReturn <- optVals[1]
-  }
-  # Kill our cluster
-  stopCluster(cl)
-
-  # Now return our output  
-  outputMatrix[,2:ncol(outputMatrix)] <- output
-  #outputMatrix <- output
-  return(outputMatrix)
+    # First thing we have to do is prepare our output
+    outputMatrix <- matrix(0, ncol(x), trainingIterations+1)
+    outputMatrix[,1] <- colnames(x)
+    
+    # Now we need to make sure our inputs are the correct formats
+    inputData <- as.matrix(x)
+    
+    # Now set up our parallel environment
+    cl <- makeCluster(nCor)
+    registerDoParallel(cl)
+    
+    # Now lets run through each iteration and perform the following steps
+    # 1.) Tune to find the optimal alpha for each fold - using tuneAlpha function
+    # 2.) create a model using glmnet
+    # 3.) return the betas as a numeric vector
+    # All of this is going to be done inparallel ... so should be good
+    output <- foreach(i=seq(1,trainingIterations), .combine='rbind') %dopar% {
+        # First load required library(s)
+        source('/home/adrose/adroseHelperScripts/R/afgrHelpFunc.R')
+        source('/home/adrose/varSelectionHiLo/scripts/functions.R')
+        install_load('glmnet', 'bootstrap', 'psych')
+        
+        # First find the optimum values to use for glmnet
+        optVals <- tuneAlpha(inputData, y, alphaSequence, nofFolds)
+        
+        
+        # Now we need to create our final model with our opt vals
+        mod <- glmnet(inputData, y, standardize=F, alpha=optVals[1], lambda=optVals[2], maxit=100000000)
+        
+        # Now return our values
+        valsToReturn <- as.numeric(mod$beta)
+    }
+    # Kill our cluster
+    stopCluster(cl)
+    
+    # Now return our output  
+    outputMatrix[,2:ncol(outputMatrix)] <- output
+    return(outputMatrix)
 }
 
 # Now create a vector of the optVals
