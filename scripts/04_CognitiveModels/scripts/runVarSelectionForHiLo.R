@@ -82,6 +82,7 @@ female.vol.outcome <- scale(female.vol.data$F1_Exec_Comp_Cog_Accuracy)[,1]
 
 # Now run the variable selection
 femaleVolBetaMatrix <- runLassoforHiLo(female.vol.values, female.vol.outcome, nCor=30)
+femaleVolAlphaVector <- returnOptAlpha(female.vol.values, female.vol.outcome, nCor=30)
 femaleVolValues <- rmFat(femaleVolBetaMatrix, female.vol.values)
 femaleVolFitStats <- computeModelFitMetrics(returnBetas=T,x = femaleVolValues, y= female.vol.outcome)
 
@@ -96,6 +97,7 @@ male.cbf.values <- male.cbf.values[complete.cases(male.cbf.data[,cbf.col]),]
 
 # Now run the variable selection 
 maleCbfBetaMatrix <- runLassoforHiLo(male.cbf.values, male.cbf.outcome, nCor=25)
+maleCbfAlphaVector <- returnOptAlpha(male.cbf.values, male.cbf.outcome, nCor=30)
 maleCbfValues <- rmFat(maleCbfBetaMatrix, male.cbf.values)
 maleCbfFitStats <- computeModelFitMetrics(returnBetas=T,x = maleCbfValues, y= male.cbf.outcome)
 
@@ -108,6 +110,7 @@ female.cbf.values <- female.cbf.values[complete.cases(female.cbf.data[,cbf.col])
 
 # Now run the variable selection 
 femaleCbfBetaMatrix <- runLassoforHiLo(female.cbf.values, female.cbf.outcome, nCor=25)
+femaleCbfAlphaVector <- returnOptAlpha(female.cbf.values, female.cbf.outcome, nCor=30)
 femaleCbfValues <- rmFat(femaleCbfBetaMatrix, female.cbf.values)
 femaleCbfFitStats <- computeModelFitMetrics(returnBetas=T,x = femaleCbfValues, y= female.cbf.outcome)
 
@@ -121,6 +124,7 @@ male.gmd.values <- male.gmd.values[complete.cases(male.gmd.data[,gmd.col]),]
 
 # Now run the variable selection 
 maleGmdBetaMatrix <- runLassoforHiLo(male.gmd.values, male.gmd.outcome, nCor=25)
+maleGmdAlphaVector <- returnOptAlpha(male.gmd.values, male.gmd.outcome, nCor=30)
 maleGmdValues <- rmFat(maleGmdBetaMatrix, male.gmd.values)
 maleGmdFitStats <- computeModelFitMetrics(returnBetas=T,x = maleGmdValues, y= male.gmd.outcome)
 
@@ -132,6 +136,7 @@ female.gmd.outcome <- female.gmd.outcome[complete.cases(female.gmd.data[,gmd.col
 female.gmd.values <- female.gmd.values[complete.cases(female.gmd.data[,gmd.col]),]
 
 femaleGmdBetaMatrix <- runLassoforHiLo(female.gmd.values, female.gmd.outcome, nCor=25)
+femaleGmdAlphaVector <- returnOptAlpha(female.gmd.values, female.gmd.outcome, nCor=30)
 femaleGmdValues <- rmFat(femaleGmdBetaMatrix, female.gmd.values)
 femaleGmdFitStats <- computeModelFitMetrics(returnBetas=T,x = femaleGmdValues, y= female.gmd.outcome)
 
@@ -145,6 +150,7 @@ male.ct.values <- male.ct.values[complete.cases(male.ct.data[,ct.col]),]
 
 # Now run the variable selection 
 maleCtBetaMatrix <- runLassoforHiLo(male.ct.values, male.ct.outcome, nCor=25)
+maleCtAlphaVector <- returnOptAlpha(male.ct.values, male.ct.outcome, nCor=30)
 maleCtValues <- rmFat(maleCtBetaMatrix, male.ct.values)
 maleCtFitStats <- computeModelFitMetrics(returnBetas=T,x = maleCtValues, y= male.ct.outcome)
 
@@ -156,6 +162,7 @@ female.ct.outcome <- female.ct.outcome[complete.cases(female.ct.data[,ct.col])]
 female.ct.values <- female.ct.values[complete.cases(female.ct.data[,ct.col]),]
 
 femaleCtBetaMatrix <- runLassoforHiLo(female.ct.values, female.ct.outcome, nCor=25)
+femaleCtAlphaVector <- returnOptAlpha(female.ct.values, female.ct.outcome, nCor=30)
 femaleCtValues <- rmFat(femaleCtBetaMatrix, female.ct.values)
 femaleCtFitStats <- computeModelFitMetrics(returnBetas=T,x= femaleCtValues, y = female.ct.outcome)
 
@@ -169,6 +176,7 @@ male.reho.outcome <- male.reho.outcome[complete.cases(male.reho.data[,reho.col])
 male.reho.values <- male.reho.values[complete.cases(male.reho.data[,reho.col]),]
 # Now run the variable selection
 maleRehoBetaMatrix <- runLassoforHiLo(male.reho.values, male.reho.outcome, nCor=30)
+maleRehoAlphaVector <- returnOptAlpha(male.reho.values, male.reho.outcome, nCor=30)
 maleRehoValues <- rmFat(maleRehoBetaMatrix, male.reho.values)
 maleRehoFitStats <- computeModelFitMetrics(returnBetas=T,x = maleRehoValues, y= male.reho.outcome)
 
@@ -181,6 +189,7 @@ female.reho.values <- female.reho.values[complete.cases(female.reho.data[,reho.c
 
 # Now run the variable selection
 femaleRehoBetaMatrix <- runLassoforHiLo(female.reho.values, female.reho.outcome, nCor=30)
+femaleRehoAlphaVector <- returnOptAlpha(female.reho.values, female.reho.outcome, nCor=30)
 femaleRehoValues <- rmFat(femaleRehoBetaMatrix, female.reho.values)
 femaleRehoFitStats <- computeModelFitMetrics(returnBetas=T,x = femaleRehoValues, y= female.reho.outcome)
 
@@ -193,6 +202,7 @@ male.alff.outcome <- male.alff.outcome[complete.cases(male.alff.data[,alff.col])
 male.alff.values <- male.alff.values[complete.cases(male.alff.data[,alff.col]),]
 # Now run the variable selection
 maleAlffBetaMatrix <- runLassoforHiLo(male.alff.values, male.alff.outcome, nCor=30)
+maleAlffAlphaVector <- returnOptAlpha(male.alff.values, male.alff.outcome, nCor=30)
 maleAlffValues <- rmFat(maleAlffBetaMatrix, male.alff.values)
 maleAlffFitStats <- computeModelFitMetrics(returnBetas=T,x = maleAlffValues, y= male.alff.outcome)
 
@@ -205,6 +215,7 @@ female.alff.values <- female.alff.values[complete.cases(female.alff.data[,alff.c
 
 # Now run the variable selection
 femaleAlffBetaMatrix <- runLassoforHiLo(female.alff.values, female.alff.outcome, nCor=30)
+femaleAlffAlphaVector <- returnOptAlpha(female.alff.values, female.alff.outcome, nCor=30)
 femaleAlffValues <- rmFat(femaleAlffBetaMatrix, female.alff.values)
 femaleAlffFitStats <- computeModelFitMetrics(returnBetas=T,x = femaleAlffValues, y= female.alff.outcome)
 
@@ -217,6 +228,7 @@ male.tr.outcome <- male.tr.outcome[complete.cases(male.tr.data[,tr.col])]
 male.tr.values <- male.tr.values[complete.cases(male.tr.data[,tr.col]),]
 # Now run the variable selection
 maleTrBetaMatrix <- runLassoforHiLo(male.tr.values, male.tr.outcome, nCor=30)
+maleTrAlphaVector <- returnOptAlpha(male.tr.values, male.tr.outcome, nCor=30)
 maleTrValues <- rmFat(maleTrBetaMatrix, male.tr.values)
 maleTrFitStats <- computeModelFitMetrics(returnBetas=T,x = maleTrValues, y= male.tr.outcome)
 
@@ -227,6 +239,7 @@ female.tr.outcome <- scale(female.tr.data$F1_Exec_Comp_Cog_Accuracy)[,1]
 
 # Now run the variable selection
 femaleTrBetaMatrix <- runLassoforHiLo(female.tr.values, female.tr.outcome, nCor=30)
+femaleTrAlphaVector <- returnOptAlpha(female.tr.values, female.tr.outcome, nCor=30)
 femaleTrValues <- rmFat(femaleTrBetaMatrix, female.tr.values)
 femaleTrFitStats <- computeModelFitMetrics(returnBetas=T,x = femaleTrValues, y= female.tr.outcome)
 
@@ -239,6 +252,7 @@ male.ad.outcome <- male.ad.outcome[complete.cases(male.ad.data[,ad.col])]
 male.ad.values <- male.ad.values[complete.cases(male.ad.data[,ad.col]),]
 # Now run the variable selection
 maleAdBetaMatrix <- runLassoforHiLo(male.ad.values, male.ad.outcome, nCor=30)
+maleAdAlphaVector <- returnOptAlpha(male.ad.values, male.ad.outcome, nCor=30)
 maleAdValues <- rmFat(maleAdBetaMatrix, male.ad.values)
 maleAdFitStats <- computeModelFitMetrics(returnBetas=T,x = maleAdValues, y= male.ad.outcome)
 
@@ -249,6 +263,7 @@ female.ad.outcome <- scale(female.ad.data$F1_Exec_Comp_Cog_Accuracy)[,1]
 
 # Now run the variable selection
 femaleAdBetaMatrix <- runLassoforHiLo(female.ad.values, female.ad.outcome, nCor=30)
+femaleAdAlphaVector <- returnOptAlpha(female.ad.values, female.ad.outcome, nCor=30)
 femaleAdValues <- rmFat(femaleAdBetaMatrix, female.ad.values)
 femaleAdFitStats <- computeModelFitMetrics(returnBetas=T,x = femaleAdValues, y= female.ad.outcome)
 
@@ -261,6 +276,7 @@ male.rd.outcome <- male.rd.outcome[complete.cases(male.rd.data[,rd.col])]
 male.rd.values <- male.rd.values[complete.cases(male.rd.data[,rd.col]),]
 # Now run the variable selection
 maleRdBetaMatrix <- runLassoforHiLo(male.rd.values, male.rd.outcome, nCor=30)
+maleRdAlphaVector <- returnOptAlpha(male.rd.values, male.rd.outcome, nCor=30)
 maleRdValues <- rmFat(maleRdBetaMatrix, male.rd.values)
 maleRdFitStats <- computeModelFitMetrics(returnBetas=T,x = maleRdValues, y= male.rd.outcome)
 
@@ -271,6 +287,7 @@ female.rd.outcome <- scale(female.rd.data$F1_Exec_Comp_Cog_Accuracy)[,1]
 
 # Now run the variable selection
 femaleRdBetaMatrix <- runLassoforHiLo(female.rd.values, female.rd.outcome, nCor=30)
+femaleRdAlphaVector <- returnOptAlpha(female.rd.values, female.rd.outcome, nCor=30)
 femaleRdValues <- rmFat(femaleRdBetaMatrix, female.rd.values)
 femaleRdFitStats <- computeModelFitMetrics(returnBetas=T,x = femaleRdValues, y= female.rd.outcome)
 
@@ -372,6 +389,7 @@ male.all.values <- male.all.values[complete.cases(male.all.data[,all.col]),]
 
 # Now run var selection
 maleAllBetaMatrix <- runLassoforHiLo(male.all.values, male.all.outcome, nCor=30)
+maleAllAlphaVector <- returnOptAlpha(male.all.values, male.all.outcome, nCor=30)
 maleAllValues <- rmFat(maleAllBetaMatrix, male.all.values)
 maleAllFitStats <- computeModelFitMetrics(returnBetas=T,x = maleAllValues, y= male.all.outcome)
 
