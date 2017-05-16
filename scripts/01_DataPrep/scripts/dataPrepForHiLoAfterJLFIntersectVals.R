@@ -99,7 +99,11 @@ fa.data$ageAtGo1Scan <- data.values$ageAtGo1Scan[match(fa.data$bblid, data.value
 
 
 ## Prepare the raw data
+volume.data <- volume.data[,-grep('Cerebral_White_Matter', names(volume.data))]
+#volume.data <- volume.data[,-grep('_WM', names(volume.data))]
 volume.data.raw <- volume.data
+cbf.data <- cbf.data[,-grep('Cerebral_White_Matter', names(cbf.data))]
+cbf.data <- cbf.data[,-grep('WM', names(cbf.data))]
 cbf.data.raw <- cbf.data
 gmd.data.raw <- gmd.data
 ct.data.raw <- ct.data
@@ -151,7 +155,8 @@ reho.data[,grep('rest_jlf_reho', names(reho.data))] <- apply(reho.data[,grep('re
 alff.data <- alff.data.raw
 #alff.data <- regressOutVolumeAndAge(volume.data, alff.data, 'rest_jlf_alff')
 alff.data[,grep('rest_jlf_alff', names(alff.data))] <- apply(alff.data[,grep('rest_jlf_alff', names(alff.data))], 2, function(x) regressOutAge(x, alff.data$ageAtGo1Scan, alff.data$restRelMeanRMSMotion))
-volume.data[,29:176] <- apply(volume.data[,29:176], 2, function(x) regressOutAge(x, volume.data$ageAtGo1Scan, volume.data$averageManualRating))
+volIndex <- max(grep('mprage_jlf_vol_', names(volume.data)))
+volume.data[,29:volIndex] <- apply(volume.data[,29:volIndex], 2, function(x) regressOutAge(x, volume.data$ageAtGo1Scan, volume.data$averageManualRating))
 
 # Now average the left and right data sets
 volume.data <- averageLeftAndRight(volume.data)
@@ -187,7 +192,7 @@ reho.data[,grep('rest_jlf_reho', names(reho.data))] <- apply(reho.data[,grep('re
 alff.data <- alff.data.raw
 #alff.data <- regressOutVolumeAndAge(volume.data, alff.data, 'rest_jlf_alff')
 alff.data[,grep('rest_jlf_alff', names(alff.data))] <- apply(alff.data[,grep('rest_jlf_alff', names(alff.data))], 2, function(x) regressOutAge(x, alff.data$ageAtGo1Scan, alff.data$restRelMeanRMSMotion))
-volume.data[,29:176] <- apply(volume.data[,29:176], 2, function(x) regressOutAge(x, volume.data$ageAtGo1Scan, volume.data$averageManualRating))
+volume.data[,29:volIndex] <- apply(volume.data[,29:volIndex], 2, function(x) regressOutAge(x, volume.data$ageAtGo1Scan, volume.data$averageManualRating))
 
 # Now average the left and right data sets
 volume.data <- averageLeftAndRight(volume.data)
@@ -198,11 +203,9 @@ reho.data <- averageLeftAndRight(reho.data)
 alff.data <- averageLeftAndRight(alff.data)
 
 # Now perform the modality regressing
-volume.data <- volume.data[,-grep('Cerebral_White_Matter', names(volume.data))]
+#volume.data <- volume.data[,-grep('Cerebral_White_Matter', names(volume.data))]
 #volume.data <- volume.data[,-grep('WM', names(volume.data))]
 volume.data <- regressWithinModality(volume.data, 'mprage_jlf_vol')
-cbf.data <- cbf.data[,-grep('Cerebral_White_Matter', names(cbf.data))]
-cbf.data <- cbf.data[,-grep('WM', names(cbf.data))]
 cbf.data <- regressWithinModality(cbf.data, 'pcasl_jlf_cbf')
 gmd.data <- regressWithinModality(gmd.data, 'mprage_jlf_gmd')
 ct.data <- regressWithinModality(ct.data, 'mprage_jlf_ct')
