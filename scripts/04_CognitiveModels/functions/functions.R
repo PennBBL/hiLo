@@ -110,8 +110,7 @@ rmFat <- function(outputFromrunLasso, imagingData, cutoffToApply=NULL){
   }  
   # First create our bool vector
   boo.vec <- rep('FALSE', nrow(outputFromrunLasso))
-  sumIndex <- rowSums(abs(sign(apply(outputFromrunLasso[,2:ncol(outputFromrunLasso)], 
-              2, function(x) as.numeric(as.character(x))))))
+  sumIndex <- returnSelection(outputFromrunLasso)
   boo.vec[which(sumIndex>=cutoffToApply)] <- 'TRUE'
   index <- which(boo.vec=='TRUE')
   # Now apply our boo vec to the imaging data
@@ -168,7 +167,7 @@ computeModelFitMetrics <- function(x, y, seedValue=1, nGroups=10, returnBetas=F)
   if(returnBetas=='TRUE'){
     outputList <- list()
     outputList[[1]] <- output
-    outputList[[2]] <- coefficients(modm)
+    outputList[[2]] <- coefficients(modm)[order(coefficients(modm), decreasing=T)]
     output <- outputList
   }
   return(output)
