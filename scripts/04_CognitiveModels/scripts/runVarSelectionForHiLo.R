@@ -359,6 +359,12 @@ female.all.values <- scale(female.all.data[,all.col])[,1:length(all.col)]
 female.all.outcome <- scale(female.all.data$F1_Exec_Comp_Cog_Accuracy)[,1]
 
 # Now run the variable selection
-femaleAllBetaMatrix <- runLassoforHiLo(female.all.values, female.all.outcome, nCor=30,alphaSequence=.5)
+femaleAllBetaMatrix <- runLassoforHiLo(female.all.values, female.all.outcome, nCor=30,alphaSequence=1)
 femaleAllValues <- rmFat(femaleAllBetaMatrix, female.all.values)
-femaleAllFitStats <- computeModelFitMetrics(returnBetas=T,x = femaleAllValues, y= female.all.outcome)
+femaleAllFitStats1 <- computeModelFitMetrics(returnBetas=T,x = femaleAllValues, y= female.all.outcome)
+femaleAllBetaMatrix <- runLassoforHiLo(femaleAllValues, female.all.outcome, nCor=30,alphaSequence=1)
+femaleAllValues <- rmFat(femaleAllBetaMatrix, femaleAllValues)
+femaleAllFitStats2 <- computeModelFitMetrics(returnBetas=T,x = femaleAllValues, y= female.all.outcome)
+femaleAllBetaMatrix <- runLassoforHiLo(femaleAllValues, female.all.outcome, nCor=30,alphaSequence=1)
+femaleAllValues <- rmFat(femaleAllBetaMatrix, femaleAllValues)
+femaleAllFitStats3 <- computeModelFitMetrics(returnBetas=T,x = femaleAllValues, y= female.all.outcome)
