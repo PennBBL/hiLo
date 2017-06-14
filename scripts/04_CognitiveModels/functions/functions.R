@@ -210,5 +210,26 @@ computeModelFitMetrics2 <- function(xTrain, xValid, yTrain,yValid,returnBetas=F)
 returnFullModel <- function(inputMaleMetrics, inputFemaleMetrics){
   # Find all of the male ROI's
   maleAllRegions <- names(inputMaleMetrics[[2]])
-  maleAllRegions 
+  # Rm the intercept
+  maleAllRegions <- maleAllRegions[-grep('Intercept', maleAllRegions)]
+  # now remove all fields before jlf
+  maleAllRegions <- strSplitMatrixReturn(maleAllRegions, ')')[,2]
+  # Now do the same for the female regions
+  femaleAllRegions <- names(inputFemaleMetrics[[2]])
+  femaleAllRegions <- femaleAllRegions[-grep('Intercept', femaleAllRegions)]
+  femaleAllRegions <- strSplitMatrixReturn(femaleAllRegions, ')')[,2]
+  # now append and find all unique values
+  allRegions <- unique(append(maleAllRegions, femaleAllRegions))
+  # Now create the formula
+  formulaOut <- paste(allRegions, collapse='+')
+  formulaOut <- paste('F1_Exec_Comp_Cog_Accuracy ~', formulaOut, sep='')
+  formulaOut <- as.formula(formulaOut)
+  return(formulaOut)
+}
+
+# create a boot strap function which will return the coefficients
+bs <- function(formula, data, indices) {
+    d <- data[indices,] # allows boot to select sample
+    fit <- lm(formula, data=d)
+    return(coef(fit))
 }

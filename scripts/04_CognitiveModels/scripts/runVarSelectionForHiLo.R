@@ -371,3 +371,24 @@ femaleAllFitStats3 <- computeModelFitMetrics(returnBetas=T,x = femaleAllValues, 
 
 ## Now perform an analysis to see if the variables selected for each modality differ across genders
 ## This will be performed by getting boot strapped confidence intervals for the selected regression coefficients.
+
+## Load library(s)
+install_load('boot')
+
+## Now test the volume straps
+male.vol.values <- as.data.frame(male.vol.values)
+male.vol.values$F1_Exec_Comp_Cog_Accuracy <- male.vol.outcome
+female.vol.values <- as.data.frame(female.vol.values)
+female.vol.values$F1_Exec_Comp_Cog_Accuracy <- female.vol.outcome
+volFormula <- returnFullModel(maleVolFitStats, femaleVolFitStats)
+resultsMale <- boot(data=male.vol.values, statistic=bs, R=10000, formula=volFormula)
+resultsFemale <- boot(data=female.vol.values, statistic=bs, R=10000, formula=volFormula)
+# Now find the difference across folds
+diffValues <- resultsMale$t-resultsFemale$t
+# Now produce the histograms
+roiNames <- strSplitMatrixReturn(as.character(strSplitMatrixReturn(volFormula, '~')[3]), 'mprage_jlf_vol_')
+pdf('volStrap.pdf')
+for(i in 1:dim(diffValues)[2]){
+  hist(diffValues[,i], main=roiNames[i])
+}
+dev.off()
