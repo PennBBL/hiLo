@@ -12,6 +12,7 @@ val7 <- cor(output.TR.x, output.TR.y, method = "s", use = "complete")
 val8 <- cor(output.RD.x, output.RD.y, method = "s", use = "complete")
 val9 <- cor(output.AD.x, output.AD.y, method = "s", use = "complete")
 detach(thing1)
+write.csv(thing1, 'allValues.csv', quote=F, row.names=F)
 outputFemale <- c(val1, val2, val3, val4, val5, val6, val7, val8, val9)
 
 tmp1 <- read.csv('./maleFitBetas.csv')

@@ -205,3 +205,10 @@ computeModelFitMetrics2 <- function(xTrain, xValid, yTrain,yValid,returnBetas=F)
   return(output)
 }
 
+# Create a function which will find the superset of all ROI's
+# and then return the full model
+returnFullModel <- function(inputMaleMetrics, inputFemaleMetrics){
+  # Find all of the male ROI's
+  maleAllRegions <- names(inputMaleMetrics[[2]])
+  maleAllRegions 
+}

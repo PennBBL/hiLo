@@ -368,3 +368,6 @@ femaleAllFitStats2 <- computeModelFitMetrics(returnBetas=T,x = femaleAllValues, 
 femaleAllBetaMatrix <- runLassoforHiLo(femaleAllValues, female.all.outcome, nCor=30,alphaSequence=1)
 femaleAllValues <- rmFat(femaleAllBetaMatrix, femaleAllValues)
 femaleAllFitStats3 <- computeModelFitMetrics(returnBetas=T,x = femaleAllValues, y= female.all.outcome)
+
+## Now perform an analysis to see if the variables selected for each modality differ across genders
+## This will be performed by getting boot strapped confidence intervals for the selected regression coefficients.
