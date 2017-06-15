@@ -385,10 +385,46 @@ resultsMale <- boot(data=male.vol.values, statistic=bs, R=10000, formula=volForm
 resultsFemale <- boot(data=female.vol.values, statistic=bs, R=10000, formula=volFormula)
 # Now find the difference across folds
 diffValues <- resultsMale$t-resultsFemale$t
+# Now get a mn and a max value for the histograms
+minVal <- floor(min(diffValues))
+maxVal <- ceiling(max(diffValues))
 # Now produce the histograms
 roiNames <- strSplitMatrixReturn(as.character(strSplitMatrixReturn(volFormula, '~')[3]), 'mprage_jlf_vol_')
 pdf('volStrap.pdf')
 for(i in 1:dim(diffValues)[2]){
-  hist(diffValues[,i], main=roiNames[i])
+  hist(diffValues[,i], main=roiNames[i], xlim=c(minVal, maxVal), ylim=c(0,3000))
+  abline(v=mean(diffValues[,i]))
+  stdVal <- sd(diffValues[,i])
+  lowerVal <- mean(diffValues[,i]) - (2.5*stdVal)
+  upperVal <- mean(diffValues[,i]) + (2.5*stdVal)
+  abline(v=lowerVal)
+  abline(v=upperVal)
+}
+dev.off()
+
+## Now do CBF
+male.cbf.values <- as.data.frame(male.cbf.values)
+male.cbf.values$F1_Exec_Comp_Cog_Accuracy <- male.cbf.outcome
+female.cbf.values <- as.data.frame(female.cbf.values)
+female.cbf.values$F1_Exec_Comp_Cog_Accuracy <- female.cbf.outcome
+cbfFormula <- returnFullModel(maleCbfFitStats, femaleCbfFitStats)
+resultsMale <- boot(data=male.cbf.values, statistic=bs, R=10000, formula=cbfFormula)
+resultsFemale <- boot(data=female.cbf.values, statistic=bs, R=10000, formula=cbfFormula)
+# Now find the difference across folds
+diffValues <- resultsMale$t-resultsFemale$t
+# Now get a mn and a max value for the histograms
+minVal <- floor(min(diffValues))
+maxVal <- ceiling(max(diffValues))
+# Now produce the histograms
+roiNames <- strSplitMatrixReturn(as.character(strSplitMatrixReturn(cbfFormula, '~')[3]), 'pcasl_jlf_cbf_')
+pdf('cbfStrap.pdf')
+for(i in 1:dim(diffValues)[2]){
+    hist(diffValues[,i], main=roiNames[i], xlim=c(minVal, maxVal), ylim=c(0,3000))
+    abline(v=mean(diffValues[,i]))
+    stdVal <- sd(diffValues[,i])
+    lowerVal <- mean(diffValues[,i]) - (2.5*stdVal)
+    upperVal <- mean(diffValues[,i]) + (2.5*stdVal)
+    abline(v=lowerVal)
+    abline(v=upperVal)
 }
 dev.off()
