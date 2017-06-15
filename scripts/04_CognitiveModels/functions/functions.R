@@ -231,5 +231,7 @@ returnFullModel <- function(inputMaleMetrics, inputFemaleMetrics){
 bs <- function(formula, data, indices) {
     d <- data[indices,] # allows boot to select sample
     fit <- lm(formula, data=d)
-    return(coef(fit))
+    outVals <- coef(fit)
+    outVals <- outVals[-grep('ntercept', names(outVals))]
+    return(outVals)
 }

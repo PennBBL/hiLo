@@ -26,6 +26,8 @@ paste1Val <- 'mprage_jlf_gmd_'
 paste2Val <- 'mprage_jlf_vol_'
 outcome <- allData$F1_Exec_Comp_Cog_Accuracy
 outVal <- NULL
+weightMax <- NULL
+pdf('allR2Vals.pdf')
 for(nameVal in valsToLoop){
   grepVal1 <- paste(paste1Val, nameVal, sep='')
   grepVal2 <- paste(paste2Val, nameVal, sep='')
@@ -40,10 +42,12 @@ for(nameVal in valsToLoop){
     print(paste('GMD weight=', weightValues[wVals,1], 'R^2 value = ', sMod1, ' for ', nameVal, sep=' '))
     tmpVals <- append(tmpVals, sMod1)
   }
+  weightMax <- append(weightMax, which(tmpVals==max(tmpVals)))
+  hist(tmpVals, main=nameVal)
   outTmp <- append(nameVal, tmpVals)
   outVal <- rbind(outVal, outTmp)
 }
-
+dev.off()
 # Because we see just about 0 variance in the R2 across the different weights I am going to explore the 
 # package Warren recomended, the "mfp" package
 install_load('mfp')
@@ -58,5 +62,6 @@ for(nameVal in valsToLoop){
   formulaValue1 <- as.formula(paste('F1_Exec_Comp_Cog_Accuracy ~ ', grepVal1, '*', grepVal2)) 
   formulaValue2 <- as.formula(paste('F1_Exec_Comp_Cog_Accuracy ~ ', 'fp(',grepVal1, ',df=4, scale=T)', '*', 'fp(', grepVal2, ',df=4, scale=T)'))
   mod1 <- lm(formulaValue1, data=allData)
-  mod2 <- mfp(formulaValue, data=allData, family="gaussian")
+  #mod2 <- mfp(formulaValue2, data=allData)
+  print(summary(mod1))
 }

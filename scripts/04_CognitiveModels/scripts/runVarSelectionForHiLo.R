@@ -392,7 +392,7 @@ maxVal <- ceiling(max(diffValues))
 roiNames <- strSplitMatrixReturn(as.character(strSplitMatrixReturn(volFormula, '~')[3]), 'mprage_jlf_vol_')
 pdf('volStrap.pdf')
 for(i in 1:dim(diffValues)[2]){
-  hist(diffValues[,i], main=roiNames[i], xlim=c(minVal, maxVal), ylim=c(0,3000))
+  hist(diffValues[,i], main=roiNames[i], xlim=c(-1, 1), ylim=c(0,3000))
   abline(v=mean(diffValues[,i]))
   stdVal <- sd(diffValues[,i])
   lowerVal <- mean(diffValues[,i]) - (2.5*stdVal)
@@ -419,7 +419,88 @@ maxVal <- ceiling(max(diffValues))
 roiNames <- strSplitMatrixReturn(as.character(strSplitMatrixReturn(cbfFormula, '~')[3]), 'pcasl_jlf_cbf_')
 pdf('cbfStrap.pdf')
 for(i in 1:dim(diffValues)[2]){
-    hist(diffValues[,i], main=roiNames[i], xlim=c(minVal, maxVal), ylim=c(0,3000))
+    hist(diffValues[,i], main=roiNames[i], xlim=c(-1, 1), ylim=c(0,3000))
+    abline(v=mean(diffValues[,i]))
+    stdVal <- sd(diffValues[,i])
+    lowerVal <- mean(diffValues[,i]) - (2.5*stdVal)
+    upperVal <- mean(diffValues[,i]) + (2.5*stdVal)
+    abline(v=lowerVal)
+    abline(v=upperVal)
+}
+dev.off()
+
+## Now do GMD
+male.gmd.values <- as.data.frame(male.gmd.values)
+male.gmd.values$F1_Exec_Comp_Cog_Accuracy <- male.gmd.outcome
+female.gmd.values <- as.data.frame(female.gmd.values)
+female.gmd.values$F1_Exec_Comp_Cog_Accuracy <- female.gmd.outcome
+gmdFormula <- returnFullModel(maleGmdFitStats, femaleGmdFitStats)
+resultsMale <- boot(data=male.gmd.values, statistic=bs, R=10000, formula=gmdFormula)
+resultsFemale <- boot(data=female.gmd.values, statistic=bs, R=10000, formula=gmdFormula)
+# Now find the difference across folds
+diffValues <- resultsMale$t-resultsFemale$t
+# Now get a mn and a max value for the histograms
+minVal <- floor(min(diffValues))
+maxVal <- ceiling(max(diffValues))
+# Now produce the histograms
+roiNames <- strSplitMatrixReturn(as.character(strSplitMatrixReturn(gmdFormula, '~')[3]), 'mpragwe_jlf_gmd_')
+pdf('gmdStrap.pdf')
+for(i in 1:dim(diffValues)[2]){
+    hist(diffValues[,i], main=roiNames[i], xlim=c(-1, 1), ylim=c(0,3000))
+    abline(v=mean(diffValues[,i]))
+    stdVal <- sd(diffValues[,i])
+    lowerVal <- mean(diffValues[,i]) - (2.5*stdVal)
+    upperVal <- mean(diffValues[,i]) + (2.5*stdVal)
+    abline(v=lowerVal)
+    abline(v=upperVal)
+}
+dev.off()
+
+## Now do CT
+male.ct.values <- as.data.frame(male.ct.values)
+male.ct.values$F1_Exec_Comp_Cog_Accuracy <- male.ct.outcome
+female.ct.values <- as.data.frame(female.ct.values)
+female.ct.values$F1_Exec_Comp_Cog_Accuracy <- female.ct.outcome
+ctFormula <- returnFullModel(maleCtFitStats, femaleCtFitStats)
+resultsMale <- boot(data=male.ct.values, statistic=bs, R=10000, formula=ctFormula)
+resultsFemale <- boot(data=female.ct.values, statistic=bs, R=10000, formula=ctFormula)
+# Now find the difference across folds
+diffValues <- resultsMale$t-resultsFemale$t
+# Now get a mn and a max value for the histograms
+minVal <- floor(min(diffValues))
+maxVal <- ceiling(max(diffValues))
+# Now produce the histograms
+roiNames <- strSplitMatrixReturn(as.character(strSplitMatrixReturn(ctFormula, '~')[3]), 'mprage_jlf_ct_')
+pdf('ctStrap.pdf')
+for(i in 1:dim(diffValues)[2]){
+    hist(diffValues[,i], main=roiNames[i], xlim=c(-1, 1), ylim=c(0,3000))
+    abline(v=mean(diffValues[,i]))
+    stdVal <- sd(diffValues[,i])
+    lowerVal <- mean(diffValues[,i]) - (2.5*stdVal)
+    upperVal <- mean(diffValues[,i]) + (2.5*stdVal)
+    abline(v=lowerVal)
+    abline(v=upperVal)
+}
+dev.off()
+
+## Now do Reho
+male.reho.values <- as.data.frame(male.reho.values)
+male.reho.values$F1_Exec_Comp_Cog_Accuracy <- male.reho.outcome
+female.reho.values <- as.data.frame(female.reho.values)
+female.reho.values$F1_Exec_Comp_Cog_Accuracy <- female.reho.outcome
+rehoFormula <- returnFullModel(maleRehoFitStats, femaleRehoFitStats)
+resultsMale <- boot(data=male.reho.values, statistic=bs, R=10000, formula=rehoFormula)
+resultsFemale <- boot(data=female.reho.values, statistic=bs, R=10000, formula=rehoFormula)
+# Now find the difference across folds
+diffValues <- resultsMale$t-resultsFemale$t
+# Now get a mn and a max value for the histograms
+minVal <- floor(min(diffValues))
+maxVal <- ceiling(max(diffValues))
+# Now produce the histograms
+roiNames <- strSplitMatrixReturn(as.chararehoer(strSplitMatrixReturn(rehoFormula, '~')[3]), 'rest_jlf_reho_')
+pdf('rehoStrap.pdf')
+for(i in 1:dim(diffValues)[2]){
+    hist(diffValues[,i], main=roiNames[i], xlim=c(-1, 1), ylim=c(0,3000))
     abline(v=mean(diffValues[,i]))
     stdVal <- sd(diffValues[,i])
     lowerVal <- mean(diffValues[,i]) - (2.5*stdVal)
