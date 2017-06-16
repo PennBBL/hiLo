@@ -76,12 +76,6 @@ ad.data.1 <- rbind(ad.data.1, returnStandardizedGenderMeans(ad.data, 'dti_jlf_ad
 ad.data.1 <- rbind(ad.data.1, returnStandardizedGenderMeans(ad.data, 'dti_jlf_ad', '', 'Early Adulthood'))
 ad.data.1$ageBin <- factor(ad.data.1$ageBin, levels=c('Early Adulthood','Adolescence','Childhood'))
 
-# Now do FA
-fa.data.1 <- returnStandardizedGenderMeans(fa.data, 'dti_jlf_fa', '', 'Childhood')
-fa.data.1 <- rbind(fa.data.1, returnStandardizedGenderMeans(fa.data, 'dti_jlf_fa', '', 'Adolescence'))
-fa.data.1 <- rbind(fa.data.1, returnStandardizedGenderMeans(fa.data, 'dti_jlf_fa', '', 'Early Adulthood'))
-fa.data.1$ageBin <- factor(fa.data.1$ageBin, levels=c('Early Adulthood','Adolescence','Childhood'))
-
 # Now onto RD
 rd.data.1 <- returnStandardizedGenderMeans(rd.data, 'dti_jlf_rd', '', 'Childhood')
 rd.data.1 <- rbind(rd.data.1, returnStandardizedGenderMeans(rd.data, 'dti_jlf_rd', '', 'Adolescence'))

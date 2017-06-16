@@ -109,16 +109,16 @@ reorganizeLobeOrder <- function(dataFrame, lobeOfInterest){
     tmpDF <- dataFrame[tmpDF,]
   }
   if(lobeOfInterest == "Limbic"){
-    inputRois <- c("PHG","Hip","PIns","SCA","AIns","ACgG","PCgG","Ent","Amygdala","MCgG")
+    inputRois <- c("PHG","Hippocampus","PIns","SCA","AIns","ACgG","PCgG","Ent","Amygdala","MCgG")
     #outputRois <- c("PHG","PCgG","Hip","ACgG","SCA","Ains","Pins","Ent","MCgG","Amygdala")
-    outputRois <- c("Ent","PHG","Amygdala","SCA","Hip","Ains","Pins","ACgG","PCgG","MCgG")
+    outputRois <- c("Ent","PHG","Amygdala","SCA","Hippocampus","AIns","PIns","ACgG","PCgG","MCgG")
     tmpDF <- which(dataFrame$lobe==lobeOfInterest)
     tmpDF <- dataFrame[tmpDF,]
   }
   if(lobeOfInterest == "Frontal Orbital"){
     inputRois <- c("FO","MFC","MOrG","POrG","OrIFG","TrIFG","AOrG","OpIFG","GRe","FRP", "LOrG")
     #outputRois <- c("POrG","AOrG","FO","OrIFG","OpIFG","MFC","MOrG","LOrG","TrIFG","FRP","Gre")
-    outputRois <- c("Gre","MOrG","POrG","MFC","LOrG","AOrG","OrIFG","FRP","FO","TrIFG","OpIFG")
+    outputRois <- c("GRe","MOrG","POrG","MFC","LOrG","AOrG","OrIFG","FRP","FO","TrIFG","OpIFG")
     tmpDF <- which(dataFrame$lobe==lobeOfInterest)
     tmpDF <- dataFrame[tmpDF,]
   }
@@ -139,11 +139,11 @@ reorganizeLobeOrder <- function(dataFrame, lobeOfInterest){
   if(lobeOfInterest == "Parietal"){
     inputRois <- c("PCu","PoG","AnG","PO","SPL","MPrG","SMG","MPoG")
     #outputRois <- c("Pcu","PoG","MPrG","SPL","MPoG","PO","SMG","AnG")
-    outputRois <- c("PO","AnG","Pcu","SMG","PoG","SPL","MPrG","MPoG")
+    outputRois <- c("PO","AnG","PCu","SMG","PoG","SPL","MPrG","MPoG")
     tmpDF <- which(dataFrame$lobe==lobeOfInterest)
     tmpDF <- dataFrame[tmpDF,]
   }
-  if(lobeOfInterest == "Occipital & Cerebellum"){
+  if(lobeOfInterest == "Occipital"){
     inputRois <- c("IOG","Cun","LiG","OFuG","MOG","Calc","OCP","SOG")
     #outputRois <- c("LiG","MOG","OFuG","SOG","IOG","OCP","Cun","Calc")
     outputRois <- c("OFuG","LiG","IOG","OCP","Calc","Cun","MOG","SOG")
@@ -151,8 +151,8 @@ reorganizeLobeOrder <- function(dataFrame, lobeOfInterest){
     tmpDF <- dataFrame[tmpDF,]
   }
   if(lobeOfInterest == "Cerebellum"){
-    inputRois <- c("Cer_Exterior", "CerVer_I_V", "CerVer_VI_VII", "CerVer_VIII_X")
-    outputRois <- c("Cer_Exterior", "CerVer_I_V", "CerVer_VI_VII", "CerVer_VIII_X")
+    inputRois <- c("Cerebellum_Exterior", "Cerebellar_Vermal_Lobules_I.V", "Cerebellar_Vermal_Lobules_VI.VII", "Cerebellar_Vermal_Lobules_VIII.X")
+    outputRois <- c("Cerebellum_Exterior", "Cerebellar_Vermal_Lobules_I.V", "Cerebellar_Vermal_Lobules_VI.VII", "Cerebellar_Vermal_Lobules_VIII.X")
     tmpDF <- which(dataFrame$lobe==lobeOfInterest)
     tmpDF <- dataFrame[tmpDF,]
   }
@@ -198,19 +198,19 @@ reorganizeLobeOrder <- function(dataFrame, lobeOfInterest){
 
 
 # Create a function whichh will modify the ROI names 
-organizeROINames <- function(dataFrame){
+organizeROINames <- function(dataFrame, cerebellum=F){
   rois<-c("Thal","Putamen","Caudate","Pallidum",  # Basal Ganglia
           "Accumbens", "BasFor", # Basal Ganglia
-          "PHG","Hip","Pins","SCA","Ains", # Limbic
+          "PHG","Hip","PIns","SCA","AIns", # Limbic
           "ACgG","PCgG","Ent","Amygdala","MCgG", # Limbic
-          "FO","MFC","MOrG","POrG","OrIFG","TrIFG","AOrG","OpIFG","Gre", # Frontal Orbital
+          "FO","MFC","MOrG","POrG","OrIFG","TrIFG","AOrG","OpIFG","GRe", # Frontal Orbital
           "FRP", "LOrG", # Frontal Orbital
           "PrG","MSFG","SMC","MFG","SFG", # Frontal Dorsal
           "FuG","PT","PP","ITG","CO","MTG","TMP","STG","TTG", # Temporal
-          "Pcu","PoG","AnG","PO","SPL","MPrG", # Parietal
+          "PCu","PoG","AnG","PO","SPL","MPrG", # Parietal
           "SMG","MPoG", # Parietal
           "IOG","Cun","LiG","OFuG","MOG","Calc","OCP","SOG", # Occiptal
-          "Cer_Exterior", "CerVer_I_V", "CerVer_VI_VII", "CerVer_VIII_X") # Cerebellum
+          "Cerebellum_Exterior", "Cerebellar_Vermal_Lobules_I.V", "Cerebellar_Vermal_Lobules_VI.VII", "Cerebellar_Vermal_Lobules_VIII.X") # Cerebellum
 
 
 
@@ -244,7 +244,7 @@ organizeROINames <- function(dataFrame){
   outputDataFrame$lobe[outputDataFrame$lobe==4] <- "Frontal Dorsal"
   outputDataFrame$lobe[outputDataFrame$lobe==5] <- "Temporal"
   outputDataFrame$lobe[outputDataFrame$lobe==6] <- "Parietal"
-  outputDataFrame$lobe[outputDataFrame$lobe==7] <- "Occipital & Cerebellum"
+  outputDataFrame$lobe[outputDataFrame$lobe==7] <- "Occipital"
   outputDataFrame$lobe[outputDataFrame$lobe==8] <- "Cerebellum"
 
   # Fix the POrG issue
@@ -255,21 +255,24 @@ organizeROINames <- function(dataFrame){
 
   # Now resort the roi's
   tempDF <- reorganizeLobeOrder(outputDataFrame,"Basal Ganglia")
-  tempDF$ROI <- revalue(tempDF$ROI, c("Putamen"="Put", "Accumbens_Area"="NA", "Pallidum"="GP", "BasForebr"="BasF","Thalamus_Proper"="Tha","Caudate"="CN"))
+  tempDF$ROI <- revalue(tempDF$ROI, c("Putamen"="Put", "Accumbens_Area"="NA", "Pallidum"="GP","Thalamus_Proper"="Tha","Caudate"="CN"))
   tempDF <- rbind(tempDF, reorganizeLobeOrder(outputDataFrame,"Limbic"))
   tempDF$ROI <- revalue(tempDF$ROI, c("Amygdala"="Amy"))
   tempDF <- rbind(tempDF, reorganizeLobeOrder(outputDataFrame,"Frontal Orbital"))
   tempDF <- rbind(tempDF, reorganizeLobeOrder(outputDataFrame,"Frontal Dorsal"))
   tempDF <- rbind(tempDF, reorganizeLobeOrder(outputDataFrame,"Temporal"))
   tempDF <- rbind(tempDF, reorganizeLobeOrder(outputDataFrame,"Parietal"))
-  tempDF <- rbind(tempDF, reorganizeLobeOrder(outputDataFrame,"Occipital & Cerebellum"))
-  #tempDF <- rbind(tempDF, reorganizeLobeOrder(outputDataFrame,"Cerebellum"))
+  tempDF <- rbind(tempDF, reorganizeLobeOrder(outputDataFrame,"Occipital"))
+  if(cerebellum == 'TRUE'){
+    tempDF <- rbind(tempDF, reorganizeLobeOrder(outputDataFrame,"Cerebellum"))
+  }
   tempDF$ROI <- factor(tempDF$ROI, levels=rev(unique(as.character(tempDF$ROI))))
-  tempDF$lobe <- factor(tempDF$lobe, levels=c("Basal Ganglia","Limbic", "Frontal Orbital", "Frontal Dorsal", "Temporal", "Parietal","Occipital & Cerebellum", "Cerebellum"))
+  tempDF$lobe <- factor(tempDF$lobe, levels=c("Basal Ganglia","Limbic", "Frontal Orbital", "Frontal Dorsal", "Temporal", "Parietal","Occipital", "Cerebellum"))
   outputDataFrame <- tempDF
   outputDataFrame$meanValue <- as.numeric(as.character(outputDataFrame$meanValue))
   return(outputDataFrame)
 }
+
 
 addAgeBins <- function(ageValues, dataFrame, lowerAge, upperAge, ageBinName){
   ageValuesOfInterest <- which(ageValues > lowerAge & ageValues <= upperAge)
@@ -317,16 +320,16 @@ upper_order <- 1
 organizeROINamesCT <- function(dataFrame){
   rois<-c("Thal","Putamen","Caudate","Pallidum",  # Basal Ganglia
           "Accumbens", "BasFor", # Basal Ganglia
-          "PHG","Hip","Pins","SCA","Ains", # Limbic
+          "PHG","Hip","PIns","SCA","AIns", # Limbic
           "ACgG","PCgG","Ent","Amygdala","MCgG", # Limbic
-          "FO","MFC","MOrG","POrG","OrIFG","TrIFG","AOrG","OpIFG","Gre", # Frontal Orbital
+          "FO","MFC","MOrG","POrG","OrIFG","TrIFG","AOrG","OpIFG","GRe", # Frontal Orbital
           "FRP", "LOrG", # Frontal Orbital
           "PrG","MSFG","SMC","MFG","SFG", # Frontal Dorsal
           "FuG","PT","PP","ITG","CO","MTG","TMP","STG","TTG", # Temporal
-          "Pcu","PoG","AnG","PO","SPL","MPrG", # Parietal
+          "PCu","PoG","AnG","PO","SPL","MPrG", # Parietal
           "SMG","MPoG", # Parietal
           "IOG","Cun","LiG","OFuG","MOG","Calc","OCP","SOG", # Occiptal
-          "Cer_Exterior", "CerVer_I_V", "CerVer_VI_VII", "CerVer_VIII_X") # Cerebellum
+          "Cerebellum_Exterior", "Cerebellar_Vermal_Lobules_I.V", "Cerebellar_Vermal_Lobules_VI.VII", "Cerebellar_Vermal_Lobules_VIII.X") # Cerebellum
 
 
 
@@ -360,8 +363,7 @@ organizeROINamesCT <- function(dataFrame){
   outputDataFrame$lobe[outputDataFrame$lobe==4] <- "Frontal Dorsal"
   outputDataFrame$lobe[outputDataFrame$lobe==5] <- "Temporal"
   outputDataFrame$lobe[outputDataFrame$lobe==6] <- "Parietal"
-  outputDataFrame$lobe[outputDataFrame$lobe==7] <- "Occipital & Cerebellum"
-  outputDataFrame$lobe[outputDataFrame$lobe==8] <- "Cerebellum"
+  outputDataFrame$lobe[outputDataFrame$lobe==7] <- "Occipital"
 
   # Fix the POrG issue
   porgRows <- grep("POrG", outputDataFrame$ROI_readable)  
@@ -378,7 +380,7 @@ organizeROINamesCT <- function(dataFrame){
   tempDF <- rbind(tempDF, reorganizeLobeOrder(outputDataFrame,"Frontal Dorsal"))
   tempDF <- rbind(tempDF, reorganizeLobeOrder(outputDataFrame,"Temporal"))
   tempDF <- rbind(tempDF, reorganizeLobeOrder(outputDataFrame,"Parietal"))
-  tempDF <- rbind(tempDF, reorganizeLobeOrder(outputDataFrame,"Occipital & Cerebellum"))
+  tempDF <- rbind(tempDF, reorganizeLobeOrder(outputDataFrame,"Occipital"))
   #tempDF <- rbind(tempDF, reorganizeLobeOrder(outputDataFrame,"Cerebellum"))
   tempDF$ROI <- factor(tempDF$ROI, levels=rev(unique(as.character(tempDF$ROI))))
   tempDF$lobe <- factor(tempDF$lobe, levels=c("Basal Ganglia","Limbic", "Frontal Orbital", "Frontal Dorsal", "Temporal", "Parietal","Occipital & Cerebellum", "Cerebellum"))
