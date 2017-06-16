@@ -373,7 +373,7 @@ femaleAllFitStats3 <- computeModelFitMetrics(returnBetas=T,x = femaleAllValues, 
 ## This will be performed by getting boot strapped confidence intervals for the selected regression coefficients.
 
 ## Load library(s)
-install_load('boot')
+install_load('boot', 'data.table')
 
 ## Now test the volume straps
 male.vol.values <- as.data.frame(male.vol.values)
@@ -390,17 +390,22 @@ minVal <- floor(min(diffValues))
 maxVal <- ceiling(max(diffValues))
 # Now produce the histograms
 roiNames <- strSplitMatrixReturn(as.character(strSplitMatrixReturn(volFormula, '~')[3]), 'mprage_jlf_vol_')
+sigVals <- NULL
 pdf('volStrap.pdf')
 for(i in 1:dim(diffValues)[2]){
   hist(diffValues[,i], main=roiNames[i], xlim=c(-1, 1), ylim=c(0,3000))
   abline(v=mean(diffValues[,i]))
-  stdVal <- sd(diffValues[,i])
-  lowerVal <- mean(diffValues[,i]) - (2.5*stdVal)
-  upperVal <- mean(diffValues[,i]) + (2.5*stdVal)
+  stdVal <- stand_err(diffValues[,i])
+  lowerVal <- mean(diffValues[,i]) - (1.96*stdVal)
+  upperVal <- mean(diffValues[,i]) + (1.96*stdVal)
   abline(v=lowerVal)
   abline(v=upperVal)
+  if(between(0, lowerVal, upperVal)=='FALSE'){
+    sigVals <- append(sigVals, roiNames[i])
+  }
 }
 dev.off()
+write.csv(sigVals, 'sigVolVals.csv', quote=F)
 
 ## Now do CBF
 male.cbf.values <- as.data.frame(male.cbf.values)
@@ -417,17 +422,22 @@ minVal <- floor(min(diffValues))
 maxVal <- ceiling(max(diffValues))
 # Now produce the histograms
 roiNames <- strSplitMatrixReturn(as.character(strSplitMatrixReturn(cbfFormula, '~')[3]), 'pcasl_jlf_cbf_')
+sigVals <- NULL
 pdf('cbfStrap.pdf')
 for(i in 1:dim(diffValues)[2]){
     hist(diffValues[,i], main=roiNames[i], xlim=c(-1, 1), ylim=c(0,3000))
     abline(v=mean(diffValues[,i]))
-    stdVal <- sd(diffValues[,i])
-    lowerVal <- mean(diffValues[,i]) - (2.5*stdVal)
-    upperVal <- mean(diffValues[,i]) + (2.5*stdVal)
+    stdVal <- stand_err(diffValues[,i])
+    lowerVal <- mean(diffValues[,i]) - (1.96*stdVal)
+    upperVal <- mean(diffValues[,i]) + (1.96*stdVal)
     abline(v=lowerVal)
     abline(v=upperVal)
+  if(between(0, lowerVal, upperVal)=='FALSE'){
+    sigVals <- append(sigVals, roiNames[i])
+  }
 }
 dev.off()
+write.csv(sigVals, 'sigVolVals.csv', quote=F)
 
 ## Now do GMD
 male.gmd.values <- as.data.frame(male.gmd.values)
@@ -444,17 +454,22 @@ minVal <- floor(min(diffValues))
 maxVal <- ceiling(max(diffValues))
 # Now produce the histograms
 roiNames <- strSplitMatrixReturn(as.character(strSplitMatrixReturn(gmdFormula, '~')[3]), 'mpragwe_jlf_gmd_')
+sigVals <- NULL
 pdf('gmdStrap.pdf')
 for(i in 1:dim(diffValues)[2]){
     hist(diffValues[,i], main=roiNames[i], xlim=c(-1, 1), ylim=c(0,3000))
     abline(v=mean(diffValues[,i]))
-    stdVal <- sd(diffValues[,i])
-    lowerVal <- mean(diffValues[,i]) - (2.5*stdVal)
-    upperVal <- mean(diffValues[,i]) + (2.5*stdVal)
+    stdVal <- stand_err(diffValues[,i])
+    lowerVal <- mean(diffValues[,i]) - (1.96*stdVal)
+    upperVal <- mean(diffValues[,i]) + (1.96*stdVal)
     abline(v=lowerVal)
     abline(v=upperVal)
+  if(between(0, lowerVal, upperVal)=='FALSE'){
+    sigVals <- append(sigVals, roiNames[i])
+  }
 }
 dev.off()
+write.csv(sigVals, 'sigGmdVals.csv', quote=F)
 
 ## Now do CT
 male.ct.values <- as.data.frame(male.ct.values)
@@ -471,17 +486,22 @@ minVal <- floor(min(diffValues))
 maxVal <- ceiling(max(diffValues))
 # Now produce the histograms
 roiNames <- strSplitMatrixReturn(as.character(strSplitMatrixReturn(ctFormula, '~')[3]), 'mprage_jlf_ct_')
+sigVals <- NULL
 pdf('ctStrap.pdf')
 for(i in 1:dim(diffValues)[2]){
     hist(diffValues[,i], main=roiNames[i], xlim=c(-1, 1), ylim=c(0,3000))
     abline(v=mean(diffValues[,i]))
-    stdVal <- sd(diffValues[,i])
-    lowerVal <- mean(diffValues[,i]) - (2.5*stdVal)
-    upperVal <- mean(diffValues[,i]) + (2.5*stdVal)
+    stdVal <- stand_err(diffValues[,i])
+    lowerVal <- mean(diffValues[,i]) - (1.96*stdVal)
+    upperVal <- mean(diffValues[,i]) + (1.96*stdVal)
     abline(v=lowerVal)
     abline(v=upperVal)
+  if(between(0, lowerVal, upperVal)=='FALSE'){
+    sigVals <- append(sigVals, roiNames[i])
+  }
 }
 dev.off()
+write.csv(sigVals, 'sigCtVals.csv', quote=F)
 
 ## Now do Reho
 male.reho.values <- as.data.frame(male.reho.values)
@@ -497,15 +517,20 @@ diffValues <- resultsMale$t-resultsFemale$t
 minVal <- floor(min(diffValues))
 maxVal <- ceiling(max(diffValues))
 # Now produce the histograms
-roiNames <- strSplitMatrixReturn(as.chararehoer(strSplitMatrixReturn(rehoFormula, '~')[3]), 'rest_jlf_reho_')
+roiNames <- strSplitMatrixReturn(as.character(strSplitMatrixReturn(rehoFormula, '~')[3]), 'rest_jlf_reho_')
+sigVals <- NULL
 pdf('rehoStrap.pdf')
 for(i in 1:dim(diffValues)[2]){
     hist(diffValues[,i], main=roiNames[i], xlim=c(-1, 1), ylim=c(0,3000))
     abline(v=mean(diffValues[,i]))
-    stdVal <- sd(diffValues[,i])
-    lowerVal <- mean(diffValues[,i]) - (2.5*stdVal)
-    upperVal <- mean(diffValues[,i]) + (2.5*stdVal)
+    stdVal <- stand_err(diffValues[,i])
+    lowerVal <- mean(diffValues[,i]) - (1.96*stdVal)
+    upperVal <- mean(diffValues[,i]) + (1.96*stdVal)
     abline(v=lowerVal)
     abline(v=upperVal)
+  if(between(0, lowerVal, upperVal)=='FALSE'){
+    sigVals <- append(sigVals, roiNames[i])
+  }
 }
 dev.off()
+write.csv(sigVals, 'sigRehoVals.csv', quote=F)

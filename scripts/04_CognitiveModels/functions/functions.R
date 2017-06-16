@@ -235,3 +235,10 @@ bs <- function(formula, data, indices) {
     outVals <- outVals[-grep('ntercept', names(outVals))]
     return(outVals)
 }
+
+# Create a function to claculate stand error
+# Create a function which will give me the standard error 
+stand_err <- function(input_vector){
+  tmp <- sd(input_vector,na.rm=T)/sqrt(sum(!is.na(input_vector)))
+  return(tmp)
+}
