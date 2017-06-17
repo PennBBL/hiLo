@@ -453,7 +453,7 @@ diffValues <- resultsMale$t-resultsFemale$t
 minVal <- floor(min(diffValues))
 maxVal <- ceiling(max(diffValues))
 # Now produce the histograms
-roiNames <- strSplitMatrixReturn(as.character(strSplitMatrixReturn(gmdFormula, '~')[3]), 'mpragwe_jlf_gmd_')
+roiNames <- strSplitMatrixReturn(as.character(strSplitMatrixReturn(gmdFormula, '~')[3]), 'mprage_jlf_gmd_')
 sigVals <- NULL
 pdf('gmdStrap.pdf')
 for(i in 1:dim(diffValues)[2]){
@@ -534,3 +534,67 @@ for(i in 1:dim(diffValues)[2]){
 }
 dev.off()
 write.csv(sigVals, 'sigRehoVals.csv', quote=F)
+
+## Now do ALFF
+male.alff.values <- as.data.frame(male.alff.values)
+male.alff.values$F1_Exec_Comp_Cog_Accuracy <- male.alff.outcome
+female.alff.values <- as.data.frame(female.alff.values)
+female.alff.values$F1_Exec_Comp_Cog_Accuracy <- female.alff.outcome
+alffFormula <- returnFullModel(maleAlffFitStats, femaleAlffFitStats)
+resultsMale <- boot(data=male.alff.values, statistic=bs, R=10000, formula=alffFormula)
+resultsFemale <- boot(data=female.alff.values, statistic=bs, R=10000, formula=alffFormula)
+# Now find the difference across folds
+diffValues <- resultsMale$t-resultsFemale$t
+# Now get a mn and a max value for the histograms
+minVal <- floor(min(diffValues))
+maxVal <- ceiling(max(diffValues))
+# Now produce the histograms
+roiNames <- strSplitMatrixReturn(as.character(strSplitMatrixReturn(alffFormula, '~')[3]), 'rest_jlf_alff_')
+sigVals <- NULL
+pdf('alffStrap.pdf')
+for(i in 1:dim(diffValues)[2]){
+    hist(diffValues[,i], main=roiNames[i], xlim=c(-1, 1), ylim=c(0,3000))
+    abline(v=mean(diffValues[,i]))
+    stdVal <- stand_err(diffValues[,i])
+    lowerVal <- mean(diffValues[,i]) - (1.96*stdVal)
+    upperVal <- mean(diffValues[,i]) + (1.96*stdVal)
+    abline(v=lowerVal)
+    abline(v=upperVal)
+  if(between(0, lowerVal, upperVal)=='FALSE'){
+    sigVals <- append(sigVals, roiNames[i])
+  }
+}
+dev.off()
+write.csv(sigVals, 'sigAlffVals.csv', quote=F)
+
+## Now do Tr
+male.tr.values <- as.data.frame(male.tr.values)
+male.tr.values$F1_Exec_Comp_Cog_Accuracy <- male.tr.outcome
+female.tr.values <- as.data.frame(female.tr.values)
+female.tr.values$F1_Exec_Comp_Cog_Accuracy <- female.tr.outcome
+trFormula <- returnFullModel(maleTrFitStats, femaleTrFitStats)
+resultsMale <- boot(data=male.tr.values, statistic=bs, R=10000, formula=trFormula)
+resultsFemale <- boot(data=female.tr.values, statistic=bs, R=10000, formula=trFormula)
+# Now find the difference across folds
+diffValues <- resultsMale$t-resultsFemale$t
+# Now get a mn and a max value for the histograms
+minVal <- floor(min(diffValues))
+maxVal <- ceiling(max(diffValues))
+# Now produce the histograms
+roiNames <- strSplitMatrixReturn(as.character(strSplitMatrixReturn(trFormula, '~')[3]), 'rest_jlf_tr_')
+sigVals <- NULL
+pdf('trStrap.pdf')
+for(i in 1:dim(diffValues)[2]){
+    hist(diffValues[,i], main=roiNames[i], xlim=c(-1, 1), ylim=c(0,3000))
+    abline(v=mean(diffValues[,i]))
+    stdVal <- stand_err(diffValues[,i])
+    lowerVal <- mean(diffValues[,i]) - (1.96*stdVal)
+    upperVal <- mean(diffValues[,i]) + (1.96*stdVal)
+    abline(v=lowerVal)
+    abline(v=upperVal)
+  if(between(0, lowerVal, upperVal)=='FALSE'){
+    sigVals <- append(sigVals, roiNames[i])
+  }
+}
+dev.off()
+write.csv(sigVals, 'sigTrVals.csv', quote=F)

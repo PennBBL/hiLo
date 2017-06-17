@@ -383,7 +383,7 @@ organizeROINamesCT <- function(dataFrame){
   tempDF <- rbind(tempDF, reorganizeLobeOrder(outputDataFrame,"Occipital"))
   #tempDF <- rbind(tempDF, reorganizeLobeOrder(outputDataFrame,"Cerebellum"))
   tempDF$ROI <- factor(tempDF$ROI, levels=rev(unique(as.character(tempDF$ROI))))
-  tempDF$lobe <- factor(tempDF$lobe, levels=c("Basal Ganglia","Limbic", "Frontal Orbital", "Frontal Dorsal", "Temporal", "Parietal","Occipital & Cerebellum", "Cerebellum"))
+  tempDF$lobe <- factor(tempDF$lobe, levels=c("Basal Ganglia","Limbic", "Frontal Orbital", "Frontal Dorsal", "Temporal", "Parietal","Occipital"))
   outputDataFrame <- tempDF
   outputDataFrame$meanValue <- as.numeric(as.character(outputDataFrame$meanValue))
   return(outputDataFrame)
