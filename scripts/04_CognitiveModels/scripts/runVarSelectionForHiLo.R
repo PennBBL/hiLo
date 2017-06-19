@@ -437,7 +437,7 @@ for(i in 1:dim(diffValues)[2]){
   }
 }
 dev.off()
-write.csv(sigVals, 'sigVolVals.csv', quote=F)
+write.csv(sigVals, 'sigCbfVals.csv', quote=F)
 
 ## Now do GMD
 male.gmd.values <- as.data.frame(male.gmd.values)
