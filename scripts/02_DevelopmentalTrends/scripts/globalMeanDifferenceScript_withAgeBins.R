@@ -138,7 +138,7 @@ colnames(ad.data)[69] <- 'dti_dtitk_jhulabel_ad_rlic'
 ad.data.1 <- returnStandardizedWM1GenderMeans(ad.data, "Childhood")
 ad.data.1 <- rbind(ad.data.1, returnStandardizedWM1GenderMeans(ad.data, "Adolescence"))
 ad.data.1 <- rbind(ad.data.1, returnStandardizedWM1GenderMeans(ad.data, "Early Adulthood"))
-ad.data.1$ageBin <- factor(ad.data.1$ageBin, levels=c("Childhood","Adolescence", "Early Adulthood"))
+ad.data.1$ageBin <- factor(ad.data.1$ageBin, levels=c("Early Adulthood","Adolescence", "Childhood"))
 ad.data.1<- ad.data.1[-which(ad.data.1$ROI=='tap'),]
 
 # Now do FA
@@ -146,7 +146,7 @@ colnames(fa.data)[69] <- 'dti_dtitk_jhulabel_fa_rlic'
 fa.data.1 <- returnStandardizedWM1GenderMeans(fa.data, "Childhood")
 fa.data.1 <- rbind(fa.data.1, returnStandardizedWM1GenderMeans(fa.data, "Adolescence"))
 fa.data.1 <- rbind(fa.data.1, returnStandardizedWM1GenderMeans(fa.data, "Early Adulthood"))
-fa.data.1$ageBin <- factor(fa.data.1$ageBin, levels=c("Childhood","Adolescence", "Early Adulthood"))
+fa.data.1$ageBin <- factor(fa.data.1$ageBin, levels=c("Early Adulthood","Adolescence", "Childhood"))
 fa.data.1<- fa.data.1[-which(fa.data.1$ROI=='tap'),]
 
 # Now onto RD 
@@ -154,7 +154,7 @@ fa.data.1<- fa.data.1[-which(fa.data.1$ROI=='tap'),]
 rd.data.1 <- returnStandardizedWM1GenderMeans(rd.data, "Childhood")
 rd.data.1 <- rbind(rd.data.1, returnStandardizedWM1GenderMeans(rd.data, "Adolescence"))
 rd.data.1 <- rbind(rd.data.1, returnStandardizedWM1GenderMeans(rd.data, "Early Adulthood"))
-rd.data.1$ageBin <- factor(rd.data.1$ageBin, levels=c("Childhood","Adolescence", "Early Adulthood"))
+rd.data.1$ageBin <- factor(rd.data.1$ageBin, levels=c("Early Adulthood","Adolescence", "Childhood"))
 rd.data.1<- rd.data.1[-which(rd.data.1$ROI=='tap'),]
 
 # Now do TR
@@ -162,14 +162,14 @@ colnames(tr.data)[69] <- "dti_dtitk_jhulabel_tr_rlic"
 tr.data.1 <- returnStandardizedWM1GenderMeans(tr.data, "Childhood")
 tr.data.1 <- rbind(tr.data.1, returnStandardizedWM1GenderMeans(tr.data, "Adolescence"))
 tr.data.1 <- rbind(tr.data.1, returnStandardizedWM1GenderMeans(tr.data, "Early Adulthood"))
-tr.data.1$ageBin <- factor(tr.data.1$ageBin, levels=c("Childhood","Adolescence", "Early Adulthood"))
+tr.data.1$ageBin <- factor(tr.data.1$ageBin, levels=c("Early Adulthood","Adolescence", "Childhood"))
 tr.data.1<- tr.data.1[-which(tr.data.1$ROI=='tap'),]
 
 # Now plot these suckers 
 adPlot <- createGGPlotImage(ad.data.1, 'WM Labels Axial Diffusitivity', -1, 1, .2)
 faPlot <- createGGPlotImage(fa.data.1, 'WM Labels Fractional Anisotropy', -1, 1, .2)
-rdPlot <- createGGPlotImage(rd.data.1, 'Radial Diffusitivity', -1.2, 1, .2)
-trPlot <- createGGPlotImage(tr.data.1, 'WM Labels Trace (Mean Diffusitivity)', -1, 1, .2)
+rdPlot <- createGGPlotImage(rd.data.1, 'WM Labels Radial Diffusitivity', -1.2, 1, .2)
+trPlot <- createGGPlotImage(tr.data.1, 'WM Labels Trace', -1, 1, .2)
 
 # Now plot them all
 pdf('developmentalFiguresWMLabels.pdf' ,height=20, width=20)

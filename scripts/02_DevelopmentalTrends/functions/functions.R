@@ -104,7 +104,7 @@ reorganizeLobeOrder <- function(dataFrame, lobeOfInterest){
     inputRois <- c("Thal","Putamen","Caudate","Pallidum","Accumbens")
     #outputRois <- c("Caudate","Thalamus_Proper","BasFor","Pallidum","Accumbens_Area","Putamen")
     #outputRois <- c("BasForebr","Accumbens_Area","Pallidum","Putamen","Thalamus_Proper","Caudate")
-    outputRois <- c("Putamen", "Caudate", "Accumbens_Area", "Pallidum", "Thalamus_Proper")
+    outputRois <- c("Putamen", "Pallidum","Caudate", "Accumbens_Area", "Thalamus_Proper")
     tmpDF <- which(dataFrame$lobe==lobeOfInterest)
     tmpDF <- dataFrame[tmpDF,]
   }
