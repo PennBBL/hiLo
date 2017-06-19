@@ -237,7 +237,7 @@ all.tr <- rbind(child.tr, adol.tr, adult.tr)
 adPlot <- createGGPlotImage(all.ad, 'AD Hi-Lo JLF Data', -.6 , 1, .2)
 faPlot <- createGGPlotImage(all.fa, 'FA Hi-Lo JLF Data', -1 , 1, .2)
 rdPlot <- createGGPlotImage(all.rd, 'RD Hi-Lo JLF Data', -.8, 1, .2)
-trPlot <- createGGPlotImage(all.tr, 'RD Hi-Lo JLF Data', -.7, 1, .2)
+trPlot <- createGGPlotImage(all.tr, 'TR Hi-Lo JLF Data', -.7, 1, .2)
 
 # Now print em out 
 pdf('noAgeRegHi-LoGraphs-LoWMLabels.pdf', width=20, height=20)
@@ -266,7 +266,7 @@ tr.data.age.reg <- doEverythingEver(tr.data, 'dti_dtitk_jhulabel_tr', 0, 167, 'A
 adPlot <- createGGPlotImage(all.ad, 'AD Hi-Lo JLF Data Age Reg', -.6 , 1, .2)
 faPlot <- createGGPlotImage(all.fa, 'FA Hi-Lo JLF Data Age Reg', -1 , 1, .2)
 rdPlot <- createGGPlotImage(all.rd, 'RD Hi-Lo JLF Data Age Reg', -.8, 1, .2)
-trPlot <- createGGPlotImage(all.tr, 'RD Hi-Lo JLF Data Age Reg', -.7, 1, .2)
+trPlot <- createGGPlotImage(all.tr, 'TR Hi-Lo JLF Data Age Reg', -.7, 1, .2)
 
 # Now print em out 
 pdf('ageRegHi-LoGraphs-LoWMLabels.pdf', width=20, height=20)
