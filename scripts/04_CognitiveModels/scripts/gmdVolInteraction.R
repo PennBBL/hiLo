@@ -65,3 +65,26 @@ for(nameVal in valsToLoop){
   #mod2 <- mfp(formulaValue2, data=allData)
   print(summary(mod1))
 }
+
+# Now compare the beta weights within the same ROI across GMD and VOL
+# First we need to get the mean volume per JLF ROI
+meanValues <- apply(vol.data[,grep('mprage_jlf_vol', names(vol.data))], 2, mean)
+names(meanValues) <- gsub(x=names(meanValues), pattern='mprage_jlf_vol_', replacement='')
+allData[,31:171] <- scale(allData[,31:171])
+allData$F1_Exec_Comp_Cog_Accuracy <- scale(allData$F1_Exec_Comp_Cog_Accuracy)
+outputVals <- NULL
+for(nameVal in valsToLoop){
+  grepVal1 <- paste(paste1Val, nameVal, sep='')
+  grepVal2 <- paste(paste2Val, nameVal, sep='')
+  formVal <- as.formula(paste('F1_Exec_Comp_Cog_Accuracy ~ ', grepVal1, '+', grepVal2))
+  volMeanVal <- mean(as.numeric(unlist(vol.data[grepVal2])))
+  mod1 <- lm(formVal, data=allData)
+  totalBeta <- sum(abs(coef(mod1)[2:3]))
+  volTotal <- abs(coef(mod1)[3])/totalBeta
+  gmdTotal <- abs(coef(mod1)[2])/totalBeta
+  outVals <- c(nameVal, volMeanVal, volTotal, gmdTotal)
+  outputVals <- rbind(outputVals, outVals)
+}
+
+# Now get a corellation between mean parcel size and the relative importance 
+
