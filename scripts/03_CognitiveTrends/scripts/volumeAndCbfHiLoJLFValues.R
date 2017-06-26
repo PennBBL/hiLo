@@ -213,26 +213,27 @@ child.ad <- doEverythingEver(ad.data, 'dti_dtitk_jhulabel_ad', 0, 167, 'Childhoo
 adol.ad <- doEverythingEver(ad.data, 'dti_dtitk_jhulabel_ad', 168, 215, 'Adolescence')
 adult.ad <- doEverythingEver(ad.data, 'dti_dtitk_jhulabel_ad', 216, 999, 'Early Adulthood')
 all.ad <- rbind(child.ad, adol.ad, adult.ad)
+levels(all.ad$ageBin) <- c("Early Adulthood","Adolescence","Childhood")
 # Now FA
 colnames(fa.data)[69] <- 'dti_dtitk_jhulabel_fa_rlic'
 child.fa <- doEverythingEver(fa.data, 'dti_dtitk_jhulabel_fa', 0, 167, 'Childhood')
 adol.fa <- doEverythingEver(fa.data, 'dti_dtitk_jhulabel_fa', 168, 215, 'Adolescence')
 adult.fa <- doEverythingEver(fa.data, 'dti_dtitk_jhulabel_fa', 216, 999, 'Early Adulthood')
 all.fa <- rbind(child.fa, adol.fa, adult.fa)
-
+levels(all.fa$ageBin) <- c("Early Adulthood","Adolescence","Childhood")
 # Now RD
 child.rd <- doEverythingEver(rd.data, 'dti_dtitk_jhulabels_rd', 0, 167, 'Childhood')
 adol.rd <- doEverythingEver(rd.data, 'dti_dtitk_jhulabels_rd', 168, 215, 'Adolescence')
 adult.rd <- doEverythingEver(rd.data, 'dti_dtitk_jhulabels_rd', 216, 999, 'Early Adulthood')
 all.rd <- rbind(child.rd, adol.rd, adult.rd)
-
+levels(all.rd$ageBin) <- c("Early Adulthood","Adolescence","Childhood")
 # Now do tr data
 colnames(tr.data)[69] <- "dti_dtitk_jhulabel_tr_rlic"
 child.tr <- doEverythingEver(tr.data, 'dti_dtitk_jhulabel_tr', 0, 167, 'Childhood')
 adol.tr <- doEverythingEver(tr.data, 'dti_dtitk_jhulabel_tr', 168, 215, 'Adolescence')
 adult.tr <- doEverythingEver(tr.data, 'dti_dtitk_jhulabel_tr', 216, 999, 'Early Adulthood')
 all.tr <- rbind(child.tr, adol.tr, adult.tr)
-
+levels(all.tr$ageBin) <- c("Early Adulthood","Adolescence","Childhood")
 # Now plot em 
 adPlot <- createGGPlotImage(all.ad, 'AD Hi-Lo JLF Data', -.6 , 1, .2)
 faPlot <- createGGPlotImage(all.fa, 'FA Hi-Lo JLF Data', -1 , 1, .2)
@@ -263,10 +264,10 @@ ad.data.age.reg <- doEverythingEver(ad.data, 'dti_dtitk_jhulabel_ad', 0, 167, 'A
 fa.data.age.reg <- doEverythingEver(fa.data, 'dti_dtitk_jhulabel_fa', 0, 167, 'Age Regressed')
 rd.data.age.reg <- doEverythingEver(rd.data, 'dti_dtitk_jhulabels_rd', 0, 167, 'Age Regressed')
 tr.data.age.reg <- doEverythingEver(tr.data, 'dti_dtitk_jhulabel_tr', 0, 167, 'Age Regressed')
-adPlot <- createGGPlotImage(all.ad, 'AD Hi-Lo JLF Data Age Reg', -.6 , 1, .2)
-faPlot <- createGGPlotImage(all.fa, 'FA Hi-Lo JLF Data Age Reg', -1 , 1, .2)
-rdPlot <- createGGPlotImage(all.rd, 'RD Hi-Lo JLF Data Age Reg', -.8, 1, .2)
-trPlot <- createGGPlotImage(all.tr, 'TR Hi-Lo JLF Data Age Reg', -.7, 1, .2)
+adPlot <- createGGPlotImage(ad.data.age.reg, 'AD Hi-Lo JLF Data Age Reg', -.6 , 1, .2)
+faPlot <- createGGPlotImage(fa.data.age.reg, 'FA Hi-Lo JLF Data Age Reg', -1 , 1, .2)
+rdPlot <- createGGPlotImage(rd.data.age.reg, 'RD Hi-Lo JLF Data Age Reg', -.8, 1, .2)
+trPlot <- createGGPlotImage(tr.data.age.reg, 'TR Hi-Lo JLF Data Age Reg', -.7, 1, .2)
 
 # Now print em out 
 pdf('ageRegHi-LoGraphs-LoWMLabels.pdf', width=20, height=20)

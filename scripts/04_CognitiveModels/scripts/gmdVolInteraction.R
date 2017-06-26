@@ -76,9 +76,10 @@ outputVals <- NULL
 for(nameVal in valsToLoop){
   grepVal1 <- paste(paste1Val, nameVal, sep='')
   grepVal2 <- paste(paste2Val, nameVal, sep='')
-  formVal <- as.formula(paste('F1_Exec_Comp_Cog_Accuracy ~ ', grepVal1, '+', grepVal2))
+  formVal <- as.formula(paste('F1_Exec_Comp_Cog_Accuracy ~ ', grepVal1, '*', grepVal2))
   volMeanVal <- mean(as.numeric(unlist(vol.data[grepVal2])))
   mod1 <- lm(formVal, data=allData)
+  print(summary(mod1))
   totalBeta <- sum(abs(coef(mod1)[2:3]))
   volTotal <- abs(coef(mod1)[3])/totalBeta
   gmdTotal <- abs(coef(mod1)[2])/totalBeta
