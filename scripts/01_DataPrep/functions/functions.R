@@ -405,4 +405,112 @@ output <- cbind(output, dataFrame.meaned)
 return(output)
 }
 
+# Declare a function which will return the performance bin
+returnPercentileGroup <- function(groupLevel,df_row, tmp_df){
+  quantileTmp <- quantile(df_row, na.rm=TRUE)
+  if(groupLevel == "lo"){
+    quantileTmplow <- getElement(quantileTmp,"0%")
+    quantileTmphigh <- getElement(quantileTmp,"25%")
+  }
+  if(groupLevel == "me"){
+    quantileTmplow <- getElement(quantileTmp,"25%")
+    quantileTmphigh  <- getElement(quantileTmp,"75%")
+  }
+  if(groupLevel =="hi"){
+    quantileTmplow <- getElement(quantileTmp,"75%")
+    quantileTmphigh <- getElement(quantileTmp,"100%") + 1
+  }
+  df_to_return <- which(df_row >= quantileTmplow & df_row < quantileTmphigh)
+  df_to_return  <- tmp_df[df_to_return,]
+  df_to_return$groupFactorLevel <- groupLevel
+  return(df_to_return)
+}
+
+# Declare a function which will return the global mean 
+returnGlobalMean <- function(dataFrame,modalityColVal){
+  toReturn <- mean(dataFrame[,modalityColVal], na.rm=TRUE)
+  return(toReturn)
+}
+
+# Create a function which will return the global sd
+returnGlobalSd <- function(dataFrame,modalityColVal){
+  toReturn <- sd(dataFrame[,modalityColVal], na.rm=TRUE)
+  return(toReturn)
+}
+
+# Declare a function which will find the lobe value
+findLobe <- function(grepPattern){
+  # Declare the rois that we will grep through
+  rois<-c("Thal","Putamen","Caudate","Pallidum",  # Basal Ganglia
+          "Accumbens", "BasFor", # Basal Ganglia
+          "PHG","Hip","PIns","SCA","AIns", # Limbic
+          "ACgG","PCgG","Ent","Amygdala","MCgG", # Limbic
+          "FO","MFC","MOrG","POrG","OrIFG","TrIFG","AOrG","OpIFG","GRe", # Frontal Orbital
+          "FRP", "LOrG", # Frontal Orbital
+          "PrG","MSFG","SMC","MFG","SFG", # Frontal Dorsal
+          "FuG","PT","PP","ITG","CO","MTG","TMP","STG","TTG", # Temporal
+          "PCu","PoG","AnG","PO","SPL","MPrG", # Parietal
+          "SMG","MPoG", # Parietal
+          "IOG","Cun","LiG","OFuG","MOG","Calc","OCP","SOG", # Occiptal
+          "Cerebellum_Exterior", "Cerebellar_Vermal_Lobules_I.V", "Cerebellar_Vermal_Lobules_VI.VII", "Cerebellar_Vermal_Lobules_VIII.X") # Cerebellum
+
+
+  # Declare the index key which corresponds to lobe values
+  index.key <- c(1,7,17,28,33,42,50,58,62)
+
+  # Now find where the pattern matches to the roi list
+  for(pattern.match.variable in 1:length(rois)){
+    nuclei.to.grep <- rois[pattern.match.variable]
+    grep.output <- grep(nuclei.to.grep ,grepPattern)    
+    if(!identical(integer(0), grep.output)){
+      break
+    }
+    if(pattern.match.variable==61){
+      pattern.match.variable <- 62
+    }
+  }
+  lobe.group <- findInterval(pattern.match.variable, index.key)
+  return(lobe.group)
+}
+
+findLobeWM <- function(grepPattern){
+  # Declare the rois that we will grep through
+  rois <-c("cgc","cgh","slf","ss","ec","fnx","fnx_st","sfo","uf", #Association Fiber
+                 "gcc","bcc","scc","tap", #Commisseral Fiber
+                 "alic","plic","ptr","scr","pcr","rlic","cp","acr", #Projection Fiber
+                 "cst","pct","mel","icp","mcp","scp") #Brainstem
+  # Declare the index key which corresponds to lobe values
+  index.key <- c(1,10,14,22)
+
+  # Now find where the pattern matches to the roi list
+  for(pattern.match.variable in 1:length(rois)){
+    nuclei.to.grep <- rois[pattern.match.variable]
+    grep.output <- grep(nuclei.to.grep ,grepPattern)    
+    if(!identical(integer(0), grep.output)){
+      break
+    }
+    if(pattern.match.variable==57){
+      pattern.match.variable <- 60
+    }
+  }
+  lobe.group <- findInterval(pattern.match.variable, index.key)
+  return(lobe.group)
+}
+
+
+addAgeBins <- function(ageValues, dataFrame, lowerAge, upperAge, ageBinName){
+  ageValuesOfInterest <- which(ageValues > lowerAge & ageValues <= upperAge)
+  dataFrameOfInterest <- dataFrame[ageValuesOfInterest,]  
+  toAdd <- rep(ageBinName, length(ageValuesOfInterest))
+  dataFrameOfInterest$ageBin <- toAdd
+  return(dataFrameOfInterest)
+}
+
+addAgeBin <- function(df, ageColumn, youngUpper, middleUpper, olderLower){
+  output.young <- addAgeBins(ageColumn, df, 0, youngUpper, 'Childhood')
+  output.middle <- addAgeBins(ageColumn, df, youngUpper+1, middleUpper, 'Adolescence')
+  output.older <- addAgeBins(ageColumn, df, middleUpper+1, 999, 'Early Adulthood')
+  output <- rbind(output.young, output.middle, output.older)
+  return(output)
+}
 
