@@ -11,6 +11,7 @@
 
 # Load library(s)
 source('/home/adrose/hiLo/scripts/01_DataPrep/functions/functions.R')
+install_load('psych')
 
 # Now load the data
 data.values <- read.csv('/home/analysis/redcap_data/201511/go1/n1601_go1_datarel_113015.csv')
@@ -85,6 +86,9 @@ md.data$sex <- data.values$sex[match(md.data$bblid, data.values$bblid)]
 md.data$ageAtGo1Scan <- data.values$ageAtGo1Scan[match(md.data$bblid, data.values$bblid)]
 fa.data$sex <- data.values$sex[match(fa.data$bblid, data.values$bblid)]
 fa.data$ageAtGo1Scan <- data.values$ageAtGo1Scan[match(fa.data$bblid, data.values$bblid)]
+
+# Now produce a factor score for the GMD data
+
 
 # This is where steps will divereg, I will have to prepare a varitey of data sets which include:
 #	1.) Mean L and R - no regressing
