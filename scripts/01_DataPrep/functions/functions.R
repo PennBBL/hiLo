@@ -452,11 +452,13 @@ findLobe <- function(grepPattern){
           "PCu","PoG","AnG","PO","SPL","MPrG", # Parietal
           "SMG","MPoG", # Parietal
           "IOG","Cun","LiG","OFuG","MOG","Calc","OCP","SOG", # Occiptal
-          "Cerebellum_Exterior", "Cerebellar_Vermal_Lobules_I.V", "Cerebellar_Vermal_Lobules_VI.VII", "Cerebellar_Vermal_Lobules_VIII.X") # Cerebellum
+          "Cerebellum_Exterior", "Cerebellar_Vermal_Lobules_I.V", "Cerebellar_Vermal_Lobules_VI.VII", "Cerebellar_Vermal_Lobules_VIII.X", # Cerebellum
+          "Limbic_Lobe_WM", "Insular_Lobe_WM", "Frontal_Lobe_WM", # WM
+          "Parietal_Lobe_WM", "Occipital_Lobe_WM", "Temporal_Lobe_WM")  # WM
 
 
   # Declare the index key which corresponds to lobe values
-  index.key <- c(1,7,17,28,33,42,50,58,62)
+  index.key <- c(1,7,17,28,33,42,50,58,62,68)
 
   # Now find where the pattern matches to the roi list
   for(pattern.match.variable in 1:length(rois)){
@@ -465,8 +467,8 @@ findLobe <- function(grepPattern){
     if(!identical(integer(0), grep.output)){
       break
     }
-    if(pattern.match.variable==61){
-      pattern.match.variable <- 62
+    if(pattern.match.variable==67){
+      pattern.match.variable <- 68
     }
   }
   lobe.group <- findInterval(pattern.match.variable, index.key)
@@ -512,5 +514,57 @@ addAgeBin <- function(df, ageColumn, youngUpper, middleUpper, olderLower){
   output.older <- addAgeBins(ageColumn, df, middleUpper+1, 999, 'Early Adulthood')
   output <- rbind(output.young, output.middle, output.older)
   return(output)
+}
+
+outputLongFormat4way <- function(dataFrame, modalityName, ageBand){
+  outputDataframe <- data.frame(bblid=character(), sex=character(), age_bin=numeric(),
+                                lobe=numeric(), roi=character(), z_score=numeric(), perf_bin=character())
+  col.of.interest <- grep(modalityName, names(dataFrame))
+  #dataFrame <- dataFrame[complete.cases(dataFrame[,col.of.interest]),]
+  sex.col <- grep("sex", names(dataFrame))
+  bblid.col <- grep("bblid", names(dataFrame))[1]
+  factor.col <- dataFrame$F1_Exec_Comp_Cog_Accuracy
+  me.vals <- returnPercentileGroup('me', factor.col, dataFrame)
+  hi.vals <- returnPercentileGroup('hi', factor.col, dataFrame)
+  lo.vals <- returnPercentileGroup('lo', factor.col, dataFrame)
+  for(temp.gender in c(1,2)){
+    temp.me.vals <- me.vals[which(me.vals[,sex.col] == temp.gender & me.vals$ageBin == ageBand),]
+    temp.lo.vals <- lo.vals[which(lo.vals[,sex.col] == temp.gender & lo.vals$ageBin == ageBand),]
+    temp.hi.vals <- hi.vals[which(hi.vals[,sex.col] == temp.gender & hi.vals$ageBin == ageBand),]
+    for(temp.col in col.of.interest){
+      # Find the global values
+      me.val.mean <- returnGlobalMean(me.vals, temp.col)
+      me.val.sd <- returnGlobalSd(me.vals, temp.col)
+      roi.name <- names(dataFrame)[temp.col]
+      lobe.value <- findLobe(roi.name)
+      
+      # Now find the lo values
+      lo.val.df.z.score <- (temp.lo.vals[,temp.col] - me.val.mean) / me.val.sd
+      lo.val.df.bblid <- temp.lo.vals[,bblid.col]
+      lo.val.df.sex <- rep(temp.gender, length(lo.val.df.z.score))
+      lo.val.df.age.bin <- rep(ageBand, length(lo.val.df.z.score))
+      lo.val.df.lobe <- rep(lobe.value, length(lo.val.df.z.score))
+      lo.val.df.roi <- rep(roi.name, length(lo.val.df.z.score))
+      lo.val.df.perf.bin <- rep('lo', length(lo.val.df.z.score))
+      lo.val.df <- cbind(lo.val.df.bblid, lo.val.df.sex, lo.val.df.age.bin, lo.val.df.lobe,
+                         lo.val.df.roi, lo.val.df.z.score, lo.val.df.perf.bin)
+      colnames(lo.val.df) <- c("bblid", "sex", "age_bin", "lobe", "roi", "z_score", "perf_bin")
+      outputDataframe <- rbind(outputDataframe, lo.val.df)
+
+      # Now find the hi values
+      hi.val.df.z.score <- (temp.hi.vals[,temp.col] - me.val.mean) / me.val.sd
+      hi.val.df.bblid <- temp.hi.vals[,bblid.col]
+      hi.val.df.sex <- rep(temp.gender, length(hi.val.df.z.score))
+      hi.val.df.age.bin <- rep(ageBand, length(hi.val.df.z.score))
+      hi.val.df.lobe <- rep(lobe.value, length(hi.val.df.z.score))
+      hi.val.df.roi <- rep(roi.name, length(hi.val.df.z.score))
+      hi.val.df.perf.bin <- rep('hi', length(hi.val.df.z.score))
+      hi.val.df <- cbind(hi.val.df.bblid, hi.val.df.sex, hi.val.df.age.bin, hi.val.df.lobe,
+                         hi.val.df.roi, hi.val.df.z.score, hi.val.df.perf.bin)
+      colnames(hi.val.df) <- c("bblid", "sex", "age_bin", "lobe", "roi", "z_score", "perf_bin")
+      outputDataframe <- rbind(outputDataframe, hi.val.df)
+    }
+  }
+  return(outputDataframe)
 }
 

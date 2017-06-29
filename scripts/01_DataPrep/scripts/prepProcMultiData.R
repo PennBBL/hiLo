@@ -33,3 +33,33 @@ ad.data <- addAgeBin(ad.data, ad.data$ageAtGo1Scan, 167, 215, 216)
 fa.data <- addAgeBin(fa.data, fa.data$ageAtGo1Scan, 167, 215, 216)
 rd.data <- addAgeBin(rd.data, rd.data$ageAtGo1Scan, 167, 215, 216)
 tr.data <- addAgeBin(tr.data, tr.data$ageAtGo1Scan, 167, 215, 216)
+
+# Now create a function to do everything in one call 
+doEverythingWide <- function(dataFrame, grepPattern){
+  tmp1 <- outputLongFormat4way(dataFrame=dataFrame, modalityName=grepPattern, ageBand='Childhood')
+  tmp2 <- outputLongFormat4way(dataFrame=dataFrame, modalityName=grepPattern, ageBand='Adolescence')
+  tmp3 <- outputLongFormat4way(dataFrame=dataFrame, modalityName=grepPattern, ageBand='Early Adulthood')
+  allData <- rbind(tmp1, tmp2, tmp3)
+
+  # Now rm ROI's that do not belong to lobes 1-9
+  allData <- allData[which(allData$lobe!=10),]
+
+  # Now ensure we only return complete cases
+  allData <- allData[complete.cases(allData),]
+
+  # Now return the data
+  return(allData)
+}
+
+# Now run through errything 
+datFrame <- c('vol.data', 'cbf.data', 'gmd.data', 'ct.data', 'reho.data', 'alff.data', 'tr.data')
+colNames <- c('mprage_jlf_col', 'pcasl_jlf_cbf', 'mprage_jlf_gmd', 'mprage_jlf_ct', 'rest_jlf_reho', 'rest_jlf_alff', 'dti_jlf_tr')
+basePath <- '/home/adrose/dataPrepForHiLoPaper/data/longDataForProcMixed/'
+for(i in 1:length(datFrame)){
+  dataF <- datFrame[i]
+  colName <- colNames[i]
+  modalName <- strSplitMatrixReturn(colName, '_')[,3]
+  outPath <- paste(basePath,modalName,'-LongDataFrame.csv', sep='')
+  tmp <- doEverythingWide(get(dataF), colName)
+  write.csv(tmp, outPath, quote=F, row.names=F) 
+}
