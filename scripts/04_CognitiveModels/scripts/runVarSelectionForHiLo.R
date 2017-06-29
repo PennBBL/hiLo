@@ -330,18 +330,16 @@ output <- reshape(data=output, timevar='tmp', idvar='V3', v.names='output', dire
 write.csv(output, 'femaleFitBetas.csv', quote=F, row.names=F)
 
 # Now do all modality data
-tmp <- merge(vol.data, cbf.data, by=c('bblid', 'scanid'))
-tmp <- merge(tmp, gmd.data,  by=c('bblid', 'scanid'))
-tmp <- merge(tmp, ct.data,  by=c('bblid', 'scanid'))
-tmp <- merge(tmp, reho.data,  by=c('bblid', 'scanid'))
-tmp <- merge(tmp, alff.data,  by=c('bblid', 'scanid'))
-#tmp <- merge(tmp, ad.data,  by=c('bblid', 'scanid'))
-#tmp <- merge(tmp, rd.data,  by=c('bblid', 'scanid'))
-tmp <- merge(tmp, tr.data,  by=c('bblid', 'scanid'))
-all.data <- tmp[,c(1,2, 8, 44,grep('jlf', names(tmp)))]
+tmp <- merge(vol.data, cbf.data, by=intersect(names(vol.data), names(cbf.data)))
+tmp <- merge(tmp, gmd.data,  by=intersect(names(tmp), names(gmd.data)))
+tmp <- merge(tmp, ct.data,  by=intersect(names(tmp), names(ct.data)))
+#tmp <- merge(tmp, reho.data,  by=intersect(names(tmp), names(reho.data)))
+#tmp <- merge(tmp, alff.data,  by=intersect(names(tmp), names(alff.data)))
+tmp <- merge(tmp, tr.data,  by=intersect(names(tmp), names(tr.data)))
+all.data <- tmp
 
 # Now perform the analysis
-male.all.data <- all.data[which(all.data$sex.x==1),]
+male.all.data <- all.data[which(all.data$sex==1),]
 all.col <- grep('jlf', names(all.data))
 male.all.values <- scale(male.all.data[,all.col])[,1:length(all.col)]
 male.all.outcome <- scale(male.all.data$F1_Exec_Comp_Cog_Accuracy)[,1]
@@ -359,15 +357,10 @@ female.all.values <- scale(female.all.data[,all.col])[,1:length(all.col)]
 female.all.outcome <- scale(female.all.data$F1_Exec_Comp_Cog_Accuracy)[,1]
 
 # Now run the variable selection
-femaleAllBetaMatrix <- runLassoforHiLo(female.all.values, female.all.outcome, nCor=30,alphaSequence=1)
+femaleAllBetaMatrix <- runLassoforHiLo(female.all.values, female.all.outcome, nCor=30,alphaSequence=.5)
 femaleAllValues <- rmFat(femaleAllBetaMatrix, female.all.values)
-femaleAllFitStats1 <- computeModelFitMetrics(returnBetas=T,x = femaleAllValues, y= female.all.outcome)
-femaleAllBetaMatrix <- runLassoforHiLo(femaleAllValues, female.all.outcome, nCor=30,alphaSequence=1)
-femaleAllValues <- rmFat(femaleAllBetaMatrix, femaleAllValues)
-femaleAllFitStats2 <- computeModelFitMetrics(returnBetas=T,x = femaleAllValues, y= female.all.outcome)
-femaleAllBetaMatrix <- runLassoforHiLo(femaleAllValues, female.all.outcome, nCor=30,alphaSequence=1)
-femaleAllValues <- rmFat(femaleAllBetaMatrix, femaleAllValues)
-femaleAllFitStats3 <- computeModelFitMetrics(returnBetas=T,x = femaleAllValues, y= female.all.outcome)
+femaleAllFitStats <- computeModelFitMetrics(returnBetas=T,x = femaleAllValues, y= female.all.outcome)
+
 
 ## Now perform an analysis to see if the variables selected for each modality differ across genders
 ## This will be performed by getting boot strapped confidence intervals for the selected regression coefficients.
