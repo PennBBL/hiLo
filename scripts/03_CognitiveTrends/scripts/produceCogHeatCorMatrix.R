@@ -121,13 +121,13 @@ roughAllFunction <- function(dataFrame2, grepPattern2, outName){
     histName <- paste(outName,'gender-', q, '-hist.pdf', sep='')
     valsName <- paste(outName, 'gender-', q, '-vals.csv', sep='')
     tmpDF <- dataFrame2[which(dataFrame2$sex==q),]
-    corMat <- createCorRows(dataFrame2, grepPattern2)
+    corMat <- createCorRows(tmpDF, grepPattern2)
     pdf(histName)
     for(z in 1:dim(corMat)[1]){
       hist(as.numeric(corMat[z,]), xlim=c(-.5, .5), main=rownames(corMat)[z], ylim=c(0,50))
     }  
     dev.off()     
-    corMat <- cbind(corMat, t(apply(abs(corMat), 1, summary)))
+    corMat <- cbind(corMat, t(apply(corMat, 1, summary)))
     write.csv(corMat, valsName, quote=F, row.names=T)   
   }
 }
@@ -138,7 +138,7 @@ roughAllFunctionLobe <- function(dataFrame2, grepPattern2, outName){
     histName <- paste(outName,'gender-', q, '-hist.pdf', sep='')
     valsName <- paste(outName, 'gender-', q, '-vals.csv', sep='')
     tmpDF <- dataFrame2[which(dataFrame2$sex==q),]
-    corMat <- createCorRowsLobe(dataFrame2, grepPattern2)
+    corMat <- createCorRowsLobe(tmpDF, grepPattern2)
     pdf(histName)
     for(z in 1:dim(corMat)[1]){
       hist(as.numeric(corMat[z,]), xlim=c(-.5, .5), main=rownames(corMat)[z], ylim=c(0,50))
@@ -164,4 +164,80 @@ for(w in 1:length(valsName)){
   csvName <- paste0(modalName, '.modal.data.age.reg', sep='')
   roughAllFunctionLobe(get(csvName), grepName, paste(modalName, '-Lobe', sep=''))
 }
+
+
+# Now produce total metrics corellations
+source('/home/adrose/T1QA/scripts/galton/loadGo1Data.R')
+detachAllPackages()
+set.seed(16)
+load('/home/adrose/qapQA/data/1vs28variableModel.RData')
+oneVsTwoModel <- mod8
+rm(mod8)
+
+# Now work with the data
+## Load Library(s)
+source("/home/adrose/adroseHelperScripts/R/afgrHelpFunc.R")
+install_load('caret', 'lme4','BaylorEdPsych', 'mgcv', 'ppcor', 'ggplot2')
+
+## Now create the training data set and create the outcomes for all of the training data sets
+raw.lme.data <- merge(isolatedVars, manualQAData2, by='bblid')
+raw.lme.data$averageRating.x <- as.numeric(as.character(raw.lme.data$averageRating.x))
+raw.lme.data$averageRating.x[raw.lme.data$averageRating.x>1] <- 1
+#folds <- createFolds(raw.lme.data$averageRating.x, k=3, list=T, returnTrain=T)
+load('/home/adrose/qapQA/data/foldsToUse.RData')
+raw.lme.data[,3:32] <- scale(raw.lme.data[,3:32], center=T, scale=T)
+index <- unlist(folds[1])
+trainingData <- raw.lme.data#[index,]
+validationData <- raw.lme.data#[-index,]
+
+## Now create our outcomes
+# First create our zero vs not zero outcome for everyone 
+trainingData$variable <- rep('ratingNULL', nrow(trainingData))
+# Now lets do our 1 vs 2 model for everyone 
+trainingData$oneVsTwoOutcome <- predict(oneVsTwoModel, newdata=trainingData,
+					       allow.new.levels=T, type='response')
+
+## Now merge our scaled data values with the original data values 
+all.train.data <- merge(mergedQAP, trainingData, by='bblid')
+
+## Now create our age regressed variables 
+tmp <- cbind(all.train.data[,grep('mprage_jlf_ct', names(all.train.data))], all.train.data[,grep('mprage_jlf_vol', names(all.train.data))])
+# Now trim non cortical regions
+tmp <- tmp[,-seq(99,129)]
+meanCT <- NULL
+for(i in seq(1, nrow(tmp))){
+  tmpVal <- weighted.mean(x=tmp[i,1:98], w=tmp[i,99:196])
+  meanCT <- append(meanCT, tmpVal)
+}
+tmp <- read.csv('/home/adrose/qapQA/data/averageGMD.csv')
+all.train.data <- merge(all.train.data, tmp, by=c('bblid', 'scanid'))
+rm(tmp)
+all.train.data$meanVOL <- apply(all.train.data[,2623:2720], 1, sum)
+all.train.data$meanVOL2 <- apply(all.train.data[,2623:2720], 1, mean)
+
+# Now create our scaled age and age squared values
+all.train.data$age <- scale(all.train.data$ageAtGo1Scan)
+all.train.data$ageSq <- (scale(all.train.data$ageAtGo1Scan))^2
+
+# Now produce our age regressed values 
+all.train.data$meanCTAgeReg <- lm(meanCT ~ age + ageSq + sex, data=all.train.data)$residuals
+all.train.data$meanGMDAgeReg <- lm(meanGMD ~ age + ageSq + sex, data=all.train.data)$residuals
+all.train.data$meanVOLAgeReg <- lm(meanVOL ~ age + ageSq + sex, data=all.train.data)$residuals
+all.train.data$meanVOL2AgeReg <- lm(meanVOL2 ~ age + ageSq + sex, data=all.train.data)$residuals
+
+# Now attach and age regress the mean GM CBF calues
+cbfDat <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/preRaw2017/n1601_PcaslQaData_20170403.csv')
+all.train.data <- merge(all.train.data, cbfDat, by='bblid')
+all.train.data$meanCBFAgeReg <- NA
+values <- lm(pcaslMeanGMValue ~ age + ageSq + sex, data=all.train.data)$residuals
+index <- as.numeric(names(residuals(lm(pcaslMeanGMValue ~ age + ageSq + sex, data=all.train.data))))
+all.train.data$meanCBFAgeReg[index] <- values
+
+
+# Now produce our cor matrix
+tmp <- merge(all.train.data, gmd.modal.data.age.reg, by='bblid')
+foo <- createCorRows(tmp[which(tmp$sex.x==1),], 'mean')
+bar <- createCorRows(tmp[which(tmp$sex.x==2),], 'mean')
+write.csv(foo , 'globalBrainMetrics-gender1.csv', quote=F)
+write.csv(bar , 'globalBrainMetrics-gender2.csv', quote=F)
 
