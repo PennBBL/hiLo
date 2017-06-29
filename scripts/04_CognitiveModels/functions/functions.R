@@ -144,9 +144,14 @@ computeModelFitMetrics <- function(x, y, seedValue=1, nGroups=10, returnBetas=F)
   modm <- lm(y ~ as.matrix(x))
   
   # Now get some values
-  n <- dim(x)[1]
-  p <- dim(x)[2]
-  
+  if(!identical(dim(x), NULL)){
+    n <- dim(x)[1]
+    p <- dim(x)[2]
+  }
+  if(identical(dim(x), NULL)){
+    n <- length(x)
+    p <- 1
+  }
   # Now do a crossval of our model
   modmCV <- crossval(x, y, theta.fit, theta.predict,ngroup=nGroups)
   

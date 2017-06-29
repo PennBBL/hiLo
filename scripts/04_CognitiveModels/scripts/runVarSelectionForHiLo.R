@@ -101,6 +101,18 @@ femaleGmdValues <- rmFat(femaleGmdBetaMatrix, female.gmd.values)
 femaleGmdValues <- regressWithinModality(femaleGmdValues, 'mprage_jlf_gmd')
 femaleGmdFitStats <- computeModelFitMetrics(returnBetas=T,x = femaleGmdValues, y= female.gmd.outcome)
 
+# Now do GMD with the ovarll GMD factor
+male.gmd.data <- gmd.data[which(gmd.data$sex==1),]
+gmd.col <- grep('Overall_GMD', names(male.gmd.data))
+male.gmd.values <- scale(male.gmd.data[,gmd.col])[,1:length(gmd.col)]
+male.gmd.outcome <- scale(male.gmd.data$F1_Exec_Comp_Cog_Accuracy)[,1]
+male.gmd.outcome <- male.gmd.outcome[complete.cases(male.gmd.data[,gmd.col])]
+male.gmd.values <- male.gmd.values[complete.cases(male.gmd.data[,gmd.col]),]
+
+# Now run the variable selection 
+maleGmdFitStats <- computeModelFitMetrics(returnBetas=F,x = male.gmd.values, y= male.gmd.outcome)
+
+
 ## Now on to CT
 male.ct.data <- ct.data[which(ct.data$sex==1),]
 ct.col <- grep('mprage_jlf_ct', names(male.ct.data))
