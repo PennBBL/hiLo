@@ -53,7 +53,7 @@ doEverythingWide <- function(dataFrame, grepPattern){
 
 # Now run through errything 
 datFrame <- c('vol.data', 'cbf.data', 'gmd.data', 'ct.data', 'reho.data', 'alff.data', 'tr.data')
-colNames <- c('mprage_jlf_col', 'pcasl_jlf_cbf', 'mprage_jlf_gmd', 'mprage_jlf_ct', 'rest_jlf_reho', 'rest_jlf_alff', 'dti_jlf_tr')
+colNames <- c('mprage_jlf_vol', 'pcasl_jlf_cbf', 'mprage_jlf_gmd', 'mprage_jlf_ct', 'rest_jlf_reho', 'rest_jlf_alff', 'dti_jlf_tr')
 basePath <- '/home/adrose/dataPrepForHiLoPaper/data/longDataForProcMixed/'
 for(i in 1:length(datFrame)){
   dataF <- datFrame[i]
