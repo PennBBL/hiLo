@@ -19,6 +19,8 @@ ad.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeReg/j
 fa.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeReg/jlfFAData.csv')
 rd.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeReg/jlfRDData.csv')
 tr.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeReg/jlfTRData.csv')
+fa.data.label <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeReg/jhuFALabelsData.csv')
+tr.data.label <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeReg/jhuTRLabelsData.csv')
 
 ## Lets do volume data frist
 # start with male data
@@ -336,11 +338,14 @@ tmp <- merge(tmp, ct.data,  by=intersect(names(tmp), names(ct.data)))
 #tmp <- merge(tmp, reho.data,  by=intersect(names(tmp), names(reho.data)))
 #tmp <- merge(tmp, alff.data,  by=intersect(names(tmp), names(alff.data)))
 tmp <- merge(tmp, tr.data,  by=intersect(names(tmp), names(tr.data)))
+tmp <- merge(tmp, fa.data.label, by=intersect(names(tmp), names(fa.data.label)))
+tmp <- merge(tmp, tr.data.label, by=intersect(names(tmp), names(tr.data.label)))
 all.data <- tmp
 
 # Now perform the analysis
 male.all.data <- all.data[which(all.data$sex==1),]
 all.col <- grep('jlf', names(all.data))
+all.col <- append(all.col, grep('dti_dtitk_jhulabel', names(all.data)))
 male.all.values <- scale(male.all.data[,all.col])[,1:length(all.col)]
 male.all.outcome <- scale(male.all.data$F1_Exec_Comp_Cog_Accuracy)[,1]
 male.all.outcome <- male.all.outcome[complete.cases(male.all.data[,all.col])]
@@ -350,6 +355,24 @@ male.all.values <- male.all.values[complete.cases(male.all.data[,all.col]),]
 maleAllBetaMatrix <- runLassoforHiLo(male.all.values, male.all.outcome, nCor=30,alphaSequence=.5)
 maleAllValues <- rmFat(maleAllBetaMatrix, male.all.values)
 maleAllFitStats <- computeModelFitMetrics(returnBetas=T,x = maleAllValues, y= male.all.outcome)
+
+# Now perform the same task with the GMD factor score
+male.all.data <- all.data[which(all.data$sex==1),]
+all.col <- grep('jlf', names(all.data))
+all.col <- append(all.col, grep('dti_dtitk_jhulabel', names(all.data)))
+male.all.values <- scale(male.all.data[,all.col])[,1:length(all.col)]
+male.all.values <- male.all.values[,-grep('mprage_jlf_gmd', colnames(male.all.values))]
+male.all.values <- cbind(male.all.values, male.all.data$Overall_GMD)
+colnames(male.all.values)[295] <- 'Overall_GMD'
+male.all.outcome <- scale(male.all.data$F1_Exec_Comp_Cog_Accuracy)[,1]
+male.all.outcome <- male.all.outcome[complete.cases(male.all.data[,all.col])]
+male.all.values <- male.all.values[complete.cases(male.all.data[,all.col]),]
+
+# Now run var selection
+maleAllBetaMatrix <- runLassoforHiLo(male.all.values, male.all.outcome, nCor=30,alphaSequence=.5)
+maleAllValues <- rmFat(maleAllBetaMatrix, male.all.values)
+maleAllFitStats <- computeModelFitMetrics(returnBetas=T,x = maleAllValues, y= male.all.outcome)
+
 
 # Now do female data
 female.all.data <- all.data[which(all.data$sex==2),]
