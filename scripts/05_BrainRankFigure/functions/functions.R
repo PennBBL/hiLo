@@ -104,9 +104,9 @@ writeColorTableandKey <- function(inputData, inputColumn, outName){
   tmpOutputKey[,1] <- as.character(inputData[complete.cases(inputData[,inputColumn]),1])
   tmpOutputKey[,2] <- as.character(inputData[complete.cases(inputData[,inputColumn]),inputColumn])
   tmpOutputKey[,3] <- seq(dim(tmpColorTable)[1]-1, 1, -1)
-  tmpOutputKeyFlip <- tmpOutputKey
+  #tmpOutputKeyFlip <- tmpOutputKey
   tmpOutputKey[,1] <- paste('R_', tmpOutputKey[,1], sep='')
-  tmpOutputKeyFlip[,1] <- paste('L_', tmpOutputKeyFlip[,1], sep='')
+  #tmpOutputKeyFlip[,1] <- paste('L_', tmpOutputKeyFlip[,1], sep='')
 
   # Now give the wm a L_ prefix
   #if(length(grep('WM', tmpOutputKey[,1])) > 0){
@@ -119,6 +119,6 @@ writeColorTableandKey <- function(inputData, inputColumn, outName){
   outKeyName <- paste(outName, '-KEY.csv', sep='')
   tmpColorTable <- rbind(tmpColorTable, valuesToBind)
   write.table(tmpColorTable, file=outCTName, sep="\t", quote=F, row.names=F, col.names=F)
-  tmpOutputKey <- rbind(tmpOutputKey, tmpOutputKeyFlip)
+  #tmpOutputKey <- rbind(tmpOutputKey, tmpOutputKeyFlip)
   write.csv(tmpOutputKey, file=outKeyName, quote=F)
 }
