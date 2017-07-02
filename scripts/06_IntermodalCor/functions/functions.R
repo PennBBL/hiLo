@@ -37,6 +37,86 @@ findLobe <- function(grepPattern){
   return(lobe.group)
 }
 
+# Now create a function to return the column index individually amongst ROI's
+findIndex <- function(grepPattern){
+    # Declare the rois that we will grep through
+    rois<-c("Thal","Putamen","Caudate","Pallidum",  # Basal Ganglia
+    "Accumbens", # Basal Ganglia
+    "PHG","Hip","PIns","SCA","AIns", # Limbic
+    "ACgG","PCgG","Ent","Amygdala","MCgG", # Limbic
+    "FO","MFC","MOrG","POrG","OrIFG","TrIFG","AOrG","OpIFG","GRe", # Frontal Orbital
+    "FRP", "LOrG", # Frontal Orbital
+    "PrG","MSFG","SMC","MFG","SFG", # Frontal Dorsal
+    "FuG","PT","PP","ITG","CO","MTG","TMP","STG","TTG", # Temporal
+    "PCu","PoG","AnG","PO","SPL","MPrG", # Parietal
+    "SMG","MPoG", # Parietal
+    "IOG","Cun","LiG","OFuG","MOG","Calc","OCP","SOG", # Occiptal
+    "Cerebellum_Exterior", "Cerebellar_Vermal_Lobules_I.V", "Cerebellar_Vermal_Lobules_VI.VII", "Cerebellar_Vermal_Lobules_VIII.X") # Cerebellum
+    
+    # Now find where the pattern matches to the roi list
+    for(pattern.match.variable in 1:length(rois)){
+        nuclei.to.grep <- rois[pattern.match.variable]
+        grep.output <- grep(nuclei.to.grep ,grepPattern)
+        if(!identical(integer(0), grep.output)){
+            break
+        }
+    }
+    # Now check for the MPoG
+    mpogCheck <- grep('MPoG', grepPattern)
+    if(length(mpogCheck) == 1){
+      pattern.match.variable <- 48
+    }
+    mprgCheck <- grep('MPrG', grepPattern)
+    if(length(mprgCheck) == 1){
+      pattern.match.variable <- 46
+    }
+    ofugCheck <- grep('OFuG', grepPattern)
+    if(length(ofugCheck) == 1 ){
+      pattern.match.variable <- 52
+    }
+    lobe.group <- pattern.match.variable
+    return(lobe.group)
+}
+
+# Now create a column index function for the CT DF
+findIndexCT <- function(grepPattern){
+    # Declare the rois that we will grep through
+    rois<-c("PHG","PIns","SCA","AIns", # Limbic
+    "ACgG","PCgG","Ent","MCgG", # Limbic
+    "FO","MFC","MOrG","POrG","OrIFG","TrIFG","AOrG","OpIFG","GRe", # Frontal Orbital
+    "FRP", "LOrG", # Frontal Orbital
+    "PrG","MSFG","SMC","MFG","SFG", # Frontal Dorsal
+    "FuG","PT","PP","ITG","CO","MTG","TMP","STG","TTG", # Temporal
+    "PCu","PoG","AnG","PO","SPL","MPrG", # Parietal
+    "SMG","MPoG", # Parietal
+    "IOG","Cun","LiG","OFuG","MOG","Calc","OCP","SOG")
+    
+    # Now find where the pattern matches to the roi list
+    for(pattern.match.variable in 1:length(rois)){
+        nuclei.to.grep <- rois[pattern.match.variable]
+        grep.output <- grep(nuclei.to.grep ,grepPattern)
+        if(!identical(integer(0), grep.output)){
+            break
+        }
+        
+    }
+    # Now check for the MPoG
+    mpogCheck <- grep('MPoG', grepPattern)
+    if(length(mpogCheck) == 1){
+        pattern.match.variable <- 41
+    }
+    mprgCheck <- grep('MPrG', grepPattern)
+    if(length(mprgCheck) == 1){
+        pattern.match.variable <- 39
+    }
+    ofugCheck <- grep('OFuG', grepPattern)
+    if(length(ofugCheck) == 1 ){
+        pattern.match.variable <- 45
+    }
+    lobe.group <- pattern.match.variable
+    return(lobe.group)
+}
+
 ## Now create a function which will output a row of obe indices for an input data frame
 outputLobeRow <- function(dataFrame){
   # Prime an output row
@@ -51,6 +131,37 @@ outputLobeRow <- function(dataFrame){
   }
   # Now return the row
   return(na.row)
+}
+
+## Now create a function which will reutnr individual column values
+outputIndexRow <- function(dataFrame){
+    # Prime an output row
+    na.row <- rep('NA', ncol(dataFrame))
+    # Now create a value with all of the data frame names
+    name.values <- colnames(dataFrame)
+    # Now cycle thorugh the names and
+    for(col.index in 1:ncol(dataFrame)){
+        val.to.grep <- name.values[col.index]
+        lobeValue <- findIndex(val.to.grep)
+        na.row[col.index] <- lobeValue
+    }
+    # Now return the row
+    return(na.row)
+}
+
+outputIndexRowCT<- function(dataFrame){
+    # Prime an output row
+    na.row <- rep('NA', ncol(dataFrame))
+    # Now create a value with all of the data frame names
+    name.values <- colnames(dataFrame)
+    # Now cycle thorugh the names and
+    for(col.index in 1:ncol(dataFrame)){
+        val.to.grep <- name.values[col.index]
+        lobeValue <- findIndexCT(val.to.grep)
+        na.row[col.index] <- lobeValue
+    }
+    # Now return the row
+    return(na.row)
 }
 
 returnSigRMatrix <- function(dataFrame1, dataFrame2){

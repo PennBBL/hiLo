@@ -40,13 +40,30 @@ createHeatMap <- function(grepPattern1, grepPattern2){
   matVals1 <- matVals1[,order(outputLobeRow(matVals1))]
   matVals2 <- matVals2[,order(outputLobeRow(matVals2))]
 
-  # Now nonsense lobes
-  matVals1 <- matVals1[,-which(outputLobeRow(matVals1)>=7)]
-  matVals2 <- matVals2[,-which(outputLobeRow(matVals2)>=7)]
+  #Now check to see if the modality is CT
+  ctCheck1 <- grep('ct', grepPattern1)
+  ctCheck2 <- grep('ct', grepPattern2)
 
-  # Now rm outliers
-  #matVals1 <- data.matrix(as.data.frame(apply(matVals1, 2, function(x) rmOutliers(x, 3))))
-  #matVals2 <- data.matrix(as.data.frame(apply(matVals2, 2, function(x) rmOutliers(x, 3))))
+  # Now rm nonsense lobes
+  if(length(ctCheck1)==1){
+    matVals1 <- matVals1[,order(outputLobeRow(matVals1))]
+    matVals1 <- matVals1[,as.numeric(outputIndexRowCT(matVals1))]
+    print('ctCheck Pass')
+  }
+  if(!length(ctCheck1)==1){
+      matVals1 <- matVals1[,-which(outputLobeRow(matVals1)>7)]
+      matVals1 <- matVals1 <- matVals1[,order(outputLobeRow(matVals1))]
+      matVals1 <- matVals1[,as.numeric(outputIndexRow(matVals1))]
+  }
+  if(length(ctCheck2)==1){
+      matVals2 <- matVals2[,order(outputLobeRow(matVals2))]
+      matVals2 <- matVals2[,as.numeric(outputIndexRowCT(matVals2))]
+  }
+  if(!length(ctCheck2)==1){
+      matVals2 <- matVals2[,-which(outputLobeRow(matVals2)>7)]
+      matVals2 <- matVals2[,order(outputLobeRow(matVals2))]
+      matVals2 <- matVals2[,as.numeric(outputIndexRow(matVals2))]
+  }
 
   # Now find the intersection of names and ensure that we only have regions that both DF have
   colNamesMV1 <- gsub(x=colnames(matVals1), pattern=grepPattern1, replacement='')
@@ -55,9 +72,11 @@ createHeatMap <- function(grepPattern1, grepPattern2){
   lengthValue <- length(intersectVals)
   if(lengthValue!=dim(matVals1)[2]){
     matVals1 <- matVals1[,colNamesMV1 %in% intersectVals]
+    print('mismatch')
   }  
   if(lengthValue!=dim(matVals2)[2]){
-    matsVals2 <- matVals2[,colNamesMV2 %in% intersectVals]
+    print('mismatch')
+    matVals2 <- matVals2[,colNamesMV2 %in% intersectVals]
   }
 
   # Now plot our heat map!
@@ -72,11 +91,41 @@ createHeatMap <- function(grepPattern1, grepPattern2){
           axis.text.y = element_text(face="bold")) +
     scale_fill_gradient2(low="blue", high="red", limits=c(minVal, maxVal)) + 
     coord_equal()
+  output <- addRect(output, matVals1)
   return(output)  
 }
 
+# Now cretae a function which will add the rectablges around the matrix values
+addRect <- function(inputCorMatrix, inputMatVals1){
+    # First find our lobular index values
+    indexValues <- table(outputLobeRow(inputMatVals1))
+    # Now go thorugh and create a vector with our values to draw our rectangles around
+    indexVals <- c(.5)
+    for(i in 1:length(unique(indexValues))){
+      indexVals <- append(indexVals, unname(indexValues[i]))
+    }
+    indexVals <- indexVals
+    # Now draw the rectangles
+    tmpOut <- inputCorMatrix
+    for(i in 2:max(as.numeric(names(indexValues)))){
+      z <- i-1
+      lowerLeft <- sum(indexVals[0:z])
+      print(lowerLeft)
+      upperRight <- sum(indexVals[1:i])
+      if( is.na(upperRight) == TRUE ){
+        upperRight <- dim(inputMatVals1)[2] + .5
+      }
+      print(upperRight)
+      tmpOut <- tmpOut + annotate("rect", ymin=lowerLeft, ymax=upperRight, xmin=lowerLeft, xmax=upperRight, fill=NA, color='black')
+    }
+    output <- tmpOut
+    return(output)
+    
+}
+
+
 # Now produce all of the heat maps
-grepPattern1 <- c('mprage_jlf_vol', 'pcasl_jlf_cbf', 'mprage_jlf_ct', 'mprage_jlf_gmd', 'rest_jlf_reho', 'rest_jlf_alff', 'dti_jlf_ad', 'dti_jlf_rd', 'dti_jlf_tr')
+grepPattern1 <- c('mprage_jlf_vol', 'pcasl_jlf_cbf', 'mprage_jlf_gmd', 'mprage_jlf_ct','rest_jlf_reho', 'rest_jlf_alff', 'dti_jlf_ad', 'dti_jlf_rd', 'dti_jlf_tr')
 for(p in 1:length(grepPattern1)){
   modalName <- rev(strSplitMatrixReturn(grepPattern1[p], '_'))[1]
   pdf(paste(modalName, '-heatMaps.pdf', sep=''), width=20, height=20)
