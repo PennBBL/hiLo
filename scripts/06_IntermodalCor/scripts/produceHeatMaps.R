@@ -78,6 +78,15 @@ createHeatMap <- function(grepPattern1, grepPattern2){
     print('mismatch')
     matVals2 <- matVals2[,colNamesMV2 %in% intersectVals]
   }
+  # Now fix the names
+  colnames(matVals1) <- gsub(x=colnames(matVals1), pattern=grepPattern1, replacement='')
+  colnames(matVals2) <- gsub(x=colnames(matVals2), pattern=grepPattern2, replacement='')
+  
+  # Now find the modality name
+  xAxisName <- toupper(strSplitMatrixReturn(grepPattern1, '_')[,3])
+  print(xAxisName)
+  yAxisName <- toupper(strSplitMatrixReturn(grepPattern2, '_')[,3])
+  print(yAxisName)
 
   # Now plot our heat map!
   corMatrix <- cor(matVals1, matVals2, use='complete')
@@ -85,10 +94,11 @@ createHeatMap <- function(grepPattern1, grepPattern2){
   minVal <- min(corMatrix)
   corMatrix <- melt(corMatrix)
   levels(corMatrix$Var1) <- colnames(matVals1)
-  levels(corMatrix$Var2) <- colnames(matVals2)
+  levels(corMatrix$Var2) <- levels(corMatrix$Var1)
   output <- qplot(x=Var1, y=Var2, data=corMatrix, fill=value, geom="tile") + 
-    theme(text=element_text(size=12), axis.text.x = element_text(angle = 45, hjust = 1, face="bold"),
+    theme(text=element_text(size=20), axis.text.x = element_text(angle = 45, hjust = 1, face="bold"),
           axis.text.y = element_text(face="bold")) +
+    labs(x = xAxisName, y=yAxisName) + 
     scale_fill_gradient2(low="blue", high="red", limits=c(minVal, maxVal)) + 
     coord_equal()
   output <- addRect(output, matVals1)
@@ -116,7 +126,7 @@ addRect <- function(inputCorMatrix, inputMatVals1){
         upperRight <- dim(inputMatVals1)[2] + .5
       }
       print(upperRight)
-      tmpOut <- tmpOut + annotate("rect", ymin=lowerLeft, ymax=upperRight, xmin=lowerLeft, xmax=upperRight, fill=NA, color='black')
+      tmpOut <- tmpOut + annotate("rect", ymin=lowerLeft, ymax=upperRight, xmin=lowerLeft, xmax=upperRight, fill=NA, color='black', size=1.5)
     }
     output <- tmpOut
     return(output)
@@ -125,7 +135,7 @@ addRect <- function(inputCorMatrix, inputMatVals1){
 
 
 # Now produce all of the heat maps
-grepPattern1 <- c('mprage_jlf_vol', 'pcasl_jlf_cbf', 'mprage_jlf_gmd', 'mprage_jlf_ct','rest_jlf_reho', 'rest_jlf_alff', 'dti_jlf_ad', 'dti_jlf_rd', 'dti_jlf_tr')
+grepPattern1 <- c('mprage_jlf_vol_', 'pcasl_jlf_cbf_', 'mprage_jlf_gmd_', 'mprage_jlf_ct_','rest_jlf_reho_', 'rest_jlf_alff_', 'dti_jlf_ad_', 'dti_jlf_rd_', 'dti_jlf_tr_')
 for(p in 1:length(grepPattern1)){
   modalName <- rev(strSplitMatrixReturn(grepPattern1[p], '_'))[1]
   pdf(paste(modalName, '-heatMaps.pdf', sep=''), width=20, height=20)
