@@ -103,11 +103,24 @@ returnOptAlpha <- function(x, y, trainingIterations = 100, nCor=3, nofFolds=10, 
 # Now create a function which will return a booliean value for which 
 # rows meet the cut off threshold for times slected 
 # by our lasso model 
-rmFat <- function(outputFromrunLasso, imagingData, cutoffToApply=NULL){
+rmFat <- function(outputFromrunLasso, imagingData, cutoffToApply=NULL, percentileToApply){
   # see if we need to declare our own cut off
   if(identical(cutoffToApply,NULL)=='TRUE'){
     cutoffToApply<-median(returnSelection(outputFromrunLasso))
   }  
+  # First create our bool vector
+  boo.vec <- rep('FALSE', nrow(outputFromrunLasso))
+  sumIndex <- returnSelection(outputFromrunLasso)
+  boo.vec[which(sumIndex>=cutoffToApply)] <- 'TRUE'
+  index <- which(boo.vec=='TRUE')
+  # Now apply our boo vec to the imaging data
+  output <- imagingData[,index]
+  return(output)
+}
+
+rmFat <- function(outputFromrunLasso, imagingData, quantileLevel=.5){
+  # see if we need to declare our own cut off
+  cutoffToApply<-floor(quantile(returnSelection(outputFromrunLasso), probs = quantileLevel, na.rm=T))  
   # First create our bool vector
   boo.vec <- rep('FALSE', nrow(outputFromrunLasso))
   sumIndex <- returnSelection(outputFromrunLasso)
