@@ -410,8 +410,15 @@ male.all.values <- male.all.values[complete.cases(male.all.data[,all.col]),]
 
 # Now run var selection
 maleAllBetaMatrix <- runLassoforHiLo(male.all.values, male.all.outcome, nCor=30,alphaSequence=.5)
-maleAllValues <- rmFat(maleAllBetaMatrix, male.all.values)
-maleAllFitStats <- computeModelFitMetrics(returnBetas=T,x = maleAllValues, y= male.all.outcome)
+tmpOut <- NULL
+for(val in seq(.5, 1, .05)){
+  maleAllValues <- rmFat(maleAllBetaMatrix, male.all.values, val)
+  maleAllFitStats <- computeModelFitMetrics(returnBetas=F,x = maleAllValues, y= male.all.outcome)
+  tmpOut <- rbind(tmpOut, maleAllFitStats)
+}
+maleAllOut <- tmpOut
+write.csv(maleAllOut, 'maleQuantCutOffAll.csv', quote=F, row.names=F)
+
 
 # Now do female data
 female.all.data <- all.data[which(all.data$sex==2),]
@@ -422,8 +429,14 @@ female.all.values <- female.all.values[complete.cases(female.all.data[,all.col])
 
 # Now run the variable selection
 femaleAllBetaMatrix <- runLassoforHiLo(female.all.values, female.all.outcome, nCor=30,alphaSequence=.5)
-femaleAllValues <- rmFat(femaleAllBetaMatrix, female.all.values)
-femaleAllFitStats <- computeModelFitMetrics(returnBetas=T,x = femaleAllValues, y= female.all.outcome)
+tmpOut <- NULL
+for(val in seq(.5, 1, .05)){
+  femaleAllValues <- rmFat(femaleAllBetaMatrix, female.all.values, val)
+  femaleAllFitStats <- computeModelFitMetrics(returnBetas=F,x = femaleAllValues, y= female.all.outcome)
+  tmpOut <- rbind(tmpOut, femaleAllFitStats)
+}
+femaleAllOut <- tmpOut
+write.csv(femaleAllOut, 'femaleQuantCutOffAll.csv', quote=F, row.names=F)
 
 # Now perform the same task with the GMD factor score
 male.all.data <- all.data[which(all.data$sex==1),]
@@ -455,6 +468,8 @@ female.all.values <- female.all.values[complete.cases(female.all.data[,all.col])
 
 # Now run the variable selection
 femaleAllBetaMatrix <- runLassoforHiLo(female.all.values, female.all.outcome, nCor=30,alphaSequence=.5)
+tmpOut <- NULL
+for(val 
 femaleAllValues <- rmFat(femaleAllBetaMatrix, female.all.values)
 femaleAllFitStatsOverall <- computeModelFitMetrics(returnBetas=T,x = femaleAllValues, y= female.all.outcome)
 
