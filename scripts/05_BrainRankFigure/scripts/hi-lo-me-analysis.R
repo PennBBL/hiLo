@@ -35,19 +35,38 @@ calculateDeltaHiMeLo <- function(data, suffix) {
 }
 
 
-data.cbf <- read.csv("~/hi-lo/data/cbfData.csv-imputed")
+data.cbf <- read.csv("/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeReg/cbfData.csv-imputed")
 suffix.cbf <- "pcasl_jlf_cbf_"
-output.cbf <- calculateDeltaHiMeLo(data.cbf, suffix.cbf)
 
-data.vol <- read.csv("~/hi-lo/data/volumeData.csv")
+data.cbf.male <- data.cbf[which(data.cbf$sex == 1), ]
+output.cbf.male <- calculateDeltaHiMeLo(data.cbf.male, suffix.cbf)
+
+data.cbf.female <- data.cbf[which(data.cbf$sex == 2), ]
+output.cbf.female <- calculateDeltaHiMeLo(data.cbf.female, suffix.cbf)
+
+data.vol <- read.csv("/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeReg/volumeData.csv")
 suffix.vol <- "mprage_jlf_vol_"
-output.vol <- calculateDeltaHiMeLo(data.vol, suffix.vol)
 
-data.gmd <- read.csv("~/hi-lo/data/gmdData.csv")
+data.vol.male <- data.vol[which(data.vol$sex == 1), ]
+output.vol.male <- calculateDeltaHiMeLo(data.vol.male, suffix.vol)
+
+data.vol.female <- data.vol[which(data.vol$sex == 2), ]
+output.vol.female <- calculateDeltaHiMeLo(data.vol.female, suffix.vol)
+
+data.gmd <- read.csv("/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeReg/gmdData.csv")
 suffix.gmd <- "mprage_jlf_gmd_"
-output.gmd <- calculateDeltaHiMeLo(data.gmd, suffix.gmd)
+
+data.gmd.male <- data.gmd[which(data.gmd$sex == 1), ]
+output.gmd.male <- calculateDeltaHiMeLo(data.gmd.male, suffix.gmd)
+
+data.gmd.female <- data.gmd[which(data.gmd$sex == 2), ]
+output.gmd.female <- calculateDeltaHiMeLo(data.gmd.female, suffix.gmd)
 
 
-write.csv(output.vol, "~/hi-lo/output_hi-me-low_vol.csv")
-write.csv(output.gmd, "~/hi-lo/output_hi-me-low_gmd.csv")
-write.csv(output.cbf, "~/hi-lo/output_hi-me-low_cbf.csv")
+
+write.csv(output.vol.male, "/home/angelgar/highMedLow/output_hi-me-low_vol_male.csv")
+write.csv(output.vol.female, "/home/angelgar/highMedLow/output_hi-me-low_vol_female.csv")
+write.csv(output.gmd.male, "/home/angelgar/highMedLow/output_hi-me-low_gmd_male.csv")
+write.csv(output.gmd.female, "/home/angelgar/highMedLow/output_hi-me-low_gmd_female.csv")
+write.csv(output.cbf.male, "/home/angelgar/highMedLow/output_hi-me-low_cbf_male.csv")
+write.csv(output.cbf.female, "/home/angelgar/highMedLow/output_hi-me-low_cbf_female.csv")
