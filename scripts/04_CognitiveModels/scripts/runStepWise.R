@@ -26,6 +26,8 @@ returnCVStepFit <- function(dataFrame, genderID, grepID){
   valuesToUse <- scale(isolatedGender[,colsOfInterest])[,1:length(colsOfInterest)]
   outcomeVal <- scale(isolatedGender$F1_Exec_Comp_Cog_Accuracy)
   dataToUse <- as.data.frame(cbind(outcomeVal, valuesToUse))
+  outcomeVal <- outcomeVal[complete.cases(valuesToUse)]
+  valuesToUse <- valuesToUse[complete.cases(valuesToUse),]
 
   # Now create a CV sample
   folds <- createFolds(dataToUse$V1, k=10, list=T, returnTrain=T)
