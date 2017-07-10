@@ -17,54 +17,6 @@ tr.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeReg/j
 fa.data.label <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeReg/jhuFALabelsData.csv')
 tr.data.label <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeReg/jhuTRLabelsData.csv')
 
-# Create a function to run step wise
-# and return the fit metrics w/in the training and a CV sample
-returnCVStepFit <- function(dataFrame, genderID, grepID){
-  # Prepare our data
-  isolatedGender <- dataFrame[which(dataFrame$sex==genderID),]
-  colsOfInterest <- grep(grepID, names(isolatedGender))
-  valuesToUse <- scale(isolatedGender[,colsOfInterest])[,1:length(colsOfInterest)]
-  outcomeVal <- scale(isolatedGender$F1_Exec_Comp_Cog_Accuracy)
-  dataToUse <- as.data.frame(cbind(outcomeVal, valuesToUse))
-  outcomeVal <- outcomeVal[complete.cases(valuesToUse)]
-  valuesToUse <- valuesToUse[complete.cases(valuesToUse),]
-
-  # Now create a CV sample
-  folds <- createFolds(dataToUse$V1, k=10, list=T, returnTrain=T)
-  index <- unlist(folds[1])
-  trainData <- dataToUse[index,]
-  testData <- dataToUse[-index,]
-
-  # Now prepare our models
-  nullModel <- lm(V1 ~ 1, data=trainData)
-  fullModel <- lm(V1 ~ ., data=trainData)
-  stepVAR <- stepAIC(fullModel, direction="both")
-  # Now get our model
-  modelOut <- as.formula(paste('V1 ~', paste(colnames(stepVAR$model)[2:dim(stepVAR$model)[2]], collapse='+')))
-  # Now produce our final models
-  modelToTest <- lm(modelOut, data=trainData)
-  cvValues <- predict(modelToTest, newdata=testData)
-
-  # Grab our n and p values
-  n <- dim(trainData)[1]
-  p <- length(colnames(stepVAR$model)[2:dim(stepVAR$model)[2]])
-
-  # Now create our fit metrics
-  rawRSquared <- cor(trainData$V1, modelToTest$fitted.values)^2
-  cvRSquared <- cor(cvValues, testData$V1)^2
-  rawICC <- ICC(cbind(trainData$V1, modelToTest$fitted.values))$results[4,2]
-  cvICC <- ICC(cbind(cvValues, testData$V1))$results[4,2]
-  rawRMSE <- sqrt(mean((trainData$V1-modelToTest$fitted.values)^2))
-  cvRMSE <- sqrt(mean((cvValues - testData$V1)^2))
-  adjRSquared <- cor(trainData$V1, modelToTest$fitted.values)^2 - 
-    (1 - cor(trainData$V1, modelToTest$fitted.values)^2)*(p/(n-p-1))
-
-  # Now prepare our output
-  output <- as.data.frame(cbind(n,p,rawRSquared,cvRSquared,rawICC,cvICC,rawRMSE,cvRMSE,adjRSquared))
-  colnames(output) <- c('n','p','R2', 'CVR2', 'ICC', 'CVICC', 'RMSE', 'CVRMSE', 'ADJR2')
-  return(output)  
-}
-
 # Now loop through all of our modalities, data frames, and genders and prep our output
 genderVals <- c(1,2)
 dataNames <- c('vol.data', 'cbf.data', 'gmd.data', 'ct.data', 'reho.data', 'alff.data', 'tr.data', 'fa.data.label')

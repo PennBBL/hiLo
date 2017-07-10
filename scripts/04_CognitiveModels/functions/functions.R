@@ -260,3 +260,134 @@ stand_err <- function(input_vector){
   tmp <- sd(input_vector,na.rm=T)/sqrt(sum(!is.na(input_vector)))
   return(tmp)
 }
+
+model.select <- function(model,keep,sig=0.05,verbose=F, data=NULL){
+      counter=1
+      # check input
+      if(!is(model,"lm")) stop(paste(deparse(substitute(model)),"is not an lm object\n"))
+      # calculate scope for drop1 function
+      terms <- attr(model$terms,"term.labels")
+      if(missing(keep)){ # set scopevars to all terms
+          scopevars <- terms
+      } else{            # select the scopevars if keep is used
+          index <- match(keep,terms)
+          # check if all is specified correctly
+          if(sum(is.na(index))>0){
+              novar <- keep[is.na(index)]
+              warning(paste(
+                  c(novar,"cannot be found in the model",
+                  "\nThese terms are ignored in the model selection."),
+                  collapse=" "))
+              index <- as.vector(na.omit(index))
+          }
+          scopevars <- terms[-index]
+      }
+
+      # Backward model selection : 
+
+      while(T){
+          # extract the test statistics from drop.
+          test <- drop1(model, scope=scopevars,test="F")
+
+          if(verbose){
+              cat("-------------STEP ",counter,"-------------\n",
+              "The drop statistics : \n")
+              print(test)
+          }
+
+          pval <- test[,dim(test)[2]]
+
+          names(pval) <- rownames(test)
+          pval <- sort(pval,decreasing=T)
+
+          if(sum(is.na(pval))>0) stop(paste("Model",
+              deparse(substitute(model)),"is invalid. Check if all coefficients are estimated."))
+
+          # check if all significant
+          if(pval[1]<sig) break # stops the loop if all remaining vars are sign.
+
+          # select var to drop
+          i=1
+          while(T){
+              dropvar <- names(pval)[i]
+              check.terms <- terms[-match(dropvar,terms)]
+              x <- has.interaction(dropvar,check.terms)
+              if(x){i=i+1;next} else {break}              
+          } # end while(T) drop var
+
+          if(pval[i]<sig) break # stops the loop if var to remove is significant
+
+          if(verbose){
+             cat("\n--------\nTerm dropped in step",counter,":",dropvar,"\n--------\n\n")              
+          }
+
+          #update terms, scopevars and model
+          scopevars <- scopevars[-match(dropvar,scopevars)]
+          terms <- terms[-match(dropvar,terms)]
+
+          formul <- as.formula(paste(".~.-",dropvar))
+          model <- update(model,formul)
+
+          if(length(scopevars)==0) {
+              warning("All variables are thrown out of the model.\n",
+              "No model could be specified.")
+              return()
+          }
+          counter=counter+1
+      } # end while(T) main loop
+      return(model)
+}
+
+returnCVStepFit <- function(dataFrame, genderID, grepID, pValue=.05){
+  # Prepare our data
+  isolatedGender <- dataFrame[which(dataFrame$sex==genderID),]
+  colsOfInterest <- grep(grepID, names(isolatedGender))
+  valuesToUse <- scale(isolatedGender[,colsOfInterest])[,1:length(colsOfInterest)]
+  outcomeVal <- scale(isolatedGender$F1_Exec_Comp_Cog_Accuracy)
+  dataToUse <- as.data.frame(cbind(outcomeVal, valuesToUse))
+  dataToUse <- dataToUse[complete.cases(dataToUse),]
+
+  # Now create a CV sample
+  folds <- createFolds(dataToUse$V1, k=10, list=T, returnTrain=T)
+  index <- unlist(folds[1])
+  trainData <- dataToUse[index,]
+  data <- trainData
+  testData <- dataToUse[-index,]
+
+  # Now prepare our models
+  nullModel <- lm(V1 ~ 1, data=data)
+  fullModel <- lm(V1 ~ ., data=data)
+  #stepVAR <- stepAIC(fullModel, direction="both")
+  stepVAR <- model.select(fullModel, verbose=T, data=trainData, sig=pValue)
+  # Now get our model
+  modelOut <- as.formula(paste('V1 ~', paste(colnames(stepVAR$model)[2:dim(stepVAR$model)[2]], collapse='+')))
+  # Now produce our final models
+  modelToTest <- lm(modelOut, data=trainData)
+  cvValues <- predict(modelToTest, newdata=testData)
+
+  # Grab our n and p values
+  n <- dim(trainData)[1]
+  p <- length(colnames(stepVAR$model)[2:dim(stepVAR$model)[2]])
+
+  # Now create our fit metrics
+  rawRSquared <- cor(trainData$V1, modelToTest$fitted.values)^2
+  cvRSquared <- cor(cvValues, testData$V1)^2
+  rawICC <- ICC(cbind(trainData$V1, modelToTest$fitted.values))$results[4,2]
+  cvICC <- ICC(cbind(cvValues, testData$V1))$results[4,2]
+  rawRMSE <- sqrt(mean((trainData$V1-modelToTest$fitted.values)^2))
+  cvRMSE <- sqrt(mean((cvValues - testData$V1)^2))
+  adjRSquared <- cor(trainData$V1, modelToTest$fitted.values)^2 - 
+    (1 - cor(trainData$V1, modelToTest$fitted.values)^2)*(p/(n-p-1))
+
+  # Now prepare our output
+  output <- as.data.frame(cbind(n,p,rawRSquared,cvRSquared,rawICC,cvICC,rawRMSE,cvRMSE,adjRSquared))
+  colnames(output) <- c('n','p','R2', 'CVR2', 'ICC', 'CVICC', 'RMSE', 'CVRMSE', 'ADJR2')
+  return(output)  
+}
+
+has.interaction <- function(x,terms){
+    out <- sapply(terms,function(i){
+        sum(1-(strsplit(x,":")[[1]] %in% strsplit(i,":")[[1]]))==0
+    })
+    return(sum(out)>0)
+}
