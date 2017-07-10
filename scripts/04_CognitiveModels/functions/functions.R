@@ -348,36 +348,48 @@ returnCVStepFit <- function(dataFrame, genderID, grepID, pValue=.05){
   dataToUse <- dataToUse[complete.cases(dataToUse),]
 
   # Now create a CV sample
-  folds <- createFolds(dataToUse$V1, k=10, list=T, returnTrain=T)
-  index <- unlist(folds[1])
-  trainData <- dataToUse[index,]
+  #folds <- createFolds(dataToUse$V1, k=10, list=T, returnTrain=T)
+  #index <- unlist(folds[1])
+  trainData <- dataToUse
   data <- trainData
-  testData <- dataToUse[-index,]
+  #testData <- dataToUse[-index,]
 
   # Now prepare our models
   nullModel <- lm(V1 ~ 1, data=data)
   fullModel <- lm(V1 ~ ., data=data)
   #stepVAR <- stepAIC(fullModel, direction="both")
-  stepVAR <- model.select(fullModel, verbose=T, data=trainData, sig=pValue)
+  #stepVAR <- model.select(fullModel, verbose=T, data=trainData, sig=pValue)
+  stepVAR <- SignifReg(scope=V1~., data=data, alpha=pValue, direction="forward", criterion="p-value")
   # Now get our model
   modelOut <- as.formula(paste('V1 ~', paste(colnames(stepVAR$model)[2:dim(stepVAR$model)[2]], collapse='+')))
   # Now produce our final models
-  modelToTest <- lm(modelOut, data=trainData)
-  cvValues <- predict(modelToTest, newdata=testData)
-
+  x <- stepVAR$model[,2:dim(stepVAR$model)[2]]
+  y <- stepVAR$model[,1]
+  modm <- lm(y ~ as.matrix(x))
+  
   # Grab our n and p values
-  n <- dim(trainData)[1]
-  p <- length(colnames(stepVAR$model)[2:dim(stepVAR$model)[2]])
+  # Now get some values
+  if(!identical(dim(x), NULL)){
+    n <- dim(x)[1]
+    p <- dim(x)[2]
+  }
+  if(identical(dim(x), NULL)){
+    n <- length(x)
+    p <- 1
+  }
 
-  # Now create our fit metrics
-  rawRSquared <- cor(trainData$V1, modelToTest$fitted.values)^2
-  cvRSquared <- cor(cvValues, testData$V1)^2
-  rawICC <- ICC(cbind(trainData$V1, modelToTest$fitted.values))$results[4,2]
-  cvICC <- ICC(cbind(cvValues, testData$V1))$results[4,2]
-  rawRMSE <- sqrt(mean((trainData$V1-modelToTest$fitted.values)^2))
-  cvRMSE <- sqrt(mean((cvValues - testData$V1)^2))
-  adjRSquared <- cor(trainData$V1, modelToTest$fitted.values)^2 - 
-    (1 - cor(trainData$V1, modelToTest$fitted.values)^2)*(p/(n-p-1))
+  # Now do a crossval of our model
+  modmCV <- crossval(x, y, theta.fit, theta.predict,ngroup=10)
+
+  # Now get our output metrics 
+  rawRSquared <- cor(y, modm$fitted.values)^2
+  cvRSquared <- cor(y, modmCV$cv.fit)^2
+  rawICC <- ICC(cbind(y, modm$fitted.values))$results[4,2]
+  cvICC <- ICC(cbind(y, modmCV$cv.fit))$results[4,2]
+  rawRMSE <- sqrt(mean((y-modm$fitted.values)^2))
+  cvRMSE <- sqrt(mean((y-modmCV$cv.fit)^2))
+  adjRSquared <- cor(y, modm$fitted.values)^2 - 
+                (1 - cor(y, modm$fitted.values)^2)*(p/(n-p-1))
 
   # Now prepare our output
   output <- as.data.frame(cbind(n,p,rawRSquared,cvRSquared,rawICC,cvICC,rawRMSE,cvRMSE,adjRSquared))

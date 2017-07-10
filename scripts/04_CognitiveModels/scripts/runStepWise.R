@@ -1,7 +1,7 @@
 # First thing we need to do is load our library(s)
 source('/home/adrose/hiLo/scripts/04_CognitiveModels/functions/functions.R')
 source('/home/adrose/hiLo/scripts/01_DataPrep/functions/functions.R')
-install_load('foreach', 'doParallel', 'glmnet', 'bootstrap', 'psych', 'ggplot2', 'reshape2', 'caret', 'randomForest', 'MASS')
+install_load('foreach', 'doParallel', 'glmnet', 'bootstrap', 'psych', 'ggplot2', 'reshape2', 'caret', 'randomForest', 'MASS','SignifReg')
 
 # Now we need to load the data 
 vol.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeReg/volumeData.csv')
@@ -46,5 +46,5 @@ colnames(all.data) <- gsub(x=colnames(all.data), pattern='dti_dtitk_jhulabel', r
 
 maleAll <- returnCVStepFit(all.data, 1, 'jlf')
 femaleAll <-  returnCVStepFit(all.data, 2, 'jlf')
-allMOut <- rbind(maleALl, femaleAll)
+allMOut <- rbind(maleAll, femaleAll)
 write.csv(allMOut, 'stepAllModal.csv', quote=F, row.names=F)
