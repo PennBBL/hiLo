@@ -118,7 +118,7 @@ rmFat <- function(outputFromrunLasso, imagingData, cutoffToApply=NULL, percentil
   return(output)
 }
 
-rmFat <- function(outputFromrunLasso, imagingData, quantileLevel=.5){
+rmFat2 <- function(outputFromrunLasso, imagingData, quantileLevel=.5){
   # see if we need to declare our own cut off
   cutoffToApply<-floor(quantile(returnSelection(outputFromrunLasso), probs = quantileLevel, na.rm=T))  
   # First create our bool vector
@@ -338,7 +338,7 @@ model.select <- function(model,keep,sig=0.05,verbose=F, data=NULL){
       return(model)
 }
 
-returnCVStepFit <- function(dataFrame, genderID, grepID, pValue=.05){
+returnCVStepFit <- function(dataFrame, genderID, grepID, pValue=.05, iterationCount=1000, nCor=3, selectionPercent=.5){
   # Prepare our data
   isolatedGender <- dataFrame[which(dataFrame$sex==genderID),]
   colsOfInterest <- grep(grepID, names(isolatedGender))
@@ -347,24 +347,46 @@ returnCVStepFit <- function(dataFrame, genderID, grepID, pValue=.05){
   dataToUse <- as.data.frame(cbind(outcomeVal, valuesToUse))
   dataToUse <- dataToUse[complete.cases(dataToUse),]
 
-  # Now create a CV sample
-  #folds <- createFolds(dataToUse$V1, k=10, list=T, returnTrain=T)
-  #index <- unlist(folds[1])
-  trainData <- dataToUse
-  data <- trainData
-  #testData <- dataToUse[-index,]
+  # Now set up our parallel environment
+  cl <- makeCluster(nCor)
+  registerDoParallel(cl)
 
-  # Now prepare our models
-  nullModel <- lm(V1 ~ 1, data=data)
-  fullModel <- lm(V1 ~ ., data=data)
-  #stepVAR <- stepAIC(fullModel, direction="both")
-  #stepVAR <- model.select(fullModel, verbose=T, data=trainData, sig=pValue)
-  stepVAR <- SignifReg(scope=V1~., data=data, alpha=pValue, direction="forward", criterion="p-value")
+  # Bootstrap forward p value step wise model selection
+  output <- foreach(i=seq(1,iterationCount), .combine='cbind') %dopar% {
+      # First load required library(s)
+      source('/home/adrose/adroseHelperScripts/R/afgrHelpFunc.R')
+      source('/home/adrose/hiLo/scripts/04_CognitiveModels/functions/functions.R')
+      install_load('caret', 'SignifReg')
+      
+      # create our model
+      folds <- createFolds(dataToUse$V1, k=2, list=T, returnTrain=T)
+      index <- unlist(folds[1])
+      dataTrain <- dataToUse[index,]
+      stepVAR <- SignifReg(scope=V1~., data=dataTrain, alpha=pValue, direction="forward", criterion="p-value")
+      
+      # now create our output vector
+      outCol <- matrix(0, nrow=dim(dataToUse)[2], ncol=1)
+      rownames(outCol) <- colnames(dataToUse)
+      selectedIndex <- match(colnames(stepVAR$model)[2:dim(stepVAR$model)[2]], rownames(outCol))
+      outCol[selectedIndex,] <- 1
+
+      # Now print our output
+      outCol
+  }
+  
+  # Kill our cluster
+  stopCluster(cl)
+  
+  # Now take the variables selected in the 75 % of the time
+  indexToUse <- c(1,which(returnSelection(output) >=floor(iterationCount*selectionPercent)))
+  dataToUse <- dataToUse[,indexToUse]
+  
+  
   # Now get our model
-  modelOut <- as.formula(paste('V1 ~', paste(colnames(stepVAR$model)[2:dim(stepVAR$model)[2]], collapse='+')))
+  modelOut <- as.formula(paste('V1 ~', paste(colnames(dataToUse)[2:dim(dataToUse)[2]], collapse='+')))
   # Now produce our final models
-  x <- stepVAR$model[,2:dim(stepVAR$model)[2]]
-  y <- stepVAR$model[,1]
+  x <- dataToUse[,2:dim(dataToUse)[2]]
+  y <- dataToUse[,1]
   modm <- lm(y ~ as.matrix(x))
   
   # Grab our n and p values
@@ -403,3 +425,5 @@ has.interaction <- function(x,terms){
     })
     return(sum(out)>0)
 }
+
+
