@@ -26,8 +26,10 @@ dataGrepNames <- c('mprage_jlf_vol', 'pcasl_jlf_cbf', 'mprage_jlf_gmd', 'mprage_
 allOut <- NA
 for(g in genderVals){
   for(z in 1:length(dataNames)){
-    vals <- returnCVStepFit(dataFrame=vol.data, grepID='mprage_jlf_vol', genderID=2, pValue=.05, iterationCount=1000, nCor=25, selectionPercent=.5)
-    tmp <- cbind(g, dataNames[z], dataGrepNames[z], vals)
+    vals <- returnCVStepFit(dataFrame=get(dataNames[z]), grepID=dataGrepNames[z], genderID=g, pValue=.05, iterationCount=1000, nCor=30, selectionPercent=.75)
+    tmp <- cbind(g, dataNames[z], dataGrepNames[z], vals[[1]])
+    tmp2 <- vals[[2]]
+    write.csv(tmp2, paste(g,z,'BetaVals.csv', sep=''), quote=F, row.names=T)
     allOut <- rbind(allOut, tmp)
   }
 }

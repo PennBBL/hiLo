@@ -137,6 +137,12 @@ returnSelection <- function(outputFromrunLasso){
   return(sumIndex)
 }
 
+returnSelectionRow <- function(outputFromrunLasso){
+  sumIndex <- colSums(abs(sign(apply(outputFromrunLasso[,2:ncol(outputFromrunLasso)], 
+              2, function(x) as.numeric(as.character(x))))))
+  return(sumIndex)
+}
+
 plotSelection <- function(inputBetaMatrix, graphTitle){
   values <- as.data.frame(table(returnSelection(inputBetaMatrix)))
   output <- ggplot(values, aes(x=Var1, y=Freq)) + 
@@ -338,7 +344,7 @@ model.select <- function(model,keep,sig=0.05,verbose=F, data=NULL){
       return(model)
 }
 
-returnCVStepFit <- function(dataFrame, genderID, grepID, pValue=.05, iterationCount=1000, nCor=3, selectionPercent=.5){
+returnCVStepFit <- function(dataFrame, genderID, grepID, pValue=.05, iterationCount=1000, nCor=3, selectionPercent=.75, returnBetas=TRUE){
   # Prepare our data
   isolatedGender <- dataFrame[which(dataFrame$sex==genderID),]
   colsOfInterest <- grep(grepID, names(isolatedGender))
@@ -377,11 +383,11 @@ returnCVStepFit <- function(dataFrame, genderID, grepID, pValue=.05, iterationCo
   # Kill our cluster
   stopCluster(cl)
   
-  # Now take the variables selected in the 75 % of the time
-  indexToUse <- c(1,which(returnSelection(output) >=floor(iterationCount*selectionPercent)))
+  # Now select the varaibles that were selected more then the mode value for variables selected.
+  modeValue <- quantile(returnSelectionRow(output), selectionPercent) 
+  indexToUse <- c(1,which(returnSelection(output) >=modeValue))
   dataToUse <- dataToUse[,indexToUse]
-  
-  
+    
   # Now get our model
   modelOut <- as.formula(paste('V1 ~', paste(colnames(dataToUse)[2:dim(dataToUse)[2]], collapse='+')))
   # Now produce our final models
@@ -416,6 +422,13 @@ returnCVStepFit <- function(dataFrame, genderID, grepID, pValue=.05, iterationCo
   # Now prepare our output
   output <- as.data.frame(cbind(n,p,rawRSquared,cvRSquared,rawICC,cvICC,rawRMSE,cvRMSE,adjRSquared))
   colnames(output) <- c('n','p','R2', 'CVR2', 'ICC', 'CVICC', 'RMSE', 'CVRMSE', 'ADJR2')
+  if(returnBetas=='TRUE'){
+    outputList <- list()
+    outputList[[1]] <- output
+    outputList[[2]] <- coefficients(modm)
+    output <- outputList
+  }
+  return(output)
   return(output)  
 }
 
