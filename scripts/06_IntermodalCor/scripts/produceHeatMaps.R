@@ -29,59 +29,23 @@ all.data <- merge(all.data, fa.data, by=intersect(names(all.data), names(fa.data
 all.data <- merge(all.data, rd.data, by=intersect(names(all.data), names(rd.data)), all=T)
 all.data <- merge(all.data, tr.data, by=intersect(names(all.data), names(tr.data)), all=T)
 
-
-# Now create a function which will produce the heat maps and do everything ever
-createHeatMap <- function(grepPattern1, grepPattern2){
-  # First merge the two dataFrames
-  matVals1 <- all.data[,grep(grepPattern1, names(all.data))]
-  matVals2 <- all.data[,grep(grepPattern2, names(all.data))]
-
-  # Now reorder the data 
-  matVals1 <- matVals1[,order(outputLobeRow(matVals1))]
-  matVals2 <- matVals2[,order(outputLobeRow(matVals2))]
-
-  # Now nonsense lobes
-  matVals1 <- matVals1[,-which(outputLobeRow(matVals1)>=7)]
-  matVals2 <- matVals2[,-which(outputLobeRow(matVals2)>=7)]
-
-  # Now rm outliers
-  #matVals1 <- data.matrix(as.data.frame(apply(matVals1, 2, function(x) rmOutliers(x, 3))))
-  #matVals2 <- data.matrix(as.data.frame(apply(matVals2, 2, function(x) rmOutliers(x, 3))))
-
-  # Now find the intersection of names and ensure that we only have regions that both DF have
-  colNamesMV1 <- gsub(x=colnames(matVals1), pattern=grepPattern1, replacement='')
-  colNamesMV2 <- gsub(x=colnames(matVals2), pattern=grepPattern2, replacement='')
-  intersectVals <- intersect(colNamesMV1, colNamesMV2)
-  lengthValue <- length(intersectVals)
-  if(lengthValue!=dim(matVals1)[2]){
-    matVals1 <- matVals1[,colNamesMV1 %in% intersectVals]
-  }  
-  if(lengthValue!=dim(matVals2)[2]){
-    matsVals2 <- matVals2[,colNamesMV2 %in% intersectVals]
-  }
-
-  # Now plot our heat map!
-  corMatrix <- cor(matVals1, matVals2, use='complete')
-  maxVal <- max(corMatrix)
-  minVal <- min(corMatrix)
-  corMatrix <- melt(corMatrix)
-  levels(corMatrix$Var1) <- colnames(matVals1)
-  levels(corMatrix$Var2) <- colnames(matVals2)
-  output <- qplot(x=Var1, y=Var2, data=corMatrix, fill=value, geom="tile") + 
-    theme(text=element_text(size=12), axis.text.x = element_text(angle = 45, hjust = 1, face="bold"),
-          axis.text.y = element_text(face="bold")) +
-    scale_fill_gradient2(low="blue", high="red", limits=c(minVal, maxVal)) + 
-    coord_equal()
-  return(output)  
-}
-
 # Now produce all of the heat maps
-grepPattern1 <- c('mprage_jlf_vol', 'pcasl_jlf_cbf', 'mprage_jlf_ct', 'mprage_jlf_gmd', 'rest_jlf_reho', 'rest_jlf_alff', 'dti_jlf_ad', 'dti_jlf_rd', 'dti_jlf_tr')
+grepPattern1 <- c('mprage_jlf_vol_', 'pcasl_jlf_cbf_', 'mprage_jlf_gmd_', 'mprage_jlf_ct_','rest_jlf_reho_', 'rest_jlf_alff_', 'dti_jlf_ad_', 'dti_jlf_rd_', 'dti_jlf_tr_')
 for(p in 1:length(grepPattern1)){
   modalName <- rev(strSplitMatrixReturn(grepPattern1[p], '_'))[1]
   pdf(paste(modalName, '-heatMaps.pdf', sep=''), width=20, height=20)
   for(n in 1:length(grepPattern1)){
     tmp <- createHeatMap(grepPattern1[p], grepPattern1[n]) 
+    print(tmp) 
+  }
+  dev.off()
+}
+
+for(p in 1:length(grepPattern1)){
+  modalName <- rev(strSplitMatrixReturn(grepPattern1[p], '_'))[1]
+  pdf(paste(modalName, '-sigHeatMaps.pdf', sep=''), width=20, height=20)
+  for(n in 1:length(grepPattern1)){
+    tmp <- createSigHeatMap(grepPattern1[p], grepPattern1[n]) 
     print(tmp) 
   }
   dev.off()

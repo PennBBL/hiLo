@@ -32,9 +32,15 @@ male.vol.outcome <- male.vol.outcome[complete.cases(male.vol.data[,vol.col])]
 male.vol.values <- male.vol.values[complete.cases(male.vol.data[,vol.col]),]
 # Now run the variable selection
 maleVolBetaMatrix <- runLassoforHiLo(male.vol.values, male.vol.outcome, nCor=30,alphaSequence=.5)
-maleVolValues <- rmFat(maleVolBetaMatrix, male.vol.values)
-maleVolValues <- regressWithinModality(maleVolValues, grepPattern='mprage_jlf_vol')
-maleVolFitStats <- computeModelFitMetrics(returnBetas=T,x = maleVolValues, y= male.vol.outcome)
+tmpOut <- NULL
+for(val in seq(.5, 1, .05)){
+  maleVolValues <- rmFat(maleVolBetaMatrix, male.vol.values, val)
+  maleVolValues <- regressWithinModality(maleVolValues, grepPattern='mprage_jlf_vol')
+  maleVolFitStats <- computeModelFitMetrics(returnBetas=F,x = maleVolValues, y= male.vol.outcome)
+  tmpOut <- rbind(tmpOut, maleVolFitStats)
+}
+maleVolOut <- tmpOut
+write.csv(maleVolOut, 'maleQuantCutOffVol.csv', quote=F, row.names=F)
 
 # Now do female
 female.vol.data <- vol.data[which(vol.data$sex==2),]
@@ -43,9 +49,15 @@ female.vol.outcome <- scale(female.vol.data$F1_Exec_Comp_Cog_Accuracy)[,1]
 
 # Now run the variable selection
 femaleVolBetaMatrix <- runLassoforHiLo(female.vol.values, female.vol.outcome, nCor=30,alphaSequence=.5)
-femaleVolValues <- rmFat(femaleVolBetaMatrix, female.vol.values)
-femaleVolValues <- regressWithinModality(femaleVolValues, grep='mprage_jlf_vol')
-femaleVolFitStats <- computeModelFitMetrics(returnBetas=T,x = femaleVolValues, y= female.vol.outcome)
+tmpOut <- NULL
+for(val in seq(.5, 1, .05)){
+  femaleVolValues <- rmFat(femaleVolBetaMatrix, female.vol.values, val)
+  femaleVolValues <- regressWithinModality(femaleVolValues, grep='mprage_jlf_vol')
+  femaleVolFitStats <- computeModelFitMetrics(returnBetas=F,x = femaleVolValues, y= female.vol.outcome)
+  tmpOut <- rbind(tmpOut, femaleVolFitStats)
+}
+femaleVolOut <- tmpOut
+write.csv(femaleVolOut, 'femaleQuantCutOffVol.csv', quote=F, row.names=F)
 
 ## Now do CBF
 # start with male
@@ -58,9 +70,15 @@ male.cbf.values <- male.cbf.values[complete.cases(male.cbf.data[,cbf.col]),]
 
 # Now run the variable selection 
 maleCbfBetaMatrix <- runLassoforHiLo(male.cbf.values, male.cbf.outcome, nCor=25,alphaSequence=.5)
-maleCbfValues <- rmFat(maleCbfBetaMatrix, male.cbf.values)
-maleCbfValues <- regressWithinModality(maleCbfValues, grep='pcasl_jlf_cbf')
-maleCbfFitStats <- computeModelFitMetrics(returnBetas=T,x = maleCbfValues, y= male.cbf.outcome)
+tmpOut <- NULL
+for(val in seq(.5, 1, .05)){
+  maleCbfValues <- rmFat(maleCbfBetaMatrix, male.cbf.values, val)
+  maleCbfValues <- regressWithinModality(maleCbfValues, grep='pcasl_jlf_cbf')
+  maleCbfFitStats <- computeModelFitMetrics(returnBetas=F,x = maleCbfValues, y= male.cbf.outcome)
+  tmpOut <- rbind(tmpOut, maleCbfFitStats)
+}
+maleCbfOut <- tmpOut
+write.csv(maleCbfOut, 'maleQuantCutOffCBf.csv', quote=F, row.names=F)
 
 # Now do female
 female.cbf.data <- cbf.data[which(cbf.data$sex==2),]
@@ -71,9 +89,15 @@ female.cbf.values <- female.cbf.values[complete.cases(female.cbf.data[,cbf.col])
 
 # Now run the variable selection 
 femaleCbfBetaMatrix <- runLassoforHiLo(female.cbf.values, female.cbf.outcome, nCor=30,alphaSequence=.5)
-femaleCbfValues <- rmFat(femaleCbfBetaMatrix, female.cbf.values)
-femaleCbfValues <- regressWithinModality(femaleCbfValues, grep='pcasl_jlf_cbf')
-femaleCbfFitStats <- computeModelFitMetrics(returnBetas=T,x = femaleCbfValues, y= female.cbf.outcome)
+tmpOut <- NULL
+for(val in seq(.5, 1, .05)){
+  femaleCbfValues <- rmFat(femaleCbfBetaMatrix, female.cbf.values, val)
+  femaleCbfValues <- regressWithinModality(femaleCbfValues, grep='pcasl_jlf_cbf')
+  femaleCbfFitStats <- computeModelFitMetrics(returnBetas=F,x = femaleCbfValues, y= female.cbf.outcome)
+  tmpOut <- rbind(tmpOut, femaleCbfFitStats)
+}
+femaleCbfOut <- tmpOut
+write.csv(femaleCbfOut, 'femaleQuantCutOffCbf.csv', quote=F, row.names=F)
 
 ## Now do GMD
 male.gmd.data <- gmd.data[which(gmd.data$sex==1),]
@@ -85,9 +109,15 @@ male.gmd.values <- male.gmd.values[complete.cases(male.gmd.data[,gmd.col]),]
 
 # Now run the variable selection 
 maleGmdBetaMatrix <- runLassoforHiLo(male.gmd.values, male.gmd.outcome, nCor=30,alphaSequence=.5)
-maleGmdValues <- rmFat(maleGmdBetaMatrix, male.gmd.values)
-maleGmdValues <- regressWithinModality(maleGmdValues, 'mprage_jlf_gmd')
-maleGmdFitStats <- computeModelFitMetrics(returnBetas=T,x = maleGmdValues, y= male.gmd.outcome)
+tmpOut <- NULL
+for(val in seq(.5, 1, .05)){
+  maleGmdValues <- rmFat(maleGmdBetaMatrix, male.gmd.values, val)
+  maleGmdValues <- regressWithinModality(maleGmdValues, 'mprage_jlf_gmd')
+  maleGmdFitStats <- computeModelFitMetrics(returnBetas=F,x = maleGmdValues, y= male.gmd.outcome)
+  tmpOut <- rbind(tmpOut, maleGmdFitStats)
+}
+maleGmdOut <- tmpOut
+write.csv(maleGmdOut, 'maleQuantCutOffGmd.csv', quote=F, row.names=F)
 
 # Now do female
 female.gmd.data <- gmd.data[which(gmd.data$sex==2),]
@@ -97,9 +127,16 @@ female.gmd.outcome <- female.gmd.outcome[complete.cases(female.gmd.data[,gmd.col
 female.gmd.values <- female.gmd.values[complete.cases(female.gmd.data[,gmd.col]),]
 
 femaleGmdBetaMatrix <- runLassoforHiLo(female.gmd.values, female.gmd.outcome, nCor=30,alphaSequence=.5)
-femaleGmdValues <- rmFat(femaleGmdBetaMatrix, female.gmd.values)
-femaleGmdValues <- regressWithinModality(femaleGmdValues, 'mprage_jlf_gmd')
-femaleGmdFitStats <- computeModelFitMetrics(returnBetas=T,x = femaleGmdValues, y= female.gmd.outcome)
+tmpOut <- NULL
+for(val in seq(.5, 1, .05)){
+  femaleGmdValues <- rmFat(femaleGmdBetaMatrix, female.gmd.values)
+  femaleGmdValues <- regressWithinModality(femaleGmdValues, 'mprage_jlf_gmd')
+  femaleGmdFitStats <- computeModelFitMetrics(returnBetas=F,x = femaleGmdValues, y= female.gmd.outcome)
+  tmpOut <- rbind(tmpOut, femaleGmdFitStats)
+}
+femaleGmdOut <- tmpOut
+write.csv(femaleGmdOut, 'femaleQuantCutOffGmd.csv', quote=F, row.names=F)
+q(save='no')
 
 # Now do GMD with the ovarll GMD factor
 male.gmd.data <- gmd.data[which(gmd.data$sex==1),]
@@ -112,6 +149,14 @@ male.gmd.values <- male.gmd.values[complete.cases(male.gmd.data[,gmd.col]),]
 # Now run the variable selection 
 maleGmdFitStats <- computeModelFitMetrics(returnBetas=F,x = male.gmd.values, y= male.gmd.outcome)
 
+# Now do female 
+female.gmd.data <- gmd.data[which(gmd.data$sex==2),]
+female.gmd.values <- scale(female.gmd.data[,gmd.col])[,1:length(gmd.col)]
+female.gmd.outcome <- scale(female.gmd.data$F1_Exec_Comp_Cog_Accuracy)[,1]
+female.gmd.outcome <- female.gmd.outcome[complete.cases(female.gmd.data[,gmd.col])]
+female.gmd.values <- female.gmd.values[complete.cases(female.gmd.data[,gmd.col]),]
+
+femaleGmdFitStats <- computeModelFitMetrics(returnBetas=F, x = female.gmd.values, y=female.gmd.outcome)
 
 ## Now on to CT
 male.ct.data <- ct.data[which(ct.data$sex==1),]
@@ -365,8 +410,33 @@ male.all.values <- male.all.values[complete.cases(male.all.data[,all.col]),]
 
 # Now run var selection
 maleAllBetaMatrix <- runLassoforHiLo(male.all.values, male.all.outcome, nCor=30,alphaSequence=.5)
-maleAllValues <- rmFat(maleAllBetaMatrix, male.all.values)
-maleAllFitStats <- computeModelFitMetrics(returnBetas=T,x = maleAllValues, y= male.all.outcome)
+tmpOut <- NULL
+for(val in seq(.5, 1, .05)){
+  maleAllValues <- rmFat(maleAllBetaMatrix, male.all.values, val)
+  maleAllFitStats <- computeModelFitMetrics(returnBetas=F,x = maleAllValues, y= male.all.outcome)
+  tmpOut <- rbind(tmpOut, maleAllFitStats)
+}
+maleAllOut <- tmpOut
+write.csv(maleAllOut, 'maleQuantCutOffAll.csv', quote=F, row.names=F)
+
+
+# Now do female data
+female.all.data <- all.data[which(all.data$sex==2),]
+female.all.values <- scale(female.all.data[,all.col])[,1:length(all.col)]
+female.all.outcome <- scale(female.all.data$F1_Exec_Comp_Cog_Accuracy)[,1]
+female.all.outcome <- female.all.outcome[complete.cases(female.all.data[,all.col])]
+female.all.values <- female.all.values[complete.cases(female.all.data[,all.col]),]
+
+# Now run the variable selection
+femaleAllBetaMatrix <- runLassoforHiLo(female.all.values, female.all.outcome, nCor=30,alphaSequence=.5)
+tmpOut <- NULL
+for(val in seq(.5, 1, .05)){
+  femaleAllValues <- rmFat(femaleAllBetaMatrix, female.all.values, val)
+  femaleAllFitStats <- computeModelFitMetrics(returnBetas=F,x = femaleAllValues, y= female.all.outcome)
+  tmpOut <- rbind(tmpOut, femaleAllFitStats)
+}
+femaleAllOut <- tmpOut
+write.csv(femaleAllOut, 'femaleQuantCutOffAll.csv', quote=F, row.names=F)
 
 # Now perform the same task with the GMD factor score
 male.all.data <- all.data[which(all.data$sex==1),]
@@ -383,18 +453,31 @@ male.all.values <- male.all.values[complete.cases(male.all.data[,all.col]),]
 # Now run var selection
 maleAllBetaMatrix <- runLassoforHiLo(male.all.values, male.all.outcome, nCor=30,alphaSequence=.5)
 maleAllValues <- rmFat(maleAllBetaMatrix, male.all.values)
-maleAllFitStats <- computeModelFitMetrics(returnBetas=T,x = maleAllValues, y= male.all.outcome)
+maleAllFitStatsOverall <- computeModelFitMetrics(returnBetas=T,x = maleAllValues, y= male.all.outcome)
 
 
 # Now do female data
 female.all.data <- all.data[which(all.data$sex==2),]
 female.all.values <- scale(female.all.data[,all.col])[,1:length(all.col)]
+female.all.values <- female.all.values[,-grep('mprage_jlf_gmd', colnames(female.all.values))]
+female.all.values <- cbind(female.all.values, female.all.data$Overall_GMD)
+colnames(female.all.values)[295] <- 'Overall_GMD'
 female.all.outcome <- scale(female.all.data$F1_Exec_Comp_Cog_Accuracy)[,1]
+female.all.outcome <- female.all.outcome[complete.cases(female.all.data[,all.col])]
+female.all.values <- female.all.values[complete.cases(female.all.data[,all.col]),]
 
 # Now run the variable selection
 femaleAllBetaMatrix <- runLassoforHiLo(female.all.values, female.all.outcome, nCor=30,alphaSequence=.5)
+tmpOut <- NULL
+for(val 
 femaleAllValues <- rmFat(femaleAllBetaMatrix, female.all.values)
-femaleAllFitStats <- computeModelFitMetrics(returnBetas=T,x = femaleAllValues, y= female.all.outcome)
+femaleAllFitStatsOverall <- computeModelFitMetrics(returnBetas=T,x = femaleAllValues, y= female.all.outcome)
+
+# Now write the male overall values
+maleOutput <- rbind(maleAllFitStats[[1]], maleAllFitStatsOverall[[1]])
+write.csv(maleOutput, 'maleAllModalFitMetrics.csv', quote=F, row.names=F)
+femaleOutput <- rbind(femaleAllFitStats[[1]], femaleAllFitStatsOverall[[1]])
+write.csv(femaleOutput, 'femaleAllModalFitMetrics.csv', quote=F, row.names=F)
 
 
 ## Now perform an analysis to see if the variables selected for each modality differ across genders

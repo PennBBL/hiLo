@@ -109,9 +109,9 @@ reorganizeLobeOrder <- function(dataFrame, lobeOfInterest){
     tmpDF <- dataFrame[tmpDF,]
   }
   if(lobeOfInterest == "Limbic"){
-    inputRois <- c("PHG","Hippocampus","PIns","SCA","AIns","ACgG","PCgG","Ent","Amygdala","MCgG")
+    inputRois <- c("PHG","Hipp","PIns","SCA","AIns","ACgG","PCgG","Ent","Amygdala","MCgG")
     #outputRois <- c("PHG","PCgG","Hip","ACgG","SCA","Ains","Pins","Ent","MCgG","Amygdala")
-    outputRois <- c("Ent","PHG","Amygdala","SCA","Hippocampus","AIns","PIns","ACgG","PCgG","MCgG")
+    outputRois <- c("Ent","PHG","Amygdala","SCA","Hipp","AIns","PIns","ACgG","PCgG","MCgG")
     tmpDF <- which(dataFrame$lobe==lobeOfInterest)
     tmpDF <- dataFrame[tmpDF,]
   }

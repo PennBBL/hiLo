@@ -246,6 +246,9 @@ regressOutVolumeAndAge <- function(volumeDataFrame, modalityOfInterestDataFrame,
 # I am going to limit this analysis to only fully complete data sets
 # It has to bee this way because lm performs list wise deletion 
 regressWithinModality <- function(dataFrameToRegress, grepPattern){
+  if(identical(NULL, dim(dataFrameToRegress))){
+    return(dataFrameToRegress)
+  }
   # Make sure our input data is a data frame
   dataFrameToRegress <- as.data.frame(dataFrameToRegress)
   # First create a temporary dataFrame limited to only our values of interest
