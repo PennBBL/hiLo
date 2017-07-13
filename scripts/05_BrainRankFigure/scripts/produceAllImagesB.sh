@@ -14,7 +14,7 @@ for g in ${genderValues[*]} ; do
     inputCsv="${rData}${m}${g}-KEY.csv"
     ${scriptName} ${inputCsv} 3
     mkdir -p ${baseDir}/imagingFigures/${g}2/${m}/ 
-    mv ./outputImage.nii.gz ${baseDir}/imagingFigures/${g}/${m}/ ; 
+    mv ./outputImage.nii.gz ${baseDir}/imagingFigures/${g}2/${m}/ ; 
   done
 done
     

@@ -9,7 +9,7 @@ usage(){
 echo 
 echo
 echo
-echo "${0} <inputZScore.csv> <colOfInterest(integer)>"
+echo "${0} <inputZScore.csv> <colOfInterest(integer)> <turnOffGlassBrain> <brainRegion>"
 echo "inputZScore.csv is a csv with a column of the roi names from the jlf segmentation and the z scores"
 echo "colOfInterest is the numeric value of the column that you want to replace the intensity values with"
 echo
@@ -18,10 +18,14 @@ exit 1
 }
 
 # First lets declare all of the static variables
-jlfLookUp="/data/joy/BBL/studies/pnc/template/jlf/jlf_lookupWithWM.csv"
+jlfLookUp="/data/joy/BBL/studies/pnc/template/jlf/hiLoLookup/jlf_lookupWithWM.csv"
 pncJlfLabelImage="/data/joy/BBL/studies/pnc/template/jlf/Younger24/pncTemplateJLF_LabelsWithWM.nii.gz"
+if [ ! "X${4}" == "X" ] ; then 
+  jlfLookUp="/data/joy/BBL/studies/pnc/template/jlf/hiLoLookup/jlf_lookup${4}.csv" ; 
+fi 
 inputCSV=${1}
 colOfInterest=${2}
+glassBrain=${3}
 workingDir=`pwd`
 dateValue=`date +%y_%m_%d_%H_%M_%S`
 outputImag="${workingDir}/jlfLabelImage"
@@ -62,6 +66,7 @@ for lineValue in `seq 2 ${loopLength}` ; do
     # first lets ensure that only one ROI is returned
     quickCheck=`grep -c "${roiToGrep}" ${inputCSV}`
     if [ ${quickCheck} -gt 1 ] ; then 
+      echo "Now fixing double match for ${roiToGrep}"
       declare -a arrayName
       for variableName in `seq 1 ${quickCheck}` ; do
         tmpString=`echo ${valueToFind} | cut -f ${variableName} -d ' '`
@@ -79,15 +84,14 @@ for lineValue in `seq 2 ${loopLength}` ; do
       valueToFind=`echo ${valueToFind} | cut -f ${fieldValue} -d ' '`
     fi
     intensityValue=`echo ${specLine} | cut -f 1 -d ,` 
-    newValue=`echo ${valueToFind} | cut -f ${colOfInterest} -d ,`
+    newValue=`echo ${valueToFind} | cut -f ${colOfInterest} -d ","`
     echo "${intensityValue},${newValue}" >> ${newValueCSV} ; 
-  else 
+  elif [ ${glassBrain} -gt 0 ] ; then 
     intensityValue=`echo ${specLine} | cut -f 1 -d ,` 
     newValue="1616"
     echo "${intensityValue},${newValue}" >> ${newValueCSV} ;     
   fi 
 done
-  
 
 # Now the slow part... we need to thrshold out all of our label intensity values and multiply them by their new value
 loopLength=`cat ${newValueCSV} | wc -l`
@@ -96,7 +100,8 @@ for fileLine in `seq 1 ${loopLength}` ; do
   intensityValue=`sed -n -e ${fileLine}p ${newValueCSV} | cut -f 1 -d ,`
   newValue=`sed -n -e ${fileLine}p ${newValueCSV} | cut -f 2 -d ,`
   fslmaths ${pncJlfLabelImage} -thr ${intensityValue} -uthr ${intensityValue} -bin -mul ${newValue} ${tmpDir}tmp_${intensityValue} 
-  fslmaths ${tmpDir}outputImage.nii.gz -add ${tmpDir}tmp_${intensityValue} ${tmpDir}outputImage.nii.gz; 
+  fslmaths ${tmpDir}outputImage.nii.gz -add ${tmpDir}tmp_${intensityValue} ${tmpDir}outputImage.nii.gz
+  echo -ne "${fileLine} of ${loopLength}\033[0K\r" ; 
 done
 
 # Now lets move our output image to our cwd and rm the tmp directory!
