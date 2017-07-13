@@ -23,7 +23,7 @@ calculateDeltaHiMeLo <- function(data, suffix) {
     temp.matrix <- describeBy(scale(data[,i]), group=data$PerformanceGroup, mat = T)
     meanvals <- temp.matrix$mean
     output[j,1] <- names(data)[i]
-    output[j,2] <- meanvals[2] - meanvals[1]
+    output[j,2] <- meanvals[1] - meanvals[2]
     output[j,3] <- meanvals[3] - meanvals[2]
     output[j,4] <- meanvals[3] - meanvals[1]
     
@@ -64,9 +64,9 @@ output.gmd.female <- calculateDeltaHiMeLo(data.gmd.female, suffix.gmd)
 
 
 
-write.csv(output.vol.male, "/home/angelgar/highMedLow/output_hi-me-low_vol_male.csv")
-write.csv(output.vol.female, "/home/angelgar/highMedLow/output_hi-me-low_vol_female.csv")
-write.csv(output.gmd.male, "/home/angelgar/highMedLow/output_hi-me-low_gmd_male.csv")
-write.csv(output.gmd.female, "/home/angelgar/highMedLow/output_hi-me-low_gmd_female.csv")
-write.csv(output.cbf.male, "/home/angelgar/highMedLow/output_hi-me-low_cbf_male.csv")
-write.csv(output.cbf.female, "/home/angelgar/highMedLow/output_hi-me-low_cbf_female.csv")
+write.csv(output.vol.male, "output_hi-me-low_vol_male.csv")
+write.csv(output.vol.female, "output_hi-me-low_vol_female.csv")
+write.csv(output.gmd.male, "output_hi-me-low_gmd_male.csv")
+write.csv(output.gmd.female, "output_hi-me-low_gmd_female.csv")
+write.csv(output.cbf.male, "output_hi-me-low_cbf_male.csv")
+write.csv(output.cbf.female, "output_hi-me-low_cbf_female.csv")
