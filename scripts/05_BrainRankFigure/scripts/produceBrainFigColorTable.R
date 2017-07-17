@@ -5,17 +5,23 @@
 source('/home/adrose/hiLo/scripts/05_BrainRankFigure/functions/functions.R')
 
 ## Load data
-maleDataVol <- read.csv('/home/angelgar/highMedLow/output_hi-me-low_vol_male.csv')
-maleDataGmd <- read.csv('/home/angelgar/highMedLow/output_hi-me-low_gmd_male.csv')
-maleDataCbf <- read.csv('/home/angelgar/highMedLow/output_hi-me-low_cbf_male.csv')
-femaleDataVol <- read.csv('/home/angelgar/highMedLow/output_hi-me-low_vol_female.csv')
-femaleDataGmd <- read.csv('/home/angelgar/highMedLow/output_hi-me-low_gmd_female.csv')
-femaleDataCbf <- read.csv('/home/angelgar/highMedLow/output_hi-me-low_cbf_female.csv')
+maleDataVol <- read.csv('output_hi-me-low_vol_male.csv', row.names=1)
+maleDataVol[,1] <- strSplitMatrixReturn(maleDataVol[,1], 'mprage_jlf_vol_')[,2]
+maleDataGmd <- read.csv('output_hi-me-low_gmd_male.csv', row.names=1)
+maleDataGmd[,1] <- strSplitMatrixReturn(maleDataGmd[,1], 'mprage_jlf_gmd_')[,2]
+maleDataCbf <- read.csv('output_hi-me-low_cbf_male.csv', row.names=1)
+maleDataCbf[,1] <- strSplitMatrixReturn(maleDataCbf[,1], 'pcasl_jlf_cbf_')[,2]
+femaleDataVol <- read.csv('output_hi-me-low_vol_female.csv', row.names=1)
+femaleDataVol[,1] <- strSplitMatrixReturn(femaleDataVol[,1], 'mprage_jlf_vol_')[,2]
+femaleDataGmd <- read.csv('output_hi-me-low_gmd_female.csv', row.names=1)
+femaleDataGmd[,1] <- strSplitMatrixReturn(femaleDataGmd[,1], 'mprage_jlf_gmd_')[,2]
+femaleDataCbf <- read.csv('output_hi-me-low_cbf_female.csv', row.names=1)
+femaleDataCbf[,1] <- strSplitMatrixReturn(femaleDataCbf[,1], 'pcasl_jlf_cbf_')[,2]
 
 ## Now produce all of the modality & gender specific color tables 
-writeColorTableandKey(inputData=maleDataVol, inputColumn=5, outName='volMale')
-writeColorTableandKey(inputData=maleDataGmd, inputColumn=5, outName='gmdMale')
-writeColorTableandKey(inputData=maleDataCbf, inputColumn=5, outName='cbfMale')
-writeColorTableandKey(inputData=femaleDataVol, inputColumn=5, outName='volFemale')
-writeColorTableandKey(inputData=femaleDataGmd, inputColumn=5, outName='gmdFemale')
-writeColorTableandKey(inputData=femaleDataCbf, inputColumn=5, outName='cbfFemale')
+writeColorTableandKey(inputData=maleDataVol, inputColumn=4, outName='volMale')
+writeColorTableandKey(inputData=maleDataGmd, inputColumn=4, outName='gmdMale')
+writeColorTableandKey(inputData=maleDataCbf, inputColumn=4, outName='cbfMale')
+writeColorTableandKey(inputData=femaleDataVol, inputColumn=4, outName='volFemale')
+writeColorTableandKey(inputData=femaleDataGmd, inputColumn=4, outName='gmdFemale')
+writeColorTableandKey(inputData=femaleDataCbf, inputColumn=4, outName='cbfFemale')
