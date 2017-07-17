@@ -131,7 +131,7 @@ rmFat2 <- function(outputFromrunLasso, imagingData, quantileLevel=.5){
   return(output)
 }
 
-returnSelection <- function(outputFromrunLasso){
+returnSelectionCol <- function(outputFromrunLasso){
   sumIndex <- rowSums(abs(sign(apply(outputFromrunLasso[,2:ncol(outputFromrunLasso)], 
               2, function(x) as.numeric(as.character(x))))))
   return(sumIndex)
@@ -344,7 +344,7 @@ model.select <- function(model,keep,sig=0.05,verbose=F, data=NULL){
       return(model)
 }
 
-returnCVStepFit <- function(dataFrame, genderID, grepID, pValue=.05, iterationCount=1000, nCor=3, selectionPercent=.75, returnBetas=TRUE){
+returnCVStepFit <- function(dataFrame, genderID, grepID, pValue=.05, iterationCount=1000, nCor=3, selectionPercent=.75, returnBetas=TRUE, residVals=FALSE){
   # Prepare our data
   isolatedGender <- dataFrame[which(dataFrame$sex==genderID),]
   colsOfInterest <- grep(grepID, names(isolatedGender))
@@ -365,7 +365,7 @@ returnCVStepFit <- function(dataFrame, genderID, grepID, pValue=.05, iterationCo
       install_load('caret', 'SignifReg')
       
       # create our model
-      folds <- createFolds(dataToUse$V1, k=2, list=T, returnTrain=T)
+      folds <- createFolds(dataToUse$V1, k=4, list=T, returnTrain=T)
       index <- unlist(folds[1])
       dataTrain <- dataToUse[index,]
       stepVAR <- SignifReg(scope=V1~., data=dataTrain, alpha=pValue, direction="forward", criterion="p-value")
@@ -384,14 +384,15 @@ returnCVStepFit <- function(dataFrame, genderID, grepID, pValue=.05, iterationCo
   stopCluster(cl)
   
   # Now select the varaibles that were selected more then the mode value for variables selected.
-  modeValue <- quantile(returnSelectionRow(output), selectionPercent) 
-  indexToUse <- c(1,which(returnSelection(output) >=modeValue))
+  modeValue <- quantile(returnSelectionCol(output), selectionPercent) 
+  indexToUse <- unique(c(1,which(returnSelectionCol(output) >=modeValue)))
   dataToUse <- dataToUse[,indexToUse]
     
   # Now get our model
   modelOut <- as.formula(paste('V1 ~', paste(colnames(dataToUse)[2:dim(dataToUse)[2]], collapse='+')))
   # Now produce our final models
   x <- dataToUse[,2:dim(dataToUse)[2]]
+  x <- regressWithinModality(x, grepPattern=grepID)
   y <- dataToUse[,1]
   modm <- lm(y ~ as.matrix(x))
   
@@ -428,7 +429,6 @@ returnCVStepFit <- function(dataFrame, genderID, grepID, pValue=.05, iterationCo
     outputList[[2]] <- coefficients(modm)
     output <- outputList
   }
-  return(output)
   return(output)  
 }
 
@@ -439,4 +439,45 @@ has.interaction <- function(x,terms){
     return(sum(out)>0)
 }
 
+returnSelection <- function(dataFrame, genderID, grepID, pValue=.05, iterationCount=1000, nCor=3, selectionPercent=.75, returnBetas=TRUE){
+  # Prepare our data
+  isolatedGender <- dataFrame[which(dataFrame$sex==genderID),]
+  colsOfInterest <- grep(grepID, names(isolatedGender))
+  valuesToUse <- scale(isolatedGender[,colsOfInterest])[,1:length(colsOfInterest)]
+  outcomeVal <- scale(isolatedGender$F1_Exec_Comp_Cog_Accuracy)
+  dataToUse <- as.data.frame(cbind(outcomeVal, valuesToUse))
+  dataToUse <- dataToUse[complete.cases(dataToUse),]
 
+  # Now set up our parallel environment
+  cl <- makeCluster(nCor)
+  registerDoParallel(cl)
+
+  # Bootstrap forward p value step wise model selection
+  output <- foreach(i=seq(1,iterationCount), .combine='cbind') %dopar% {
+      # First load required library(s)
+      source('/home/adrose/adroseHelperScripts/R/afgrHelpFunc.R')
+      source('/home/adrose/hiLo/scripts/04_CognitiveModels/functions/functions.R')
+      install_load('caret', 'SignifReg')
+      
+      # create our model
+      folds <- createFolds(dataToUse$V1, k=4, list=T, returnTrain=T)
+      index <- unlist(folds[1])
+      dataTrain <- dataToUse[index,]
+      stepVAR <- SignifReg(scope=V1~., data=dataTrain, alpha=pValue, direction="forward", criterion="p-value")
+      
+      # now create our output vector
+      outCol <- matrix(0, nrow=dim(dataToUse)[2], ncol=1)
+      rownames(outCol) <- colnames(dataToUse)
+      selectedIndex <- match(colnames(stepVAR$model)[2:dim(stepVAR$model)[2]], rownames(outCol))
+      outCol[selectedIndex,] <- 1
+
+      # Now print our output
+      outCol
+  }
+  
+  # Kill our cluster
+  stopCluster(cl)
+
+  # Now return the output binary matrix
+  return(output)  
+}
