@@ -26,7 +26,7 @@ dataGrepNames <- c('mprage_jlf_vol', 'pcasl_jlf_cbf', 'mprage_jlf_gmd', 'mprage_
 allOut <- NA
 for(g in genderVals){
   for(z in 1:length(dataNames)){
-    vals <- returnCVStepFit(dataFrame=get(dataNames[z]), grepID=dataGrepNames[z], genderID=g, pValue=.05, iterationCount=1000, nCor=30, selectionPercent=.75)
+    vals <- returnCVStepFit(dataFrame=get(dataNames[z]), grepID=dataGrepNames[z], genderID=g, pValue=.05, iterationCount=1000, nCor=30, selectionPercent=.9)
     tmp <- cbind(g, dataNames[z], dataGrepNames[z], vals[[1]])
     tmp2 <- vals[[2]]
     write.csv(tmp2, paste(g,z,'BetaVals.csv', sep=''), quote=F, row.names=T)
@@ -46,7 +46,30 @@ tmp <- merge(tmp, tr.data.label, by=intersect(names(tmp), names(tr.data.label)))
 all.data <- tmp
 colnames(all.data) <- gsub(x=colnames(all.data), pattern='dti_dtitk_jhulabel', replacement='jlf_dti_dtitk_jhulabel_fa')
 
-maleAll <- returnCVStepFit(all.data, 1, 'jlf')
-femaleAll <-  returnCVStepFit(all.data, 2, 'jlf')
-allMOut <- rbind(maleAll, femaleAll)
+maleAll <- returnCVStepFit(all.data, 1, 'jlf', iterationCount=1000, nCor=30, selectionPercent=.9)
+write.csv(maleAll[[2]], 'maleAllBetas.csv', quote=F, row.names=T)
+femaleAll <-  returnCVStepFit(all.data, 2, 'jlf', iterationCount=1000, nCor=30, selectionPercent=.9)
+write.csv(femaleAll[[2]], 'femaleAllBetas.csv', quote=F, row.names=T)
+allMOut <- rbind(maleAll[[1]], femaleAll[[1]])
 write.csv(allMOut, 'stepAllModal.csv', quote=F, row.names=F)
+
+# Now produce the selection percentages
+# Now create our loops
+for(g in genderVals){
+  for(z in 1:length(dataNames)){
+    vals <- returnSelection(dataFrame=get(dataNames[z]), grepID=dataGrepNames[z], genderID=g, pValue=.05, iterationCount=10000, nCor=30, selectionPercent=.9)
+    vals <- (rowSums(vals)/1000)[-1]
+    write.csv(vals, paste(g,z,'SelectionVals.csv', sep=''), quote=F, row.names=T)
+  }
+}
+
+
+# Tmp obtain the number of factors for each modality by sex
+install_load('psych', 'nFactors', 'corrplot')
+eValues <- eigen(polychoric(t(vals))$rho)$values
+plotnScree(nScree(eValues, model="factors"), main="Scree Plot & Parallel Analysis")
+
+# Now extract 28 factors
+xcor <- polychoric(t(vals))$rho
+mod <- fa(xcor, 28, rotate='promax')
+mod.sort <- fa.sort(mod)
