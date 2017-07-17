@@ -35,3 +35,15 @@ for g in ${genderValues[*]} ; do
     mv ./outputImage.nii.gz ${baseDir}/imagingFigures/WM/${g}/${m}/ ; 
   done
 done
+
+baseDir="/home/arosen/highMedLow/"
+scriptName="/home/arosen/hiLo/scripts/05_BrainRankFigure/scripts/makeZScoreJLFPNCTemplateImage.sh"
+disCrep="HighMe LowMe"
+for g in ${genderValues[*]} ; do 
+  for m in ${disCrep[*]} ; do
+    inputCsv="${baseDir}vol${g}${m}-KEY.csv"
+    ${scriptName} ${inputCsv} 4 1 DGM
+    mkdir -p ~/forRuben/${m}/${g}/DGM/
+    mv ./outputImage.nii.gz ~/forRuben/${m}/${g}/DGM/ ; 
+  done
+done
