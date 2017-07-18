@@ -20,6 +20,8 @@ ad.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeReg/j
 fa.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeReg/jlfFAData.csv')
 rd.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeReg/jlfRDData.csv')
 tr.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeReg/jlfTRData.csv')
+fa.data.label <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeReg/jhuFALabelsData.csv')
+tr.data.label <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeReg/jhuTRLabelsData.csv')
 
 # Now produce the importance value for our volume data
 male.vol.data <- vol.data[which(vol.data$sex==1),]
@@ -207,18 +209,20 @@ output <- as.data.frame(output)
 output <- reshape(data=output, timevar='tmp', idvar='V3', v.names='output', direction='wide')
 write.csv(output, 'femaleRFImportance.csv', quote=F, row.names=F)
 
-tmp <- merge(vol.data, cbf.data, by=c('bblid', 'scanid'))
-tmp <- merge(tmp, gmd.data,  by=c('bblid', 'scanid'))
-tmp <- merge(tmp, ct.data,  by=c('bblid', 'scanid'))
-tmp <- merge(tmp, reho.data,  by=c('bblid', 'scanid'))
-tmp <- merge(tmp, alff.data,  by=c('bblid', 'scanid'))
-#tmp <- merge(tmp, ad.data,  by=c('bblid', 'scanid'))
-#tmp <- merge(tmp, rd.data,  by=c('bblid', 'scanid'))
-tmp <- merge(tmp, tr.data,  by=c('bblid', 'scanid'))
-all.data <- tmp[,c(1,2, 8, 44,grep('jlf', names(tmp)))]
+# Now run forward step wise regression for the all data model
+tmp <- merge(vol.data, cbf.data, by=intersect(names(vol.data), names(cbf.data)))
+tmp <- merge(tmp, gmd.data,  by=intersect(names(tmp), names(gmd.data)))
+tmp <- merge(tmp, ct.data,  by=intersect(names(tmp), names(ct.data)))
+#tmp <- merge(tmp, reho.data,  by=intersect(names(tmp), names(reho.data)))
+#tmp <- merge(tmp, alff.data,  by=intersect(names(tmp), names(alff.data)))
+tmp <- merge(tmp, tr.data,  by=intersect(names(tmp), names(tr.data)))
+tmp <- merge(tmp, fa.data.label, by=intersect(names(tmp), names(fa.data.label)))
+tmp <- merge(tmp, tr.data.label, by=intersect(names(tmp), names(tr.data.label)))
+all.data <- tmp
+colnames(all.data) <- gsub(x=colnames(all.data), pattern='dti_dtitk_jhulabel', replacement='jlf_dti_dtitk_jhulabel_fa')
 
 # Now perform the analysis
-male.all.data <- all.data[which(all.data$sex.x==1),]
+male.all.data <- all.data[which(all.data$sex==1),]
 all.col <- grep('jlf', names(all.data))
 male.all.values <- scale(male.all.data[,all.col])[,1:length(all.col)]
 male.all.outcome <- scale(male.all.data$F1_Exec_Comp_Cog_Accuracy)[,1]
@@ -227,3 +231,14 @@ male.all.values <- male.all.values[complete.cases(male.all.data[,all.col]),]
 index <- unlist(createFolds(male.all.outcome, k=3, list=T, returnTrain=T)[1])
 maleAll <- randomForest(x=male.all.values[index,], y=male.all.outcome[index], xtest=male.all.values[-index,],ytest=male.all.outcome[-index], importance=T,keep.forest=T, ntree=1000,nPerm=2,proximity=T)$importance[,2]
 
+female.all.data <- all.data[which(all.data$sex==2),]
+female.all.values <- scale(female.all.data[,all.col])[,1:length(all.col)]
+female.all.outcome <- scale(female.all.data$F1_Exec_Comp_Cog_Accuracy)[,1]
+female.all.outcome <- female.all.outcome[complete.cases(female.all.data[,all.col])]
+female.all.values <- female.all.values[complete.cases(female.all.data[,all.col]),]
+index <- unlist(createFolds(female.all.outcome, k=3, list=T, returnTrain=T)[1])
+femaleAll <- randomForest(x=female.all.values[index,], y=female.all.outcome[index], xtest=female.all.values[-index,],ytest=female.all.outcome[-index], importance=T,keep.forest=T, ntree=1000,nPerm=2,proximity=T)$importance[,2]
+
+# Now write the csv
+allOutput <- cbind(maleAll, femaleAll)
+write.csv(allOutput, 'allVariableImportance.csv', quote=F, row.names=T)
