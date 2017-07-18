@@ -24,16 +24,18 @@ dataGrepNames <- c('mprage_jlf_vol', 'pcasl_jlf_cbf', 'mprage_jlf_gmd', 'mprage_
 
 # Now create our loops
 allOut <- NA
-for(g in genderVals){
-  for(z in 1:length(dataNames)){
-    vals <- returnCVStepFit(dataFrame=get(dataNames[z]), grepID=dataGrepNames[z], genderID=g, pValue=.05, iterationCount=1000, nCor=30, selectionPercent=.9)
-    tmp <- cbind(g, dataNames[z], dataGrepNames[z], vals[[1]])
-    tmp2 <- vals[[2]]
-    write.csv(tmp2, paste(g,z,'BetaVals.csv', sep=''), quote=F, row.names=T)
-    allOut <- rbind(allOut, tmp)
+for(w in seq(.95, .95, .05)){
+  for(g in genderVals){
+    for(z in 1:length(dataNames)){
+      vals <- returnCVStepFit(dataFrame=get(dataNames[z]), grepID=dataGrepNames[z], genderID=g, pValue=.05, iterationCount=1000, nCor=30, selectionPercent=w)
+      tmp <- cbind(g, dataNames[z], dataGrepNames[z], vals[[1]])
+      tmp2 <- vals[[2]]
+      write.csv(tmp2, paste(g,z,'BetaVals.csv', sep=''), quote=F, row.names=T)
+      allOut <- rbind(allOut, tmp)
+    }
   }
+  write.csv(allOut, paste(w,'stepIndividualModal.csv', sep=''), quote=F, row.names=F)
 }
-write.csv(allOut, 'stepIndividualModal.csv', quote=F, row.names=F)
 # Now run forward step wise regression for the all data model
 tmp <- merge(vol.data, cbf.data, by=intersect(names(vol.data), names(cbf.data)))
 tmp <- merge(tmp, gmd.data,  by=intersect(names(tmp), names(gmd.data)))
@@ -57,7 +59,7 @@ write.csv(allMOut, 'stepAllModal.csv', quote=F, row.names=F)
 # Now create our loops
 for(g in genderVals){
   for(z in 1:length(dataNames)){
-    vals <- returnSelection(dataFrame=get(dataNames[z]), grepID=dataGrepNames[z], genderID=g, pValue=.05, iterationCount=10000, nCor=30, selectionPercent=.9)
+    vals <- returnSelection(dataFrame=get(dataNames[z]), grepID=dataGrepNames[z], genderID=g, pValue=.05, iterationCount=1000, nCor=30, selectionPercent=.9)
     vals <- (rowSums(vals)/1000)[-1]
     write.csv(vals, paste(g,z,'SelectionVals.csv', sep=''), quote=F, row.names=T)
   }
