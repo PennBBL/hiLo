@@ -468,3 +468,38 @@ returnSelection <- function(dataFrame, genderID, grepID, pValue=.05, iterationCo
   # Now return the output binary matrix
   return(output)  
 }
+
+returnFitMetricsFromModel <- function(lmOutput){
+  lengthVal <- dim(lmOutput$model)[2]
+  x <- as.matrix(lmOutput$model[,2:lengthVal])
+  y <- lmOutput$model[,1]
+  modm <- lmOutput
+  # Grab our n and p values
+  # Now get some values
+  if(!identical(dim(x), NULL)){
+    n <- dim(x)[1]
+    p <- dim(x)[2]
+  }
+  if(identical(dim(x), NULL)){
+    n <- length(x)
+    p <- 1
+  }
+
+  # Now do a crossval of our model
+  modmCV <- crossval(x, y, theta.fit, theta.predict,ngroup=10)
+
+  # Now get our output metrics 
+  rawRSquared <- cor(y, modm$fitted.values)^2
+  cvRSquared <- cor(y, modmCV$cv.fit)^2
+  rawICC <- ICC(cbind(y, modm$fitted.values))$results[4,2]
+  cvICC <- ICC(cbind(y, modmCV$cv.fit))$results[4,2]
+  rawRMSE <- sqrt(mean((y-modm$fitted.values)^2))
+  cvRMSE <- sqrt(mean((y-modmCV$cv.fit)^2))
+  adjRSquared <- cor(y, modm$fitted.values)^2 - 
+                (1 - cor(y, modm$fitted.values)^2)*(p/(n-p-1))
+
+  # Now prepare our output
+  output <- as.data.frame(cbind(n,p,rawRSquared,cvRSquared,rawICC,cvICC,rawRMSE,cvRMSE,adjRSquared))
+  colnames(output) <- c('n','p','R2', 'CVR2', 'ICC', 'CVICC', 'RMSE', 'CVRMSE', 'ADJR2')
+  return(output)
+}
