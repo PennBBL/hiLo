@@ -19,9 +19,16 @@ femaleDataCbf <- read.csv('output_hi-me-low_cbf_female.csv', row.names=1)
 femaleDataCbf[,1] <- strSplitMatrixReturn(femaleDataCbf[,1], 'pcasl_jlf_cbf_')[,2]
 
 ## Now produce all of the modality & gender specific color tables 
-writeColorTableandKey(inputData=maleDataVol, inputColumn=4, outName='volMale')
-writeColorTableandKey(inputData=maleDataGmd, inputColumn=4, outName='gmdMale')
-writeColorTableandKey(inputData=maleDataCbf, inputColumn=4, outName='cbfMale')
-writeColorTableandKey(inputData=femaleDataVol, inputColumn=4, outName='volFemale')
-writeColorTableandKey(inputData=femaleDataGmd, inputColumn=4, outName='gmdFemale')
-writeColorTableandKey(inputData=femaleDataCbf, inputColumn=4, outName='cbfFemale')
+writeColorTableandKey(inputData=maleDataVol, inputColumn=2, outName='volMaleLo', minTmp=c(range(rbind(femaleDataVol[,2], maleDataVol[,2]))[1], 0), maxTmp=c(0, range(rbind(femaleDataVol[,2], maleDataVol[,2]))[2]))
+writeColorTableandKey(inputData=maleDataGmd, inputColumn=2, outName='gmdMaleLo', minTmp=c(range(rbind(femaleDataGmd[,2], maleDataGmd[,2]))[1], 0), maxTmp=c(0, range(rbind(femaleDataGmd[,2], maleDataGmd[,2]))[2]))
+writeColorTableandKey(inputData=maleDataCbf, inputColumn=2, outName='cbfMaleLo', minTmp=c(range(rbind(femaleDataCbf[,2], maleDataCbf[,2]))[1], 0), maxTmp=c(0, range(rbind(femaleDataCbf[,2], maleDataCbf[,2]))[2]))
+writeColorTableandKey(inputData=femaleDataVol, inputColumn=2, outName='volFemaleLo', minTmp=c(range(rbind(femaleDataVol[,2], maleDataVol[,2]))[1], 0), maxTmp=c(0, range(rbind(femaleDataVol[,2], maleDataVol[,2]))[2]))
+writeColorTableandKey(inputData=femaleDataGmd, inputColumn=2, outName='gmdFemaleLo', minTmp=c(range(rbind(femaleDataGmd[,2], maleDataGmd[,2]))[1], 0), maxTmp=c(0, range(rbind(femaleDataGmd[,2], maleDataGmd[,2]))[2]))
+writeColorTableandKey(inputData=femaleDataCbf, inputColumn=2, outName='cbfFemaleLo', minTmp=c(range(rbind(femaleDataCbf[,2], maleDataCbf[,2]))[1], 0), maxTmp=c(0, range(rbind(femaleDataCbf[,2], maleDataCbf[,2]))[2]))
+
+writeColorTableandKey(inputData=maleDataVol, inputColumn=3, outName='volMaleHi', minTmp=c(range(rbind(femaleDataVol[,3], maleDataVol[,3]))[1], 0), maxTmp=c(0, range(rbind(femaleDataVol[,3], maleDataVol[,3]))[2]))
+writeColorTableandKey(inputData=maleDataGmd, inputColumn=3, outName='gmdMaleHi')
+writeColorTableandKey(inputData=maleDataCbf, inputColumn=3, outName='cbfMaleHi')
+writeColorTableandKey(inputData=femaleDataVol, inputColumn=3, outName='volFemaleHi', minTmp=c(range(rbind(femaleDataVol[,3], maleDataVol[,3]))[1], 0), maxTmp=c(0, range(rbind(femaleDataVol[,3], maleDataVol[,3]))[2]))
+writeColorTableandKey(inputData=femaleDataGmd, inputColumn=3, outName='gmdFemaleHi')
+writeColorTableandKey(inputData=femaleDataCbf, inputColumn=3, outName='cbfFemaleHi')
