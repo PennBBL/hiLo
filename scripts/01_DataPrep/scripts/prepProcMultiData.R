@@ -36,9 +36,9 @@ tr.data <- addAgeBin(tr.data, tr.data$ageAtGo1Scan, 167, 215, 216)
 
 # Now create a function to do everything in one call 
 doEverythingWide <- function(dataFrame, grepPattern){
-  tmp1 <- outputLongFormat4way(dataFrame=dataFrame, modalityName=grepPattern, ageBand='Childhood')
-  tmp2 <- outputLongFormat4way(dataFrame=dataFrame, modalityName=grepPattern, ageBand='Adolescence')
-  tmp3 <- outputLongFormat4way(dataFrame=dataFrame, modalityName=grepPattern, ageBand='Early Adulthood')
+  tmp1 <- outputLongFormat4wayNoZ(dataFrame=dataFrame, modalityName=grepPattern, ageBand='Childhood')
+  tmp2 <- outputLongFormat4wayNoZ(dataFrame=dataFrame, modalityName=grepPattern, ageBand='Adolescence')
+  tmp3 <- outputLongFormat4wayNoZ(dataFrame=dataFrame, modalityName=grepPattern, ageBand='Early Adulthood')
   allData <- rbind(tmp1, tmp2, tmp3)
 
   # Now rm ROI's that do not belong to lobes 1-9
@@ -54,7 +54,7 @@ doEverythingWide <- function(dataFrame, grepPattern){
 # Now run through errything 
 datFrame <- c('vol.data', 'cbf.data', 'gmd.data', 'ct.data', 'reho.data', 'alff.data', 'tr.data')
 colNames <- c('mprage_jlf_vol', 'pcasl_jlf_cbf', 'mprage_jlf_gmd', 'mprage_jlf_ct', 'rest_jlf_reho', 'rest_jlf_alff', 'dti_jlf_tr')
-basePath <- '/home/adrose/dataPrepForHiLoPaper/data/longDataForProcMixed/'
+basePath <- '/home/adrose/dataPrepForHiLoPaper/data/longDataForProcMixedNotZScored/'
 for(i in 1:length(datFrame)){
   dataF <- datFrame[i]
   colName <- colNames[i]

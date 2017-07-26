@@ -571,3 +571,71 @@ outputLongFormat4way <- function(dataFrame, modalityName, ageBand){
   return(outputDataframe)
 }
 
+
+
+# Now produce a function to run the long way format but no z scoring
+outputLongFormat4wayNoZ <- function(dataFrame, modalityName, ageBand){
+  outputDataframe <- data.frame(bblid=character(), sex=character(), age_bin=numeric(),
+                                lobe=numeric(), roi=character(), z_score=numeric(), perf_bin=character())
+  col.of.interest <- grep(modalityName, names(dataFrame))
+  #dataFrame <- dataFrame[complete.cases(dataFrame[,col.of.interest]),]
+  sex.col <- grep("sex", names(dataFrame))
+  bblid.col <- grep("bblid", names(dataFrame))[1]
+  factor.col <- dataFrame$F1_Exec_Comp_Cog_Accuracy
+  me.vals <- returnPercentileGroup('me', factor.col, dataFrame)
+  hi.vals <- returnPercentileGroup('hi', factor.col, dataFrame)
+  lo.vals <- returnPercentileGroup('lo', factor.col, dataFrame)
+  for(temp.gender in c(1,2)){
+    temp.me.vals <- me.vals[which(me.vals[,sex.col] == temp.gender & me.vals$ageBin == ageBand),]
+    temp.lo.vals <- lo.vals[which(lo.vals[,sex.col] == temp.gender & lo.vals$ageBin == ageBand),]
+    temp.hi.vals <- hi.vals[which(hi.vals[,sex.col] == temp.gender & hi.vals$ageBin == ageBand),]
+    for(temp.col in col.of.interest){
+      # Find the global values
+      me.val.mean <- 0
+      me.val.sd <- 1
+      roi.name <- names(dataFrame)[temp.col]
+      lobe.value <- findLobe(roi.name)
+      
+      # Now find the lo values
+      lo.val.df.z.score <- (temp.lo.vals[,temp.col] - me.val.mean) / me.val.sd
+      lo.val.df.bblid <- temp.lo.vals[,bblid.col]
+      lo.val.df.sex <- rep(temp.gender, length(lo.val.df.z.score))
+      lo.val.df.age.bin <- rep(ageBand, length(lo.val.df.z.score))
+      lo.val.df.lobe <- rep(lobe.value, length(lo.val.df.z.score))
+      lo.val.df.roi <- rep(roi.name, length(lo.val.df.z.score))
+      lo.val.df.perf.bin <- rep('lo', length(lo.val.df.z.score))
+      lo.val.df <- cbind(lo.val.df.bblid, lo.val.df.sex, lo.val.df.age.bin, lo.val.df.lobe,
+                         lo.val.df.roi, lo.val.df.z.score, lo.val.df.perf.bin)
+      colnames(lo.val.df) <- c("bblid", "sex", "age_bin", "lobe", "roi", "z_score", "perf_bin")
+      outputDataframe <- rbind(outputDataframe, lo.val.df)
+
+      # Now find the me values
+      me.val.df.z.score <- (temp.me.vals[,temp.col] - me.val.mean) / me.val.sd
+      me.val.df.bblid <- temp.me.vals[,bblid.col]
+      me.val.df.sex <- rep(temp.gender, length(me.val.df.z.score))
+      me.val.df.age.bin <- rep(ageBand, length(me.val.df.z.score))
+      me.val.df.lobe <- rep(lobe.value, length(me.val.df.z.score))
+      me.val.df.roi <- rep(roi.name, length(me.val.df.z.score))
+      me.val.df.perf.bin <- rep('me', length(me.val.df.z.score))
+      me.val.df <- cbind(me.val.df.bblid, me.val.df.sex, me.val.df.age.bin, me.val.df.lobe,
+                         me.val.df.roi, me.val.df.z.score, me.val.df.perf.bin)
+      colnames(me.val.df) <- c("bblid", "sex", "age_bin", "lobe", "roi", "z_score", "perf_bin")
+      outputDataframe <- rbind(outputDataframe, me.val.df)
+      
+
+      # Now find the hi values
+      hi.val.df.z.score <- (temp.hi.vals[,temp.col] - me.val.mean) / me.val.sd
+      hi.val.df.bblid <- temp.hi.vals[,bblid.col]
+      hi.val.df.sex <- rep(temp.gender, length(hi.val.df.z.score))
+      hi.val.df.age.bin <- rep(ageBand, length(hi.val.df.z.score))
+      hi.val.df.lobe <- rep(lobe.value, length(hi.val.df.z.score))
+      hi.val.df.roi <- rep(roi.name, length(hi.val.df.z.score))
+      hi.val.df.perf.bin <- rep('hi', length(hi.val.df.z.score))
+      hi.val.df <- cbind(hi.val.df.bblid, hi.val.df.sex, hi.val.df.age.bin, hi.val.df.lobe,
+                         hi.val.df.roi, hi.val.df.z.score, hi.val.df.perf.bin)
+      colnames(hi.val.df) <- c("bblid", "sex", "age_bin", "lobe", "roi", "z_score", "perf_bin")
+      outputDataframe <- rbind(outputDataframe, hi.val.df)
+    }
+  }
+  return(outputDataframe)
+}
