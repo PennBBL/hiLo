@@ -23,12 +23,12 @@ writeColorTableandKey(inputData=maleDataVol, inputColumn=2, outName='volMaleLo',
 writeColorTableandKey(inputData=maleDataGmd, inputColumn=2, outName='gmdMaleLo', minTmp=c(range(rbind(femaleDataGmd[,2], maleDataGmd[,2]))[1], 0), maxTmp=c(0, range(rbind(femaleDataGmd[,2], maleDataGmd[,2]))[2]))
 writeColorTableandKey(inputData=maleDataCbf, inputColumn=2, outName='cbfMaleLo', minTmp=c(range(rbind(femaleDataCbf[,2], maleDataCbf[,2]))[1], 0), maxTmp=c(0, range(rbind(femaleDataCbf[,2], maleDataCbf[,2]))[2]))
 writeColorTableandKey(inputData=femaleDataVol, inputColumn=2, outName='volFemaleLo', minTmp=c(range(rbind(femaleDataVol[,2], maleDataVol[,2]))[1], 0), maxTmp=c(0, range(rbind(femaleDataVol[,2], maleDataVol[,2]))[2]))
-writeColorTableandKey(inputData=femaleDataGmd, inputColumn=2, outName='gmdFemaleLo', minTmp=c(range(rbind(femaleDataGmd[,2], maleDataGmd[,2]))[1], 0), maxTmp=c(0, range(rbind(femaleDataGmd[,2], maleDataGmd[,2]))[2]))
+writeColorTableandKey(inputData=femaleDataGmd, inputColumn=2, outName='gmdFemaleLo', minTmp=c(range(rbind(femaleDataGmd[,2], maleDataGmd[,2]))[1], 0), maxTmp=c(0, range(rbind(femaleDataGmd[,2], maleDataGmd[,2]))[2]))## This one fails
 writeColorTableandKey(inputData=femaleDataCbf, inputColumn=2, outName='cbfFemaleLo', minTmp=c(range(rbind(femaleDataCbf[,2], maleDataCbf[,2]))[1], 0), maxTmp=c(0, range(rbind(femaleDataCbf[,2], maleDataCbf[,2]))[2]))
 
 writeColorTableandKey(inputData=maleDataVol, inputColumn=3, outName='volMaleHi', minTmp=c(range(rbind(femaleDataVol[,3], maleDataVol[,3]))[1], 0), maxTmp=c(0, range(rbind(femaleDataVol[,3], maleDataVol[,3]))[2]))
-writeColorTableandKey(inputData=maleDataGmd, inputColumn=3, outName='gmdMaleHi')
-writeColorTableandKey(inputData=maleDataCbf, inputColumn=3, outName='cbfMaleHi')
+writeColorTableandKey(inputData=maleDataGmd, inputColumn=3, outName='gmdMaleHi', minTmp=c(range(rbind(femaleDataGmd[,3], maleDataGmd[,3]))[1], 0), maxTmp=c(0, range(rbind(femaleDataGmd[,3], maleDataGmd[,3]))[2]))
+writeColorTableandKey(inputData=maleDataCbf, inputColumn=3, outName='cbfMaleHi', minTmp=c(range(rbind(femaleDataCbf[,3], maleDataCbf[,3]))[1], 0), maxTmp=c(0, range(rbind(femaleDataCbf[,3], maleDataCbf[,3]))[2]))## This one fails 
 writeColorTableandKey(inputData=femaleDataVol, inputColumn=3, outName='volFemaleHi', minTmp=c(range(rbind(femaleDataVol[,3], maleDataVol[,3]))[1], 0), maxTmp=c(0, range(rbind(femaleDataVol[,3], maleDataVol[,3]))[2]))
-writeColorTableandKey(inputData=femaleDataGmd, inputColumn=3, outName='gmdFemaleHi')
-writeColorTableandKey(inputData=femaleDataCbf, inputColumn=3, outName='cbfFemaleHi')
+writeColorTableandKey(inputData=femaleDataGmd, inputColumn=3, outName='gmdFemaleHi', minTmp=c(range(rbind(femaleDataGmd[,3], maleDataGmd[,3]))[1], 0), maxTmp=c(0, range(rbind(femaleDataGmd[,3], maleDataGmd[,3]))[2]))
+writeColorTableandKey(inputData=femaleDataCbf, inputColumn=3, outName='cbfFemaleHi', minTmp=c(range(rbind(femaleDataCbf[,3], maleDataCbf[,3]))[1], 0), maxTmp=c(0, range(rbind(femaleDataCbf[,3], maleDataCbf[,3]))[2]))

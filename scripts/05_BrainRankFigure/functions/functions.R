@@ -2,6 +2,10 @@ returnHeatMapITKSnapVals <- function(inputZScores, lowColor='blue', hiColor='red
     # Create some functions this function will call... yeesh
     range01 <- function(x, minVal=NULL, maxVal=NULL){
         # Now make sure we have some standard deviation
+        if(is.na(sd(x))){
+            output <- rep(1, length(x))
+            return(output)          
+        }
         if (sd(x)==0 ){
             output <- rep(1, length(x))
             return(output)
@@ -64,7 +68,7 @@ returnHeatMapITKSnapVals <- function(inputZScores, lowColor='blue', hiColor='red
     return(outputValues)
 }
 
-returnPosNegAndNeuColorScale <- function(outputZScores, colorScaleNeg=c('light blue', 'blue'), colorScalePos=c('yellow', 'red'), colorScaleNeu=c('gray'), sigThreshold=.05, minimum=NULL, maximum=NULL){
+returnPosNegAndNeuColorScale <- function(outputZScores, colorScaleNeg=c('blue', 'light blue'), colorScalePos=c('red', 'yellow'), colorScaleNeu=c('gray'), sigThreshold=.05, minimum=NULL, maximum=NULL){
     # MAKE SURE WE ARE DEALING WITH NUMERICS!!!!
     outputZScores <- as.numeric(as.character(outputZScores))
     
@@ -92,13 +96,13 @@ returnPosNegAndNeuColorScale <- function(outputZScores, colorScaleNeg=c('light b
     #startPoint <- NULL
     output <- blankRow
     if(length(negativeValues) > 0 ){
-        negativeColors <- returnHeatMapITKSnapVals(negativeValues, lowColor=colorScaleNeg[1], hiColor=colorScaleNeg[2], minValue=minimum[1], maxValue=minimum[2])[2:(length(negativeValues)+1),]
+        negativeColors <- returnHeatMapITKSnapVals(negativeValues, lowColor=colorScaleNeg, hiColor='light blue', minValue=minimum[1], maxValue=minimum[2])[2:(length(negativeValues)+1),]
         #negIndex <- max(as.numeric(as.character(negativeColors[,1])))
         #startPoint <- cbind(startPoint, negIndex)
         output <- rbind(output, negativeColors)
     }
     if(length(positiveValues) > 0 ){
-        positiveColors <- returnHeatMapITKSnapVals(positiveValues, lowColor=colorScalePos[1], hiColor=colorScalePos[2], minVal=maximum[1], maxVal=maximum[2])[2:(length(positiveValues)+1),]
+        positiveColors <- returnHeatMapITKSnapVals(positiveValues, lowColor='red', hiColor=colorScalePos, minVal=maximum[1], maxVal=maximum[2])[2:(length(positiveValues)+1),]
         #posIndex <- max(as.numeric(as.character(positiveColors[,1])))
         #startPoint <- cbind(startPoint, posIndex)
         output <- rbind(output, positiveColors)
@@ -114,7 +118,7 @@ returnPosNegAndNeuColorScale <- function(outputZScores, colorScaleNeg=c('light b
 # Declare a function to write the table and key
 writeColorTableandKey <- function(inputData, inputColumn, outName, minTmp=NULL, maxTmp=NULL){
   # First create the color table
-  tmpColorTable <- returnPosNegAndNeuColorScale(inputData[complete.cases(inputData[,inputColumn]),inputColumn], colorScaleNeg=c('blue', 'light blue'), colorScalePos=c('yellow', 'red'), sigThreshold=1, minimum=minTmp, maximum=maxTmp)
+  tmpColorTable <- returnPosNegAndNeuColorScale(inputData[complete.cases(inputData[,inputColumn]),inputColumn], colorScaleNeg=c('dark blue', 'blue'), colorScalePos=c('orange', 'yellow', 'white'), sigThreshold=1, minimum=minTmp, maximum=maxTmp)
   valuesToBind <- c('1616', '190', '190', '190', '0.40', '1', '1', '"Label Nonsense"')
 
   # Now produce the output key 
@@ -133,6 +137,7 @@ writeColorTableandKey <- function(inputData, inputColumn, outName, minTmp=NULL, 
   write.table(tmpColorTable, file=outCTName, sep="\t", quote=F, row.names=F, col.names=F)
   tmpOutputKey <- rbind(tmpOutputKey, tmpOutputKeyFlip)
   tmpOutputKey[,1] <- rmLatVal(tmpOutputKey[,1]) 
+  tmpOutputKey <- tmpOutputKey[!duplicated(tmpOutputKey[,1]),]
   write.csv(tmpOutputKey, file=outKeyName, quote=F)
 }
 
