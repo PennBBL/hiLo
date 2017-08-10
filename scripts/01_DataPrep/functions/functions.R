@@ -72,6 +72,15 @@ regressOutAge <- function(valuesToBeRegressed, ageColumn, qualityColumn){
   return(newValues)
 }
 
+# Now make a function to regress out age but rm all quality indicies
+regressOutAgeNoQA <- function(valuesToBeRegressed, ageColumn, qualityColumn){
+  age <- scale(ageColumn)[,1]
+  ageSqu <- scale(ageColumn)[,1]^2
+  ageCub <- scale(ageColumn)[,1]^3
+  newValues <- lm(valuesToBeRegressed ~ age + ageSqu + ageCub)$residuals#+ ageSqu + ageCub + quality)$residuals
+  return(newValues)
+}
+
 # Now I need to create a function which regresses out data quality metrics
 regressOutQuality <- function(dataFrame, modalityName, qualityName){
   # DEclare a littl function to get the residuals
@@ -473,6 +482,10 @@ findLobe <- function(grepPattern){
     if(pattern.match.variable==67){
       pattern.match.variable <- 68
     }
+  }
+  OFuGCheck <- grep("OFuG", grepPattern)
+  if(!identical(integer(0), OFuGCheck)){
+    pattern.match.variable <- 53 
   }
   lobe.group <- findInterval(pattern.match.variable, index.key)
   return(lobe.group)

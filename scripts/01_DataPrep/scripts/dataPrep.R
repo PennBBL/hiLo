@@ -17,8 +17,10 @@ install_load('psych')
 data.values <- read.csv('/home/analysis/redcap_data/201511/go1/n1601_go1_datarel_113015.csv')
 health.values <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/healthData/healthexclude_ltn.csv')
 modal.scores <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/cogData2017/20170308/CNB_Factor_Scores_GO1-GO2-GO3.csv',header=TRUE)
+modal.scores <- modal.scores[which(modal.scores$timepoint==1),]
 volume.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/rawData/n1601_antsCtVol_jlfVol.csv')
 volume.data <- volume.data[,-grep('Cerebral_White_Matter', names(volume.data))]
+volume.data <- merge(modal.scores, volume.data, by='bblid')
 cbf.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/rawData/n1601_jlfCbf-Impute.csv')
 cbf.data <- cbf.data[,-grep('Cerebral_White_Matter', names(cbf.data))]
 cbf.data <- cbf.data[complete.cases(cbf.data),]
@@ -28,6 +30,7 @@ reho.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/rawData/n1601_jlfR
 alff.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/rawData/n1601_jlfAlff.csv')
 md.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/rawData/n1601_jlfTR.csv')
 md.data$include_wT1ex_64 <- 1 - md.data$include_wT1ex_64
+md.data <- md.data[complete.cases(md.data[,grep('dti_jlf_tr', names(md.data))]),]
 
 # Find the subjects that had their cnb within one year of their imaging session
 scan.Value <- data.values$ageAtGo1Scan
@@ -107,6 +110,7 @@ for(i in 1:length(dataVals)){
   # Now apply our immediete restrictions
   tmpData <- tmpData[tmpData$bblid %in% bblid.index,]
   tmpData <- tmpData[which(tmpData[excludeVals[i]]!=1), ]
+  tmpData <- merge(modal.scores, tmpData, by='bblid')
 
   # Now attach our demographic data
   tmpData$sex <- data.values$sex[match(tmpData$bblid, data.values$bblid)]

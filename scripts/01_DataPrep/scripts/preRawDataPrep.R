@@ -125,6 +125,16 @@ adLabels <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/preRaw2017/n1601_jl
 rdLabels <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/preRaw2017/n1601_jlfRDValues_20170411.csv')
 trLabels <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/preRaw2017/n1601_jlfTRValues_20170411.csv')
 faLabels <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/preRaw2017/n1601_jlfFAValues_20170411.csv')
+adLabelWM <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/preRaw2017/n1601_jlfWmLobesADValues_20170405.csv')
+rdLabelWM <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/preRaw2017/n1601_jlfWmLobesRDValues_20170405.csv')
+trLabelWM <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/preRaw2017/n1601_jlfWmLobesTRValues_20170405.csv')
+faLabelWM <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/preRaw2017/n1601_jlfWmLobesFAValues_20170405.csv')
+
+# Merge WM values to the GM values
+adLabels <- merge(adLabels, adLabelWM, by=intersect(names(adLabels), names(adLabelWM)))
+rdLabels <- merge(rdLabels, rdLabelWM, by=intersect(names(rdLabels), names(rdLabelWM)))
+trLabels <- merge(trLabels, trLabelWM, by=intersect(names(trLabels), names(trLabelWM)))
+faLabels <- merge(faLabels, faLabelWM, by=intersect(names(faLabels), names(faLabelWM)))
 
 # Now merge with QA data
 # Now merge our data and QA values
