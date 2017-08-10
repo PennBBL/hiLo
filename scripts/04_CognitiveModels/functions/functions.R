@@ -48,14 +48,19 @@ runLassoforHiLo <- function(x, y, trainingIterations = 100, nCor=3, nofFolds=10,
         # First load required library(s)
         source('/home/adrose/adroseHelperScripts/R/afgrHelpFunc.R')
         source('/home/adrose/varSelectionHiLo/scripts/functions.R')
-        install_load('glmnet', 'bootstrap', 'psych')
-        
+        install_load('glmnet', 'bootstrap', 'psych', 'caret')
+	        
+	# Now create our BS sample
+	sampleVals <- as.numeric(unlist(createDataPartition(y)))
+	bootY <- y[sampleVals]
+        bootX <- inputData[sampleVals,]
+
         # First find the optimum values to use for glmnet
         optVals <- tuneAlpha(inputData, y, alphaSequence, nofFolds)
         
         
         # Now we need to create our final model with our opt vals
-        mod <- glmnet(inputData, y, standardize=F, alpha=optVals[1], lambda=optVals[2], maxit=100000000)
+        mod <- glmnet(bootX, bootY, standardize=F, alpha=optVals[1], lambda=optVals[2], maxit=100000000)
         
         # Now return our values
         valsToReturn <- as.numeric(mod$beta)
@@ -350,7 +355,7 @@ returnCVStepFit <- function(dataFrame, genderID, grepID, pValue=.05, iterationCo
       install_load('caret', 'SignifReg')
       
       # create our model
-      folds <- createFolds(dataToUse$V1, k=4, list=T, returnTrain=T)
+      folds <- createDataPartition(dataToUse$V1,list=T)
       index <- unlist(folds[1])
       dataTrain <- dataToUse[index,]
       stepVAR <- SignifReg(scope=V1~., data=dataTrain, alpha=pValue, direction="forward", criterion="p-value")
@@ -369,6 +374,8 @@ returnCVStepFit <- function(dataFrame, genderID, grepID, pValue=.05, iterationCo
   stopCluster(cl)
   
   # Now select the varaibles that were selected more then the mode value for variables selected.
+  outputSelected <- as.matrix(returnSelectionCol(output)[-1], ncol=1, nrow=dim(valuesToUse)[2])
+  rownames(outputSelected) <- colnames(valuesToUse)
   modeValue <- quantile(returnSelectionCol(output), selectionPercent) 
   indexToUse <- unique(c(1,which(returnSelectionCol(output) >=modeValue)))
   dataToUse <- dataToUse[,indexToUse]
@@ -414,6 +421,7 @@ returnCVStepFit <- function(dataFrame, genderID, grepID, pValue=.05, iterationCo
     outputList <- list()
     outputList[[1]] <- output
     outputList[[2]] <- coefficients(modm)
+    outputList[[3]] <- outputSelected
     output <- outputList
   }
   return(output)  
