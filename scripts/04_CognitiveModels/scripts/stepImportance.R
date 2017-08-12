@@ -24,29 +24,41 @@ dataNames <- c('vol.data', 'cbf.data', 'gmd.data', 'tr.data')
 dataGrepNames <- c('mprage_jlf_vol_', 'pcasl_jlf_cbf_', 'mprage_jlf_gmd_','dti_jlf_tr_')
 
 # Now create our loops
-selectedOutput <- matrix(0, nrow=length(grep('mprage_jlf_vol', names(vol.data))), ncol=4)
-rownames(selectedOutput) <- names(vol.data)[grep('mprage_jlf_vol', names(vol.data))]
-rownames(selectedOutput) <- gsub(x=rownames(selectedOutput), pattern='mprage_jlf_vol_', replacement='')
-colnames(selectedOutput) <- dataNames
-selectedBeta <- matrix(0, nrow=length(grep('mprage_jlf_vol', names(vol.data))), ncol=4)
-rownames(selectedBeta) <- names(vol.data)[grep('mprage_jlf_vol', names(vol.data))]
-rownames(selectedBeta) <- gsub(x=rownames(selectedBeta), pattern='mprage_jlf_vol_', replacement='')
-colnames(selectedBeta) <- dataNames
-allOut <- NA
-for(w in seq(.95, .95, .05)){
-  for(g in genderVals){
-    for(z in 1:length(dataNames)){
-      vals <- returnCVStepFit(dataFrame=get(dataNames[z]), grepID=dataGrepNames[z], genderID=g, pValue=.05, iterationCount=100, nCor=30, selectionPercent=w)
-      tmp2 <- vals[[2]][2:length(vals[[2]])]
-      names(tmp2) <- strSplitMatrixReturn(names(tmp2), dataGrepNames[z])[,2]
-      selectedBeta[match(names(tmp2), rownames(selectedBeta))] <- tmp2
-      foobar <- vals[[3]]
-      rownames(foobar) <- gsub(x=rownames(foobar), pattern=dataGrepNames[z], replacement='')
-      selectedOutput[match(rownames(foobar), rownames(selectedOutput)),z] <- foobar[,1]
+for(g in genderVals){
+  selectedOutput <- matrix(0, nrow=length(grep('mprage_jlf_vol', names(vol.data))), ncol=4)
+  rownames(selectedOutput) <- names(vol.data)[grep('mprage_jlf_vol', names(vol.data))]
+  rownames(selectedOutput) <- gsub(x=rownames(selectedOutput), pattern='mprage_jlf_vol_', replacement='')
+  colnames(selectedOutput) <- dataNames
+  selectedBeta <- matrix(0, nrow=length(grep('mprage_jlf_vol', names(vol.data))), ncol=4)
+  rownames(selectedBeta) <- names(vol.data)[grep('mprage_jlf_vol', names(vol.data))]
+  rownames(selectedBeta) <- gsub(x=rownames(selectedBeta), pattern='mprage_jlf_vol_', replacement='')
+  colnames(selectedBeta) <- dataNames
+  allOut <- NA
+  for(z in 1:length(dataNames)){
+    vals <- returnCVStepFit(dataFrame=get(dataNames[z]), grepID=dataGrepNames[z], genderID=g, pValue=.05, iterationCount=100, nCor=30, selectionPercent=.95)
+    tmp2 <- vals[[2]][2:length(vals[[2]])]
+    names(tmp2) <- strSplitMatrixReturn(names(tmp2), dataGrepNames[z])[,2]
+    colIndex <- grep(dataGrepNames[z], names(get(dataNames[z])))
+    colIndex <- append(grep('F1_Exec_Comp_Cog_Accuracy', names(get(dataNames[z]))), colIndex)
+    stepVAR <- SignifReg(scope=F1_Exec_Comp_Cog_Accuracy~., data=get(dataNames[z])[which(get(dataNames[z])$sex==g),colIndex], alpha=.05, direction="forward", criterion="p-value")
+    foobar <- stepVAR$coefficients[2:length(stepVAR$coefficients)]
+    newColIndex <- match(names(foobar), names(get(dataNames[z])))
+    newColIndex <- append(grep('F1_Exec_Comp_Cog_Accuracy', names(get(dataNames[z]))), newColIndex)
+    inputData <- scale(get(dataNames[z])[which(get(dataNames[z])$sex==g),newColIndex])
+    modelOut <- as.formula(paste('F1_Exec_Comp_Cog_Accuracy ~', paste(names(foobar), collapse='+')))
+    if(dim(inputData)[2] > 2){
+      inputData <- regressWithinModality(inputData, grepPattern=dataGrepNames[z])
     }
-   nameVal <- paste(g, "selectedBetaVals.csv", sep='')
-   write.csv(selectedBeta, nameVal, quote=F)
-   nameVal <- paste(g, "selectedNVals.csv", sep='')
-   write.csv(selectedOutput, nameVal, quote=F)
+    modm <- lm(modelOut, data=as.data.frame(inputData))
+    foobar <- coefficients(modm)[2:length(coefficients(modm))]
+    names(foobar) <- gsub(x=names(foobar), pattern=dataGrepNames[z], replacement='')
+    selectedBeta[match(names(foobar), rownames(selectedOutput)),z] <- foobar
+    foobar <- vals[[3]]
+    rownames(foobar) <- gsub(x=rownames(foobar), pattern=dataGrepNames[z], replacement='')
+    selectedOutput[match(rownames(foobar), rownames(selectedOutput)),z] <- foobar[,1]
   }
+ nameVal <- paste(g, "selectedBetaVals.csv", sep='')
+ write.csv(selectedBeta, nameVal, quote=F)
+ nameVal <- paste(g, "selectedNVals.csv", sep='')
+ write.csv(selectedOutput, nameVal, quote=F)
 }
