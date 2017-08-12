@@ -11,17 +11,18 @@ install_load('foreach', 'doParallel', 'glmnet', 'bootstrap', 'psych', 'ggplot2',
 # Load the data
 # Now we need to load the data 
 vol.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeReg/volumeData.csv')
-vol.data <- vol.data[which(vol.data$ageAtGo1Scan>=168 & vol.data$ageAtGo1Scan<216),]
+vol.data <- vol.data[,-grep("4th_Ventricle", names(vol.data))]
+#vol.data <- vol.data[which(vol.data$ageAtGo1Scan>=168 & vol.data$ageAtGo1Scan<216),]
 cbf.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeReg/cbfData.csv')
-cbf.data <- cbf.data[which(cbf.data$ageAtGo1Scan>=168 & cbf.data$ageAtGo1Scan<216),]
+#cbf.data <- cbf.data[which(cbf.data$ageAtGo1Scan>=168 & cbf.data$ageAtGo1Scan<216),]
 gmd.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeReg/gmdData.csv')
-gmd.data <- gmd.data[which(gmd.data$ageAtGo1Scan>=168 & gmd.data$ageAtGo1Scan<216),]
+#gmd.data <- gmd.data[which(gmd.data$ageAtGo1Scan>=168 & gmd.data$ageAtGo1Scan<216),]
 ct.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeReg/ctData.csv')
-ct.data <- ct.data[which(ct.data$ageAtGo1Scan>=168 & ct.data$ageAtGo1Scan<216),]
+#ct.data <- ct.data[which(ct.data$ageAtGo1Scan>=168 & ct.data$ageAtGo1Scan<216),]
 reho.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeReg/rehoData.csv')
-reho.data <- reho.data[which(reho.data$ageAtGo1Scan>=168 & reho.data$ageAtGo1Scan<216),]
+#reho.data <- reho.data[which(reho.data$ageAtGo1Scan>=168 & reho.data$ageAtGo1Scan<216),]
 alff.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeReg/alffData.csv')
-alff.data <- alff.data[which(alff.data$ageAtGo1Scan>=168 & alff.data$ageAtGo1Scan<216),]
+#alff.data <- alff.data[which(alff.data$ageAtGo1Scan>=168 & alff.data$ageAtGo1Scan<216),]
 ad.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeReg/jlfADData.csv')
 ad.data <- ad.data[which(ad.data$ageAtGo1Scan>=168),]
 fa.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeReg/jlfFAData.csv')
@@ -29,7 +30,7 @@ fa.data <- fa.data[which(fa.data$ageAtGo1Scan>=168),]
 rd.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeReg/jlfRDData.csv')
 rd.data <- rd.data[which(rd.data$ageAtGo1Scan>=168),]
 tr.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeReg/jlfTRData.csv')
-tr.data <- tr.data[which(tr.data$ageAtGo1Scan>=168 & tr.data$ageAtGo1Scan<216),]
+#tr.data <- tr.data[which(tr.data$ageAtGo1Scan>=168 & tr.data$ageAtGo1Scan<216),]
 fa.data.label <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeReg/jhuFALabelsData.csv')
 tr.data.label <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeReg/jhuTRLabelsData.csv')
 
