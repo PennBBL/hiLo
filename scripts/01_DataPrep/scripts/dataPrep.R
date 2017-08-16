@@ -20,6 +20,7 @@ modal.scores <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/cogData2017/201
 modal.scores <- modal.scores[which(modal.scores$timepoint==1),]
 volume.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/rawData/n1601_antsCtVol_jlfVol.csv')
 volume.data <- volume.data[,-grep('Cerebral_White_Matter', names(volume.data))]
+volume.data <- volume.data[,-grep("4th_Ventricle", names(volume.data))]
 volume.data <- merge(modal.scores, volume.data, by='bblid')
 cbf.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/rawData/n1601_jlfCbf-Impute.csv')
 cbf.data <- cbf.data[,-grep('Cerebral_White_Matter', names(cbf.data))]
@@ -79,9 +80,13 @@ for(i in 1:length(dataVals)){
   tmpAR[,grep(modalNames[i], names(tmpAR))] <- apply(tmpAR[,grep(modalNames[i], names(tmpAR))], 2, function(x) regressOutAgeNoQA(x, tmpAR$ageAtGo1Scan))
   tmpAR <- averageLeftAndRight(tmpAR)
 
+  # Now produce a modality regressed data frame
+  tmpMR <- regressWithinModality(tmpAR, modalNames[i])
+
   # Now write the csvs
   write.csv(tmpLR, outMean, quote=F, row.names=F)
   write.csv(tmpAR, outAge, quote=F, row.names=F)
+  write.csv(tmpMR, outMod, quote=F, row.names=F)
 }
 
 # Now produce the volume values
@@ -93,13 +98,15 @@ volume.data2 <- volume.data
 volAVG <- averageLeftAndRight(volume.data)
 volume.data2[,29:volIndex] <- apply(volume.data2[,29:volIndex], 2, function(x) regressOutAgeNoQA(x, volume.data2$ageAtGo1Scan, volume.data2$averageManualRating))
 volume.data2 <- averageLeftAndRight(volume.data2)
+volume.data.MR <- regressWithinModality(volume.data2, 'mprage_jlf_vol')
 write.csv(volAVG, "/home/adrose/dataPrepForHiLoPaper/data/meanLR/volumeData.csv", quote=F, row.names=F)
 write.csv(volume.data2, "/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeReg/volumeData.csv", quote=F, row.names=F)
-
+write.csv(volume.data.MR, "/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeRegModalReg/volumeData.csv", quote=F, row.names=F)
 
 # Now do the same thing but add QA regressing 
 outputMeanLR <- "/home/adrose/dataPrepForHiLoPaper/data/meanLRQA/"
 outputMeanLRAgeReg <- "/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeRegQA/"
+outputMeanLRAgeRegModReg <- "/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeRegModalRegQA/"
 qaVals <- c('pcaslRelMeanRMSMotion', 'averageManualRating', 'averageManualRating', 'restRelMeanRMSMotion', 'restRelMeanRMSMotion', 'tsnr_64', 'averageManualRating')
 # Now run em all thorugh the loop
 for(i in 1:length(dataVals)){
@@ -125,11 +132,15 @@ for(i in 1:length(dataVals)){
   # Now produce our ageReg vals 
   tmpAR <- tmpData
   tmpAR[,grep(modalNames[i], names(tmpAR))] <- apply(tmpAR[,grep(modalNames[i], names(tmpAR))], 2, function(x) regressOutAge(x, tmpAR$ageAtGo1Scan, unlist(tmpAR[qaVals[i]])))
-  tmpAR <- averageLeftAndRight(tmpAR)
+  tmpAR <- averageLeftAndRight(tmpAR)  
+
+  # Now produce a modality regressed data frame
+  tmpMR <- regressWithinModality(tmpAR, modalNames[i])
 
   # Now write the csvs
   write.csv(tmpLR, outMean, quote=F, row.names=F)
   write.csv(tmpAR, outAge, quote=F, row.names=F)
+  write.csv(tmpMR, outMod, quote=F, row.names=F)
 }
 
 # Now produce the volume values
@@ -138,5 +149,7 @@ volume.data3 <- regressOutQuality(dataFrame=volume.data3, modalityName='mprage_j
 volume.data4 <- volume.data
 volume.data4[,29:volIndex] <- apply(volume.data4[,29:volIndex], 2, function(x) regressOutAgeNoQA(x, volume.data4$ageAtGo1Scan, volume.data4$averageManualRating))
 volume.data4 <- averageLeftAndRight(volume.data4)
+volume.data.MR4 <- regressWithinModality(volume.data4, 'mprage_jlf_vol')
 write.csv(volume.data3, '/home/adrose/dataPrepForHiLoPaper/data/meanLRQA/volumeData.csv', quote=F, row.names=F)
 write.csv(volume.data4, "/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeRegQA/volumeData.csv", quote=F, row.names=F)
+write.csv(volume.data.MR4, "/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeRegModalRegQA/volumeData.csv", quote=F, row.names=F)
