@@ -9,6 +9,7 @@ jlfVol <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/preRaw2017/n1601_jlfA
 jlfWmVol <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/preRaw2017/n1601_jlfWmVol_20170303.csv')
 antsVol <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/preRaw/t1/n1601_antsCtVol.csv')
 jlfCt <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/preRaw2017/n1601_jlfAtroposIntersectionCT_20170331.csv')
+jlfCC <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/preRaw2017/n1601CCVals.csv')
 jlfGmd <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/preRaw2017/n1601_jlfAtroposIntersectionGMD_20170410.csv')
 gmdFactor <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/preRaw2017/GMD_Factor.csv')
 t1QA <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/preRaw2017/n1601_t1QaData_20170306.csv')
@@ -21,7 +22,7 @@ volData <- merge(volData, antsVol, by=c('bblid', 'scanid'))
 # Now write our csv
 write.csv(volData, '/home/adrose/dataPrepForHiLoPaper/data/rawData/n1601_antsCtVol_jlfVol.csv', quote=F, row.names=F)
 
-# Now do the GMD and CT
+# Now do the GMD and CT and cortcon
 gmdData <- merge(t1QA, jlfGmd, by=c('bblid','scanid'))
 gmdData <- merge(gmdData, gmdFactor, by='bblid')
 #write csv...
@@ -30,6 +31,10 @@ write.csv(gmdData, '/home/adrose/dataPrepForHiLoPaper/data/rawData/n1601_jlfGMD.
 ctData <- merge(t1QA, jlfCt, by=c('bblid','scanid'))
 #as ever write the csv...
 write.csv(ctData, '/home/adrose/dataPrepForHiLoPaper/data/rawData/n1601_jlfCt.csv', quote=F, row.names=F)
+
+#Now do CC vals
+ccData <- merge(t1QA, jlfCC, by=c('bblid', 'scanid'))
+write.csv(ccData, '/home/adrose/dataPrepForHiLoPaper/data/rawData/n1601_jlfCc.csv', quote=F, row.names=F)
 
 
 # Now lets do all of the cbf data 
