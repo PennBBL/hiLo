@@ -8,6 +8,7 @@ vol.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeReg/
 cbf.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeReg/cbfData.csv')
 gmd.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeReg/gmdData.csv')
 ct.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeReg/ctData.csv')
+cc.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeReg/ccData.csv')
 reho.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeReg/rehoData.csv')
 alff.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeReg/alffData.csv')
 ad.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeReg/jlfADData.csv')
@@ -19,8 +20,8 @@ tr.data.label <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAg
 
 # Now loop through all of our modalities, data frames, and genders and prep our output
 genderVals <- c(1,2)
-dataNames <- c('vol.data', 'cbf.data', 'gmd.data', 'ct.data', 'reho.data', 'alff.data', 'tr.data', 'fa.data.label')
-dataGrepNames <- c('mprage_jlf_vol', 'pcasl_jlf_cbf', 'mprage_jlf_gmd', 'mprage_jlf_ct', 'rest_jlf_reho', 'rest_jlf_alff','dti_jlf_tr', 'dti_dtitk_jhulabel_fa')
+dataNames <- c('vol.data', 'cbf.data', 'gmd.data', 'ct.data', 'cc.data', 'reho.data', 'alff.data', 'tr.data', 'fa.data.label')
+dataGrepNames <- c('mprage_jlf_vol', 'pcasl_jlf_cbf', 'mprage_jlf_gmd', 'mprage_jlf_ct', 'mprage_jlf_cortcon', 'rest_jlf_reho', 'rest_jlf_alff','dti_jlf_tr', 'dti_dtitk_jhulabel_fa')
 
 # Now create our loops
 allOut <- NA
