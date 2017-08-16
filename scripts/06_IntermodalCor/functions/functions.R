@@ -258,9 +258,11 @@ createHeatMap <- function(grepPattern1, grepPattern2){
   matVals1 <- matVals1[,order(outputLobeRow(matVals1))]
   matVals2 <- matVals2[,order(outputLobeRow(matVals2))]
 
-  #Now check to see if the modality is CT
+  #Now check to see if the modality is CT or cortcon
   ctCheck1 <- grep('ct', grepPattern1)
   ctCheck2 <- grep('ct', grepPattern2)
+  ctCheck1 <- append(ctCheck1, grep('cortcon', grepPattern1))
+  ctCheck2 <- append(ctCheck2, grep('cortcon', grepPattern2))
 
   # Now rm nonsense lobes
   if(length(ctCheck1)==1){
@@ -336,6 +338,8 @@ createSigHeatMap <- function(grepPattern1, grepPattern2){
   #Now check to see if the modality is CT
   ctCheck1 <- grep('ct', grepPattern1)
   ctCheck2 <- grep('ct', grepPattern2)
+  ctCheck1 <- append(ctCheck1, grep('cortcon', grepPattern1))
+  ctCheck2 <- append(ctCheck2, grep('cortcon', grepPattern2))
 
   # Now rm nonsense lobes
   if(length(ctCheck1)==1){

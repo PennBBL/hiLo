@@ -14,6 +14,7 @@ vol.modal.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLR/volume
 cbf.modal.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLR/cbfData.csv')
 gmd.modal.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLR/gmdData.csv')
 ct.modal.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLR/ctData.csv')
+cc.modal.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLR/ccData.csv')
 reho.modal.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLR/rehoData.csv')
 alff.modal.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLR/alffData.csv')
 ad.modal.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLR/jlfADData.csv')
@@ -24,6 +25,7 @@ vol.modal.data.age.reg <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanL
 cbf.modal.data.age.reg <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeReg/cbfData.csv')
 gmd.modal.data.age.reg <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeReg/gmdData.csv')
 ct.modal.data.age.reg <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeReg/ctData.csv')
+cc.modal.data.age.reg <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeReg/ccData.csv')
 reho.modal.data.age.reg <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeReg/rehoData.csv')
 alff.modal.data.age.reg <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeReg/alffData.csv')
 ad.modal.data.age.reg <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeReg/jlfADData.csv')
@@ -36,6 +38,7 @@ vol.modal.data <- addAgeBin(vol.modal.data, vol.modal.data$ageAtGo1Scan, 167, 21
 cbf.modal.data <- addAgeBin(cbf.modal.data, cbf.modal.data$ageAtGo1Scan, 167, 215, 216)
 gmd.modal.data <- addAgeBin(gmd.modal.data, gmd.modal.data$ageAtGo1Scan, 167, 215, 216)
 ct.modal.data <- addAgeBin(ct.modal.data, ct.modal.data$ageAtGo1Scan, 167, 215, 216)
+cc.modal.data <- addAgeBin(cc.modal.data, cc.modal.data$ageAtGo1Scan, 167, 215, 216)
 reho.modal.data <- addAgeBin(reho.modal.data, reho.modal.data$ageAtGo1Scan, 167, 215, 216)
 alff.modal.data <- addAgeBin(alff.modal.data, alff.modal.data$ageAtGo1Scan, 167, 215, 216)
 ad.modal.data <- addAgeBin(ad.modal.data, ad.modal.data$ageAtGo1Scan, 167, 215, 216)
@@ -47,6 +50,7 @@ vol.modal.data.age.reg$ageBin <- rep('Age Regressed', nrow(vol.modal.data.age.re
 gmd.modal.data.age.reg$ageBin <- rep('Age Regressed', nrow(gmd.modal.data.age.reg))
 #gmd.modal.data.age.reg <- addAgeBin(gmd.modal.data.age.reg, gmd.modal.data.age.reg$ageAtGo1Scan, 167, 215, 216)
 ct.modal.data.age.reg$ageBin <- rep('Age Regressed', nrow(ct.modal.data.age.reg))
+cc.modal.data.age.reg$ageBin <- rep('Age Regressed', nrow(cc.modal.data.age.reg))
 reho.modal.data.age.reg$ageBin <- rep('Age Regressed', nrow(reho.modal.data.age.reg))
 alff.modal.data.age.reg$ageBin <- rep('Age Regressed', nrow(alff.modal.data.age.reg))
 ad.modal.data.age.reg$ageBin <- 'Age Regressed'
@@ -91,6 +95,15 @@ adult.ct <- doEverythingEverCT(ct.modal.data, 'mprage_jlf_ct', 216, 999, 'Early 
 all.ct <- rbind(child.ct, adol.ct, adult.ct)
 # Now do age regressed
 age.reg.ct <- doEverythingEverCT(ct.modal.data.age.reg, 'mprage_jlf_ct', 0, 999, 'Age Regressed')
+
+# Now try CC
+child.cc <- doEverythingEverCT(cc.modal.data, 'mprage_jlf_cortcon', 0, 167, 'Childhood')
+adol.cc <- doEverythingEverCT(cc.modal.data, 'mprage_jlf_cortcon', 168, 215, 'Adolescence')
+adult.cc <- doEverythingEverCT(cc.modal.data, 'mprage_jlf_cortcon', 216, 999, 'Early Adulthood')
+all.cc <- rbind(child.cc, adol.cc, adult.cc)
+# Now do age regressed
+age.reg.cc <- doEverythingEverCT(cc.modal.data.age.reg, 'mprage_jlf_cortcon', 0, 999, 'Age Regressed')
+
 
 # Now do reho
 child.rh <- doEverythingEver(reho.modal.data, 'rest_jlf_reho', 0, 167, 'Childhood', cerebellum=F)
@@ -138,6 +151,7 @@ volPlot <- createGGPlotImage(all.vol, 'Volume Hi-Lo JLF Data', -.8, 1.4, .2)
 cbfPlot <- createGGPlotImage(all.cbf, 'CBF Hi-Lo JLF Data', -.8, .8, .2)
 gmdPlot <- createGGPlotImage(all.gmd, 'GMD Hi-Lo JLF Data', -.8, 1.4, .2)
 ctPlot <- createGGPlotImage(all.ct, 'CT Hi-Lo JLF Data', -.8, 1.4, .2)
+ccPlot <- createGGPlotImage(all.cc, 'CC Hi-Lo JLF Data', -.8, 1.4, .2)
 rhPlot <- createGGPlotImage(all.rh, 'ReHo Hi-Lo JLF Data', -.8, 1.4, .2)
 alPlot <- createGGPlotImage(all.al, 'ALFF Hi-Lo JLF Data', -.8, 1.4, .2)
 adPlot <- createGGPlotImage(all.ad, 'AD Hi-Lo JLF Data', -1.6 , 1.2, .2)
@@ -148,6 +162,7 @@ volPlotAgeReg <- createGGPlotImage(age.reg.vol, 'Volume Hi-Lo JLF Data Age Reg',
 cbfPlotAgeReg <- createGGPlotImage(age.reg.cbf, 'CBF Hi-Lo JLF Data Age Reg', -1, 1, .2)
 gmdPlotAgeReg <- createGGPlotImage(age.reg.gmd, 'GMD Hi-Lo JLF Data Age Reg', -1, 1, .2)
 ctPlotAgeReg <- createGGPlotImage(age.reg.ct, 'CT Hi-Lo JLF Data Age Reg', -1, 1, .2)
+ccPlotAgeReg <- createGGPlotImage(age.reg.cc, 'CC Hi-Lo JLF Data Age Reg', -1, 1, .2)
 rhPlotAgeReg <- createGGPlotImage(age.reg.rh, 'ReHo Hi-Lo JLF Data Age Reg', -1, 1, .2)
 alPlotAgeReg <- createGGPlotImage(age.reg.al, 'ALFF Hi-Lo JLF Data Age Reg', -1, 1, .2)
 adPlotAgeReg <- createGGPlotImage(age.reg.ad, 'AD Hi-Lo JLF Data Age Reg', -1 , 1, .2)
@@ -160,6 +175,7 @@ volPlot
 cbfPlot
 gmdPlot
 ctPlot
+ccPlot
 rhPlot
 alPlot
 adPlot
@@ -172,6 +188,7 @@ volPlotAgeReg
 cbfPlotAgeReg
 gmdPlotAgeReg
 ctPlotAgeReg
+ccPlotAgeReg
 rhPlotAgeReg
 alPlotAgeReg
 adPlotAgeReg

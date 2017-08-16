@@ -13,12 +13,24 @@ vol.modal.data.age.reg <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanL
 cbf.modal.data.age.reg <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeReg/cbfData.csv')
 gmd.modal.data.age.reg <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeReg/gmdData.csv')
 ct.modal.data.age.reg <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeReg/ctData.csv')
+cortcon.modal.data.age.reg <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeReg/ccData.csv')
 reho.modal.data.age.reg <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeReg/rehoData.csv')
 alff.modal.data.age.reg <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeReg/alffData.csv')
 ad.modal.data.age.reg <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeReg/jlfADData.csv')
 fa.modal.data.age.reg <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeReg/jlfFAData.csv')
 rd.modal.data.age.reg <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeReg/jlfRDData.csv')
 tr.modal.data.age.reg <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeReg/jlfTRData.csv')
+vol.modal.data.age.reg.mr <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeRegModalReg/volumeData.csv')
+cbf.modal.data.age.reg.mr <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeRegModalReg/cbfData.csv')
+gmd.modal.data.age.reg.mr <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeRegModalReg/gmdData.csv')
+ct.modal.data.age.reg.mr <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeRegModalReg/ctData.csv')
+cortcon.modal.data.age.reg.mr <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeRegModalReg/ccData.csv')
+reho.modal.data.age.reg.mr <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeRegModalReg/rehoData.csv')
+alff.modal.data.age.reg.mr <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeRegModalReg/alffData.csv')
+ad.modal.data.age.reg.mr <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeRegModalReg/jlfADData.csv')
+fa.modal.data.age.reg.mr <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeRegModalReg/jlfFAData.csv')
+rd.modal.data.age.reg.mr <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeRegModalReg/jlfRDData.csv')
+tr.modal.data.age.reg.mr <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeRegModalReg/jlfTRData.csv')
 
 # create a rough function to create our rows given a grep pattern and data frame
 createCorRows <- function(dataFrame, grepPattern){
@@ -150,8 +162,8 @@ roughAllFunctionLobe <- function(dataFrame2, grepPattern2, outName){
 }
 
 # Now run through each data frame and produce the values 
-valsName <- c('vol', 'cbf', 'gmd', 'ct', 'reho', 'alff', 'ad', 'rd', 'fa', 'tr')
-grepVals <- c('mprage_jlf_vol_', 'pcasl_jlf_cbf_', 'mprage_jlf_gmd_', 'mprage_jlf_ct_', 'rest_jlf_reho_', 'rest_jlf_alff_', 'dti_jlf_ad_', 'dti_jlf_rd_', 'dti_jlf_fa_', 'dti_jlf_tr_')
+valsName <- c('vol', 'cbf', 'gmd', 'ct', 'cortcon', 'reho', 'alff', 'ad', 'rd', 'fa', 'tr')
+grepVals <- c('mprage_jlf_vol_', 'pcasl_jlf_cbf_', 'mprage_jlf_gmd_', 'mprage_jlf_ct_', 'mprage_jlf_cortcon', 'rest_jlf_reho_', 'rest_jlf_alff_', 'dti_jlf_ad_', 'dti_jlf_rd_', 'dti_jlf_fa_', 'dti_jlf_tr_')
 for(w in 1:length(valsName)){
   modalName <- valsName[w]
   grepName <- grepVals[w]
@@ -164,8 +176,22 @@ for(w in 1:length(valsName)){
   csvName <- paste0(modalName, '.modal.data.age.reg', sep='')
   roughAllFunctionLobe(get(csvName), grepName, paste(modalName, '-Lobe', sep=''))
 }
+for(w in 1:length(valsName)){
+  modalName <- valsName[w]
+  grepName <- grepVals[w]
+  csvName <- paste0(modalName, '.modal.data.age.reg.mr', sep='')
+  modalName <- paste(valsName[w], 'MR', sep='')
+  roughAllFunction(get(csvName), grepName, modalName)
+}
+for(w in 1:length(valsName)){
+  modalName <- valsName[w]
+  grepName <- grepVals[w]
+  csvName <- paste0(modalName, '.modal.data.age.reg.mr', sep='')
+  modalName <- paste(valsName[w], 'MR', sep='')
+  roughAllFunctionLobe(get(csvName), grepName, paste(modalName, '-Lobe', sep=''))
+}
 
-
+q()
 # Now produce total metrics corellations
 source('/home/adrose/T1QA/scripts/galton/loadGo1Data.R')
 detachAllPackages()
