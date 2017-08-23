@@ -36,7 +36,10 @@ for(g in genderVals){
   colnames(selectedBeta) <- dataNames
   allOut <- NA
   for(z in 1:length(dataNames)){
-    vals <- returnCVStepFit(dataFrame=get(dataNames[z]), grepID=dataGrepNames[z], genderID=g, pValue=.05, iterationCount=100, nCor=30, selectionPercent=0)
+    #tmpDF <- returnPercentileGroup('me', get(dataNames[z])[,grep('F1_Exec_Comp_Cog_Accuracy', names(get(dataNames[z])))], get(dataNames[z]))
+    tmpDF <- get(dataNames[z])
+    tmpDF <- tmpDF[which(tmpDF$sex==g),]
+    vals <- returnCVStepFit(dataFrame=tmpDF, grepID=dataGrepNames[z], genderID=g, pValue=.05, iterationCount=100, nCor=30, selectionPercent=0)
     tmp2 <- vals[[2]][2:length(vals[[2]])]
     names(tmp2) <- strSplitMatrixReturn(names(tmp2), dataGrepNames[z])[,2]
     colIndex <- grep(dataGrepNames[z], names(get(dataNames[z])))
@@ -45,7 +48,7 @@ for(g in genderVals){
     foobar <- stepVAR$coefficients[2:length(stepVAR$coefficients)]
     newColIndex <- match(names(foobar), names(get(dataNames[z])))
     newColIndex <- append(grep('F1_Exec_Comp_Cog_Accuracy', names(get(dataNames[z]))), newColIndex)
-    inputData <- scale(get(dataNames[z])[which(get(dataNames[z])$sex==g),newColIndex])
+    inputData <- scale(tmpDF[which(get(dataNames[z])$sex==g),newColIndex])
     modelOut <- as.formula(paste('F1_Exec_Comp_Cog_Accuracy ~', paste(names(foobar), collapse='+')))
     if(dim(inputData)[2] > 2){
       inputData <- regressWithinModality(inputData, grepPattern=dataGrepNames[z])
@@ -86,7 +89,10 @@ for(g in genderVals){
   colnames(selectedBeta) <- dataNames
   allOut <- NA
   for(z in 1:length(dataNames)){
-    vals <- returnCVStepFit(dataFrame=get(dataNamesMR[z]), grepID=dataGrepNames[z], genderID=g, pValue=.05, iterationCount=100, nCor=30, selectionPercent=0, regressWithin=FALSE)
+    #tmpDF <- returnPercentileGroup('me', get(dataNames[z])[,grep('F1_Exec_Comp_Cog_Accuracy', names(get(dataNames[z])))], get(dataNames[z]))
+    tmpDF <- get(dataNames[z])
+    tmpDF <- tmpDF[which(tmpDF$sex==g),]
+    vals <- returnCVStepFit(dataFrame=tmpDF, grepID=dataGrepNames[z], genderID=g, pValue=.05, iterationCount=100, nCor=30, selectionPercent=0, regressWithin=FALSE)
     tmp2 <- vals[[2]][2:length(vals[[2]])]
     names(tmp2) <- strSplitMatrixReturn(names(tmp2), dataGrepNames[z])[,2]
     colIndex <- grep(dataGrepNames[z], names(get(dataNames[z])))
@@ -95,7 +101,7 @@ for(g in genderVals){
     foobar <- stepVAR$coefficients[2:length(stepVAR$coefficients)]
     newColIndex <- match(names(foobar), names(get(dataNames[z])))
     newColIndex <- append(grep('F1_Exec_Comp_Cog_Accuracy', names(get(dataNames[z]))), newColIndex)
-    inputData <- scale(get(dataNamesMR[z])[which(get(dataNames[z])$sex==g),newColIndex])
+    inputData <- scale(tmpDF[,newColIndex])
     modelOut <- as.formula(paste('F1_Exec_Comp_Cog_Accuracy ~', paste(names(foobar), collapse='+')))
     if(dim(inputData)[2] > 2){
       inputData <- regressWithinModality(inputData, grepPattern=dataGrepNames[z])

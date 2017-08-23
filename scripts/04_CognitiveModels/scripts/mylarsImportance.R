@@ -5,10 +5,14 @@ install_load('foreach', 'doParallel', 'glmnet', 'bootstrap', 'psych', 'ggplot2',
 
 # Now we need to load the data 
 vol.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeReg/volumeData.csv')
-vol.data <- vol.data[,-grep("4th_Ventricle", names(vol.data))]
 cbf.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeReg/cbfData.csv')
 gmd.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeReg/gmdData.csv')
 tr.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeReg/jlfTRData.csv') 
+
+#vol.data <- returnPercentileGroup('me', vol.data$F1_Exec_Comp_Cog_Accuracy, vol.data)
+#cbf.data <- returnPercentileGroup('me', cbf.data$F1_Exec_Comp_Cog_Accuracy, cbf.data)
+#gmd.data <- returnPercentileGroup('me', gmd.data$F1_Exec_Comp_Cog_Accuracy, gmd.data)
+#tr.data <- returnPercentileGroup('me', tr.data$F1_Exec_Comp_Cog_Accuracy, tr.data)
 
 # Load any functions
 runMyLars <- function(x , y, nIters=101, nCor=NA, alphaSequence=NA){
@@ -149,7 +153,7 @@ eNetBetas <- cbind(eNetBetas, rownames(eNetBetas))
 rownames(eNetBetas) <- NULL
 eNetBetas <- as.data.frame(eNetBetas)
 output <- reshape(data=eNetBetas, timevar='tmp', idvar='V3', v.names='eNetBetas', direction='wide')
-write.csv(output, 'eNetBetaWeightsMale.csv', quote=F)
+write.csv(output, 'allmaleBeta.csv', quote=F)
 maleBeta <- output
 
 eNetBetas <- NULL
@@ -164,7 +168,7 @@ eNetBetas <- cbind(eNetBetas, rownames(eNetBetas))
 rownames(eNetBetas) <- NULL
 eNetBetas <- as.data.frame(eNetBetas)
 output <- reshape(data=eNetBetas, timevar='tmp', idvar='V3', v.names='eNetBetas', direction='wide')
-write.csv(output, 'eNetBetaWeightsFemale.csv', quote=F)
+write.csv(output, 'allfemaleBeta.csv', quote=F)
 femaleBeta <- output
 
 eNetBetas <- NULL
@@ -179,7 +183,7 @@ eNetBetas <- cbind(eNetBetas, rownames(eNetBetas))
 rownames(eNetBetas) <- NULL
 eNetBetas <- as.data.frame(eNetBetas)
 output <- reshape(data=eNetBetas, timevar='tmp', idvar='V3', v.names='eNetBetas', direction='wide')
-write.csv(output, 'eNetSelectionNMale.csv', quote=F)
+write.csv(output, 'allmaleSelect.csv', quote=F)
 maleSelect <- output
 
 eNetBetas <- NULL
@@ -194,17 +198,22 @@ eNetBetas <- cbind(eNetBetas, rownames(eNetBetas))
 rownames(eNetBetas) <- NULL
 eNetBetas <- as.data.frame(eNetBetas)
 output <- reshape(data=eNetBetas, timevar='tmp', idvar='V3', v.names='eNetBetas', direction='wide')
-write.csv(output, 'eNetSelectionNFemale.csv', quote=F)
+write.csv(output, 'allfemaleSelect.csv', quote=F)
 femaleSelect <- output
 
 ## Do everything the same but with modality regressed data down here ##
 # Now we need to load the data 
 # Now we need to load the data 
 vol.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeRegModalReg/volumeData.csv')
-vol.data <- vol.data[,-grep("4th_Ventricle", names(vol.data))]
 cbf.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeRegModalReg/cbfData.csv')
 gmd.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeRegModalReg/gmdData.csv')
 tr.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeRegModalReg/jlfTRData.csv')
+
+vol.data <- returnPercentileGroup('me', vol.data$F1_Exec_Comp_Cog_Accuracy, vol.data)
+cbf.data <- returnPercentileGroup('me', cbf.data$F1_Exec_Comp_Cog_Accuracy, cbf.data)
+gmd.data <- returnPercentileGroup('me', gmd.data$F1_Exec_Comp_Cog_Accuracy, gmd.data)
+tr.data <- returnPercentileGroup('me', tr.data$F1_Exec_Comp_Cog_Accuracy, tr.data)
+
 
 # Now first report the number of times each thing variable is selected
 male.vol.data <- vol.data[which(vol.data$sex==1),]
@@ -334,7 +343,7 @@ eNetBetas <- cbind(eNetBetas, rownames(eNetBetas))
 rownames(eNetBetas) <- NULL
 eNetBetas <- as.data.frame(eNetBetas)
 output <- reshape(data=eNetBetas, timevar='tmp', idvar='V3', v.names='eNetBetas', direction='wide')
-write.csv(output, 'eNetBetaWeightsMale.csv', quote=F)
+write.csv(output, 'allmaleBetaMR.csv', quote=F)
 maleBetaMR <- output
 
 eNetBetas <- NULL
@@ -349,7 +358,7 @@ eNetBetas <- cbind(eNetBetas, rownames(eNetBetas))
 rownames(eNetBetas) <- NULL
 eNetBetas <- as.data.frame(eNetBetas)
 output <- reshape(data=eNetBetas, timevar='tmp', idvar='V3', v.names='eNetBetas', direction='wide')
-write.csv(output, 'eNetBetaWeightsFemale.csv', quote=F)
+write.csv(output, 'allfemaleBetaMR.csv', quote=F)
 femaleBetaMR <- output
 
 eNetBetas <- NULL
@@ -364,7 +373,7 @@ eNetBetas <- cbind(eNetBetas, rownames(eNetBetas))
 rownames(eNetBetas) <- NULL
 eNetBetas <- as.data.frame(eNetBetas)
 output <- reshape(data=eNetBetas, timevar='tmp', idvar='V3', v.names='eNetBetas', direction='wide')
-write.csv(output, 'eNetSelectionNMale.csv', quote=F)
+write.csv(output, 'allmaleSelectNMR.csv', quote=F)
 maleSelectMR <- output
 
 eNetBetas <- NULL
@@ -379,24 +388,6 @@ eNetBetas <- cbind(eNetBetas, rownames(eNetBetas))
 rownames(eNetBetas) <- NULL
 eNetBetas <- as.data.frame(eNetBetas)
 output <- reshape(data=eNetBetas, timevar='tmp', idvar='V3', v.names='eNetBetas', direction='wide')
-write.csv(output, 'eNetSelectionNFemale.csv', quote=F)
+write.csv(output, 'allfemaleSelectNMR.csv', quote=F)
 femaleSelectMR <- output
-
-# Now combine all of the output values
-outMaleBeta <- merge(maleBeta, maleBetaMR, by='V3')
-colnames(outMaleBeta) <- gsub(x=colnames(outMaleBeta), pattern='.x', replacement='.RAW')
-colnames(outMaleBeta) <- gsub(x=colnames(outMaleBeta), pattern='.y', replacement='.MR')
-write.csv(outMaleBeta, 'allMaleBeta.csv', quote=F, row.names=F)
-outFemaleBeta <- merge(femaleBeta, femaleBetaMR, by='V3')
-colnames(outFemaleBeta) <- gsub(x=colnames(outFemaleBeta), pattern='.x', replacement='.RAW')
-colnames(outFemaleBeta) <- gsub(x=colnames(outFemaleBeta), pattern='.y', replacement='.MR')
-write.csv(outFemaleBeta, 'allFemaleBeta.csv', quote=F, row.names=F)
-outMaleSelect <- merge(maleSelect, maleSelectMR, by='V3')
-colnames(outMaleSelect) <- gsub(x=colnames(outMaleSelect), pattern='.x', replacement='.RAW')
-colnames(outMaleSelect) <- gsub(x=colnames(outMaleSelect), pattern='.y', replacement='.MR')
-write.csv(outMaleSelect, 'allMaleSelect.csv', quote=F, row.names=F)
-outFemaleSelect <- merge(femaleSelect, femaleSelectMR, by='V3')
-colnames(outFemaleSelect) <- gsub(x=colnames(outFemaleSelect), pattern='.x', replacement='.RAW')
-colnames(outFemaleSelect) <- gsub(x=colnames(outFemaleSelect), pattern='.y', replacement='.MR')
-write.csv(outFemaleSelect, 'allFemaleSelect.csv', quote=F, row.names=F)
 
