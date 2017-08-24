@@ -129,7 +129,6 @@ system("Rscript /home/adrose/hiLo/scripts/04_CognitiveModels/scripts/stepImporta
 # Now loop through each of the values and create the violin plot
 genderNames <- c('male', 'female')
 modalityValues <- c('vol', 'cbf', 'gmd', 'tr')
-checkVals <- c()
 for(w in seq(1,2,1)){
   outpdf <- paste(w, 'pdfName.pdf', sep='')
   pdf(outpdf)
@@ -160,17 +159,46 @@ for(w in seq(1,2,1)){
 
 # Now repeat this procedure 100 times so we can get more spread amongst our violin plots
 baseDir <- "/home/adrose/hiLo/scripts/04_CognitiveModels/scripts/computeZScore/"
-for(z in seq(1, 100, 1)){
+for(z in seq(80, 100, 1)){
   dir.create(paste(baseDir, z, sep=''))
   setwd(paste(baseDir, z, sep=''))
   system("Rscript /home/adrose/hiLo/scripts/04_CognitiveModels/scripts/stepImportance.R & Rscript /home/adrose/hiLo/scripts/04_CognitiveModels/scripts/mylarsImportance.R & Rscript /home/adrose/hiLo/scripts/04_CognitiveModels/scripts/runRandomForest.R")
 }
 
 # Now go across all of the 100 directories and grab the z score values
-valsOut <- NULL
-for(z in seq(1, 100, 1)){
-  setwd(paste(baseDir, z, sep=''))
-  vals <- returnAllOut(1, 'vol', 'male')
-  vals <- melt(vals)
-  valsOut <- rbind(valsOut, vals)
+for(g in 1:2){
+  pdfName <- paste(g, '100Fold.pdf', sep='')
+  pdf(pdfName)
+  for(m in modalityValues){
+    print(m)
+    valsOut <- NULL
+    for(z in seq(1, 100, 1)){
+      setwd(paste(baseDir, z, sep=''))
+      vals <- returnAllOut(g, m, genderNames[g])
+      vals <- melt(vals)
+      valsOut <- rbind(valsOut, vals)
+      print(m)
+    }
+    out <- playTheViola(valsOut, m)
+    print(out)
+  }
+  dev.off()
+}
+
+for(g in 1:2){
+  pdfName <- paste(g, '100FoldMR.pdf', sep='')
+  pdf(pdfName)
+  for(m in modalityValues){
+    valsOut <- NULL
+    for(z in seq(1, 100, 1)){
+      setwd(paste(baseDir, z, sep=''))
+      vals <- returnAllOutMR(g, m, genderNames[g])
+      vals <- melt(vals)
+      valsOut <- rbind(valsOut, vals)
+      print(m)
+    }
+    out <- playTheViola(valsOut, m)
+    print(out)
+  }
+  dev.off()
 }
