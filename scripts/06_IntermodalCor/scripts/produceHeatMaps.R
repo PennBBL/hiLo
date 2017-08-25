@@ -52,3 +52,41 @@ for(p in 1:length(grepPattern1)){
   }
   dev.off()
 }
+
+## Now do modality
+# load data 
+vol.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeRegModalReg/volumeData.csv')
+cbf.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeRegModalReg/cbfData.csv')
+gmd.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeRegModalReg/gmdData.csv')
+ct.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeRegModalReg/ctData.csv')
+cc.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeRegModalReg/ccData.csv') 
+reho.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeRegModalReg/rehoData.csv')
+alff.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeRegModalReg/alffData.csv')
+ad.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeRegModalReg/jlfADData.csv')
+fa.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeRegModalReg/jlfFAData.csv')
+rd.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeRegModalReg/jlfRDData.csv')
+tr.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeRegModalReg/jlfTRData.csv')
+
+# Now merge all of the data
+all.data <- merge(vol.data, cbf.data, by=intersect(names(vol.data), names(cbf.data)), all=T)
+all.data <- merge(all.data, gmd.data, by=intersect(names(all.data), names(gmd.data)), all=T)
+all.data <- merge(all.data, ct.data, by=intersect(names(all.data), names(ct.data)), all=T)
+all.data <- merge(all.data, cc.data, by=intersect(names(all.data), names(cc.data)), all=T)
+all.data <- merge(all.data, reho.data, by=intersect(names(all.data), names(reho.data)), all=T)
+all.data <- merge(all.data, alff.data, by=intersect(names(all.data), names(alff.data)), all=T)
+#all.data <- merge(all.data, ad.data, by=intersect(names(all.data), names(ad.data)), all=T)
+#all.data <- merge(all.data, fa.data, by=intersect(names(all.data), names(fa.data)), all=T)
+#all.data <- merge(all.data, rd.data, by=intersect(names(all.data), names(rd.data)), all=T)
+all.data <- merge(all.data, tr.data, by=intersect(names(all.data), names(tr.data)), all=T)
+
+# Now produce all of the heat maps
+grepPattern1 <- c('mprage_jlf_vol_', 'pcasl_jlf_cbf_', 'mprage_jlf_gmd_', 'mprage_jlf_ct_','mprage_jlf_cortcon_', 'rest_jlf_reho_', 'rest_jlf_alff_','dti_jlf_tr_')
+for(p in 1:length(grepPattern1)){
+  modalName <- rev(strSplitMatrixReturn(grepPattern1[p], '_'))[1]
+  pdf(paste(modalName, '-heatMapsMR.pdf', sep=''), width=20, height=20)
+  for(n in 1:length(grepPattern1)){
+    tmp <- createHeatMap(grepPattern1[p], grepPattern1[n]) 
+    print(tmp) 
+  }
+  dev.off()
+}
