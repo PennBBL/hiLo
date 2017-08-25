@@ -63,21 +63,23 @@ averageLeftAndRight <- function(dataFrame){
 
 
 # Now I need to make a function which will regress out age from a column
-regressOutAge <- function(valuesToBeRegressed, ageColumn, qualityColumn){
+regressOutAge <- function(valuesToBeRegressed, ageColumn, qualityColumn, raceCol){
   age <- scale(ageColumn)[,1]
-  #ageSqu <- scale(ageColumn)[,1]^2
-  #ageCub <- scale(ageColumn)[,1]^3
+  ageSqu <- scale(ageColumn)[,1]^2
+  ageCub <- scale(ageColumn)[,1]^3
+  raceVal <- as.factor(raceCol)
   quality <- qualityColumn
-  newValues <- lm(valuesToBeRegressed ~ age + quality)$residuals#+ ageSqu + ageCub + quality)$residuals
+  newValues <- lm(valuesToBeRegressed ~ age * raceVal + ageSqu + ageCub + quality)$residuals
   return(newValues)
 }
 
 # Now make a function to regress out age but rm all quality indicies
-regressOutAgeNoQA <- function(valuesToBeRegressed, ageColumn, qualityColumn){
+regressOutAgeNoQA <- function(valuesToBeRegressed, ageColumn, raceCol){
   age <- scale(ageColumn)[,1]
   ageSqu <- scale(ageColumn)[,1]^2
   ageCub <- scale(ageColumn)[,1]^3
-  newValues <- lm(valuesToBeRegressed ~ age + ageSqu + ageCub)$residuals#+ ageSqu + ageCub + quality)$residuals
+  raceVal <- as.factor(raceCol)
+  newValues <- lm(valuesToBeRegressed ~ age * raceVal + ageSqu + ageCub)$residuals#+ ageSqu + ageCub + quality)$residuals
   return(newValues)
 }
 
