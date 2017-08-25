@@ -1,7 +1,7 @@
 # First thing we need to do is load our library(s)
 source('/home/adrose/hiLo/scripts/04_CognitiveModels/functions/functions.R')
 source('/home/adrose/hiLo/scripts/01_DataPrep/functions/functions.R')
-install_load('foreach', 'doParallel', 'glmnet', 'bootstrap', 'psych', 'ggplot2', 'reshape2', 'caret', 'randomForest', 'parcor')
+install_load('methods', 'glmnet', 'bootstrap', 'psych','reshape2', 'caret','parcor')
 
 # Now we need to load the data 
 vol.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeReg/volumeData.csv')
@@ -25,6 +25,23 @@ runMyLars <- function(x , y, nIters=101, nCor=NA, alphaSequence=NA){
   return(outputMatrix)
 }
 
+mylars100 <- function(x, y, nIters=100){
+  outputVal <- mylars(x,y)
+  # Now run through 100 loops and return the output vals from bootstrapped 
+  # runs of mylars
+  outMeanBetaVals <- matrix(0, nrow=dim(x)[2], ncol=nIters)
+  for(i in 1:nIters){
+    index <- createDataPartition(y, list=F)
+    tmpY <- y[index]
+    tmpX <- x[index,]
+    tmpVals <- mylars(tmpX, tmpY)$coefficients
+    outMeanBetaVals[,i] <- tmpVals
+  }
+  outBeta <- apply(outMeanBetaVals, 1, mean)
+  outputVal$coefficients <- outBeta
+  return(outputVal)
+}
+
 # Now first report the number of times each thing variable is selected
 male.vol.data <- vol.data[which(vol.data$sex==1),]
 vol.col <- grep('mprage_jlf_vol', names(vol.data))
@@ -34,7 +51,7 @@ male.vol.outcome <- male.vol.outcome[complete.cases(male.vol.data[,vol.col])]
 male.vol.values <- male.vol.values[complete.cases(male.vol.data[,vol.col]),]
 male.vol.selection <- runMyLars(male.vol.values, male.vol.outcome, nCor=30, alphaSequence=1)
 male.vol.sum <- as.matrix(returnSelectionCol(male.vol.selection))
-male.vol.enet.beta <- as.matrix(abs(as.numeric(mylars(male.vol.values, male.vol.outcome)$coefficients)))
+male.vol.enet.beta <- as.matrix(abs(as.numeric(mylars100(male.vol.values, male.vol.outcome)$coefficients)))
 rownames(male.vol.enet.beta) <- colnames(male.vol.values)
 rownames(male.vol.sum) <- colnames(male.vol.values)
 male.vol.out <- cbind(male.vol.enet.beta, male.vol.sum)
@@ -48,7 +65,7 @@ female.vol.values <- female.vol.values[complete.cases(female.vol.data[,vol.col])
 female.vol.selection <- runMyLars(female.vol.values, female.vol.outcome, nCor=30, alphaSequence=1)
 female.vol.sum <- as.matrix(returnSelectionCol(female.vol.selection))
 female.vol.lambda <- tuneAlpha(x=female.vol.values, y=female.vol.outcome, alphaSequence=1, nFolds=10)[2]
-female.vol.enet.beta <- as.matrix(abs(as.numeric(mylars(female.vol.values, female.vol.outcome)$coefficients)))
+female.vol.enet.beta <- as.matrix(abs(as.numeric(mylars100(female.vol.values, female.vol.outcome)$coefficients)))
 rownames(female.vol.enet.beta) <- colnames(female.vol.values)
 rownames(female.vol.sum) <- colnames(female.vol.values)
 female.vol.out <- cbind(female.vol.enet.beta, female.vol.sum)
@@ -63,7 +80,7 @@ male.cbf.values <- male.cbf.values[complete.cases(male.cbf.data[,cbf.col]),]
 male.cbf.selection <- runMyLars(male.cbf.values, male.cbf.outcome, nCor=30, alphaSequence=1)
 male.cbf.sum <- as.matrix(returnSelectionCol(male.cbf.selection))
 male.cbf.lambda <- tuneAlpha(x=male.cbf.values, y=male.cbf.outcome, alphaSequence=1, nFolds=10)[2]
-male.cbf.enet.beta <- as.matrix(abs(as.numeric(mylars(male.cbf.values, male.cbf.outcome)$coefficients)))
+male.cbf.enet.beta <- as.matrix(abs(as.numeric(mylars100(male.cbf.values, male.cbf.outcome)$coefficients)))
 rownames(male.cbf.enet.beta) <- colnames(male.cbf.values)
 rownames(male.cbf.sum) <- colnames(male.cbf.values)
 male.cbf.out <- cbind(male.cbf.enet.beta, male.cbf.sum)
@@ -77,7 +94,7 @@ female.cbf.values <- female.cbf.values[complete.cases(female.cbf.data[,cbf.col])
 female.cbf.selection <- runMyLars(female.cbf.values, female.cbf.outcome, nCor=30, alphaSequence=1)
 female.cbf.sum <- as.matrix(returnSelectionCol(female.cbf.selection))
 female.cbf.lambda <- tuneAlpha(x=female.cbf.values, y=female.cbf.outcome, alphaSequence=1, nFolds=10)[2]
-female.cbf.enet.beta <- as.matrix(abs(as.numeric(mylars(female.cbf.values, female.cbf.outcome)$coefficients)))
+female.cbf.enet.beta <- as.matrix(abs(as.numeric(mylars100(female.cbf.values, female.cbf.outcome)$coefficients)))
 rownames(female.cbf.enet.beta) <- colnames(female.cbf.values)
 rownames(female.cbf.sum) <- colnames(female.cbf.values)
 female.cbf.out <- cbind(female.cbf.enet.beta, female.cbf.sum)
@@ -92,7 +109,7 @@ male.gmd.values <- male.gmd.values[complete.cases(male.gmd.data[,gmd.col]),]
 male.gmd.selection <- runMyLars(male.gmd.values, male.gmd.outcome, nCor=30, alphaSequence=1)
 male.gmd.sum <- as.matrix(returnSelectionCol(male.gmd.selection))
 male.gmd.lambda <- tuneAlpha(x=male.gmd.values, y=male.gmd.outcome, alphaSequence=1, nFolds=10)[2]
-male.gmd.enet.beta <- as.matrix(abs(as.numeric(mylars(male.gmd.values, male.gmd.outcome)$coefficients)))
+male.gmd.enet.beta <- as.matrix(abs(as.numeric(mylars100(male.gmd.values, male.gmd.outcome)$coefficients)))
 rownames(male.gmd.enet.beta) <- colnames(male.gmd.values)
 rownames(male.gmd.sum) <- colnames(male.gmd.values)
 male.gmd.out <- cbind(male.gmd.enet.beta, male.gmd.sum)
@@ -106,7 +123,7 @@ female.gmd.values <- female.gmd.values[complete.cases(female.gmd.data[,gmd.col])
 female.gmd.selection <- runMyLars(female.gmd.values, female.gmd.outcome, nCor=30, alphaSequence=1)
 female.gmd.sum <- as.matrix(returnSelectionCol(female.gmd.selection))
 female.gmd.lambda <- tuneAlpha(x=female.gmd.values, y=female.gmd.outcome, alphaSequence=1, nFolds=10)[2]
-female.gmd.enet.beta <- as.matrix(abs(as.numeric(mylars(female.gmd.values, female.gmd.outcome)$coefficients)))
+female.gmd.enet.beta <- as.matrix(abs(as.numeric(mylars100(female.gmd.values, female.gmd.outcome)$coefficients)))
 rownames(female.gmd.enet.beta) <- colnames(female.gmd.values)
 rownames(female.gmd.sum) <- colnames(female.gmd.values)
 female.gmd.out <- cbind(female.gmd.enet.beta, female.gmd.sum)
@@ -121,7 +138,7 @@ male.tr.values <- male.tr.values[complete.cases(male.tr.data[,tr.col]),]
 male.tr.selection <- runMyLars(male.tr.values, male.tr.outcome, nCor=30, alphaSequence=1)
 male.tr.sum <- as.matrix(returnSelectionCol(male.tr.selection))
 male.tr.lambda <- tuneAlpha(x=male.tr.values, y=male.tr.outcome, alphaSequence=1, nFolds=10)[2]
-male.tr.enet.beta <- as.matrix(abs(as.numeric(mylars(male.tr.values, male.tr.outcome)$coefficients)))
+male.tr.enet.beta <- as.matrix(abs(as.numeric(mylars100(male.tr.values, male.tr.outcome)$coefficients)))
 rownames(male.tr.enet.beta) <- colnames(male.tr.values)
 rownames(male.tr.sum) <- colnames(male.tr.values)
 male.tr.out <- cbind(male.tr.enet.beta, male.tr.sum)
@@ -135,7 +152,7 @@ female.tr.values <- female.tr.values[complete.cases(female.tr.data[,tr.col]),]
 female.tr.selection <- runMyLars(female.tr.values, female.tr.outcome, nCor=30, alphaSequence=1)
 female.tr.sum <- as.matrix(returnSelectionCol(female.tr.selection))
 female.tr.lambda <- tuneAlpha(x=female.tr.values, y=female.tr.outcome, alphaSequence=1, nFolds=10)[2]
-female.tr.enet.beta <- as.matrix(abs(as.numeric(mylars(female.tr.values, female.tr.outcome)$coefficients)))
+female.tr.enet.beta <- as.matrix(abs(as.numeric(mylars100(female.tr.values, female.tr.outcome)$coefficients)))
 rownames(female.tr.enet.beta) <- colnames(female.tr.values)
 rownames(female.tr.sum) <- colnames(female.tr.values)
 female.tr.out <- cbind(female.tr.enet.beta, female.tr.sum)
@@ -224,7 +241,7 @@ male.vol.outcome <- male.vol.outcome[complete.cases(male.vol.data[,vol.col])]
 male.vol.values <- male.vol.values[complete.cases(male.vol.data[,vol.col]),]
 male.vol.selection <- runMyLars(male.vol.values, male.vol.outcome, nCor=30, alphaSequence=1)
 male.vol.sum <- as.matrix(returnSelectionCol(male.vol.selection))
-male.vol.enet.beta <- as.matrix(abs(as.numeric(mylars(male.vol.values, male.vol.outcome)$coefficients)))
+male.vol.enet.beta <- as.matrix(abs(as.numeric(mylars100(male.vol.values, male.vol.outcome)$coefficients)))
 rownames(male.vol.enet.beta) <- colnames(male.vol.values)
 rownames(male.vol.sum) <- colnames(male.vol.values)
 male.vol.out <- cbind(male.vol.enet.beta, male.vol.sum)
@@ -238,7 +255,7 @@ female.vol.values <- female.vol.values[complete.cases(female.vol.data[,vol.col])
 female.vol.selection <- runMyLars(female.vol.values, female.vol.outcome, nCor=30, alphaSequence=1)
 female.vol.sum <- as.matrix(returnSelectionCol(female.vol.selection))
 female.vol.lambda <- tuneAlpha(x=female.vol.values, y=female.vol.outcome, alphaSequence=1, nFolds=10)[2]
-female.vol.enet.beta <- as.matrix(abs(as.numeric(mylars(female.vol.values, female.vol.outcome)$coefficients)))
+female.vol.enet.beta <- as.matrix(abs(as.numeric(mylars100(female.vol.values, female.vol.outcome)$coefficients)))
 rownames(female.vol.enet.beta) <- colnames(female.vol.values)
 rownames(female.vol.sum) <- colnames(female.vol.values)
 female.vol.out <- cbind(female.vol.enet.beta, female.vol.sum)
@@ -253,7 +270,7 @@ male.cbf.values <- male.cbf.values[complete.cases(male.cbf.data[,cbf.col]),]
 male.cbf.selection <- runMyLars(male.cbf.values, male.cbf.outcome, nCor=30, alphaSequence=1)
 male.cbf.sum <- as.matrix(returnSelectionCol(male.cbf.selection))
 male.cbf.lambda <- tuneAlpha(x=male.cbf.values, y=male.cbf.outcome, alphaSequence=1, nFolds=10)[2]
-male.cbf.enet.beta <- as.matrix(abs(as.numeric(mylars(male.cbf.values, male.cbf.outcome)$coefficients)))
+male.cbf.enet.beta <- as.matrix(abs(as.numeric(mylars100(male.cbf.values, male.cbf.outcome)$coefficients)))
 rownames(male.cbf.enet.beta) <- colnames(male.cbf.values)
 rownames(male.cbf.sum) <- colnames(male.cbf.values)
 male.cbf.out <- cbind(male.cbf.enet.beta, male.cbf.sum)
@@ -267,7 +284,7 @@ female.cbf.values <- female.cbf.values[complete.cases(female.cbf.data[,cbf.col])
 female.cbf.selection <- runMyLars(female.cbf.values, female.cbf.outcome, nCor=30, alphaSequence=1)
 female.cbf.sum <- as.matrix(returnSelectionCol(female.cbf.selection))
 female.cbf.lambda <- tuneAlpha(x=female.cbf.values, y=female.cbf.outcome, alphaSequence=1, nFolds=10)[2]
-female.cbf.enet.beta <- as.matrix(abs(as.numeric(mylars(female.cbf.values, female.cbf.outcome)$coefficients)))
+female.cbf.enet.beta <- as.matrix(abs(as.numeric(mylars100(female.cbf.values, female.cbf.outcome)$coefficients)))
 rownames(female.cbf.enet.beta) <- colnames(female.cbf.values)
 rownames(female.cbf.sum) <- colnames(female.cbf.values)
 female.cbf.out <- cbind(female.cbf.enet.beta, female.cbf.sum)
@@ -282,7 +299,7 @@ male.gmd.values <- male.gmd.values[complete.cases(male.gmd.data[,gmd.col]),]
 male.gmd.selection <- runMyLars(male.gmd.values, male.gmd.outcome, nCor=30, alphaSequence=1)
 male.gmd.sum <- as.matrix(returnSelectionCol(male.gmd.selection))
 male.gmd.lambda <- tuneAlpha(x=male.gmd.values, y=male.gmd.outcome, alphaSequence=1, nFolds=10)[2]
-male.gmd.enet.beta <- as.matrix(abs(as.numeric(mylars(male.gmd.values, male.gmd.outcome)$coefficients)))
+male.gmd.enet.beta <- as.matrix(abs(as.numeric(mylars100(male.gmd.values, male.gmd.outcome)$coefficients)))
 rownames(male.gmd.enet.beta) <- colnames(male.gmd.values)
 rownames(male.gmd.sum) <- colnames(male.gmd.values)
 male.gmd.out <- cbind(male.gmd.enet.beta, male.gmd.sum)
@@ -296,7 +313,7 @@ female.gmd.values <- female.gmd.values[complete.cases(female.gmd.data[,gmd.col])
 female.gmd.selection <- runMyLars(female.gmd.values, female.gmd.outcome, nCor=30, alphaSequence=1)
 female.gmd.sum <- as.matrix(returnSelectionCol(female.gmd.selection))
 female.gmd.lambda <- tuneAlpha(x=female.gmd.values, y=female.gmd.outcome, alphaSequence=1, nFolds=10)[2]
-female.gmd.enet.beta <- as.matrix(abs(as.numeric(mylars(female.gmd.values, female.gmd.outcome)$coefficients)))
+female.gmd.enet.beta <- as.matrix(abs(as.numeric(mylars100(female.gmd.values, female.gmd.outcome)$coefficients)))
 rownames(female.gmd.enet.beta) <- colnames(female.gmd.values)
 rownames(female.gmd.sum) <- colnames(female.gmd.values)
 female.gmd.out <- cbind(female.gmd.enet.beta, female.gmd.sum)
@@ -311,7 +328,7 @@ male.tr.values <- male.tr.values[complete.cases(male.tr.data[,tr.col]),]
 male.tr.selection <- runMyLars(male.tr.values, male.tr.outcome, nCor=30, alphaSequence=1)
 male.tr.sum <- as.matrix(returnSelectionCol(male.tr.selection))
 male.tr.lambda <- tuneAlpha(x=male.tr.values, y=male.tr.outcome, alphaSequence=1, nFolds=10)[2]
-male.tr.enet.beta <- as.matrix(abs(as.numeric(mylars(male.tr.values, male.tr.outcome)$coefficients)))
+male.tr.enet.beta <- as.matrix(abs(as.numeric(mylars100(male.tr.values, male.tr.outcome)$coefficients)))
 rownames(male.tr.enet.beta) <- colnames(male.tr.values)
 rownames(male.tr.sum) <- colnames(male.tr.values)
 male.tr.out <- cbind(male.tr.enet.beta, male.tr.sum)
@@ -325,7 +342,7 @@ female.tr.values <- female.tr.values[complete.cases(female.tr.data[,tr.col]),]
 female.tr.selection <- runMyLars(female.tr.values, female.tr.outcome, nCor=30, alphaSequence=1)
 female.tr.sum <- as.matrix(returnSelectionCol(female.tr.selection))
 female.tr.lambda <- tuneAlpha(x=female.tr.values, y=female.tr.outcome, alphaSequence=1, nFolds=10)[2]
-female.tr.enet.beta <- as.matrix(abs(as.numeric(mylars(female.tr.values, female.tr.outcome)$coefficients)))
+female.tr.enet.beta <- as.matrix(abs(as.numeric(mylars100(female.tr.values, female.tr.outcome)$coefficients)))
 rownames(female.tr.enet.beta) <- colnames(female.tr.values)
 rownames(female.tr.sum) <- colnames(female.tr.values)
 female.tr.out <- cbind(female.tr.enet.beta, female.tr.sum)

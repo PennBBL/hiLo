@@ -1,11 +1,10 @@
 # First thing we need to do is load our library(s)
 source('/home/adrose/hiLo/scripts/04_CognitiveModels/functions/functions.R')
 source('/home/adrose/hiLo/scripts/01_DataPrep/functions/functions.R')
-install_load('foreach', 'doParallel', 'glmnet', 'bootstrap', 'psych', 'ggplot2', 'reshape2', 'caret', 'randomForest', 'MASS','SignifReg')
+install_load('foreach', 'doParallel', 'glmnet', 'bootstrap', 'psych','reshape2', 'caret', 'randomForest', 'MASS','SignifReg')
 
 # Now we need to load the data 
 vol.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeReg/volumeData.csv')
-#vol.data <- vol.data[,-grep("4th_Ventricle", names(vol.data))]
 cbf.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeReg/cbfData.csv')
 gmd.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeReg/gmdData.csv')
 ct.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeReg/ctData.csv')
@@ -18,6 +17,7 @@ rd.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeReg/j
 tr.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeReg/jlfTRData.csv')
 fa.data.label <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeReg/jhuFALabelsData.csv')
 tr.data.label <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeReg/jhuTRLabelsData.csv')
+raceVals <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/n1601_demographics_go1_20161212.csv')
 
 # Now loop through all of our modalities, data frames, and genders and prep our output
 genderVals <- c(1,2)
@@ -39,31 +39,19 @@ for(g in genderVals){
     #tmpDF <- returnPercentileGroup('me', get(dataNames[z])[,grep('F1_Exec_Comp_Cog_Accuracy', names(get(dataNames[z])))], get(dataNames[z]))
     tmpDF <- get(dataNames[z])
     tmpDF <- tmpDF[which(tmpDF$sex==g),]
-    vals <- returnCVStepFit(dataFrame=tmpDF, grepID=dataGrepNames[z], genderID=g, pValue=.05, iterationCount=100, nCor=30, selectionPercent=0)
-    tmp2 <- vals[[2]][2:length(vals[[2]])]
-    names(tmp2) <- strSplitMatrixReturn(names(tmp2), dataGrepNames[z])[,2]
-    colIndex <- grep(dataGrepNames[z], names(get(dataNames[z])))
-    colIndex <- append(grep('F1_Exec_Comp_Cog_Accuracy', names(get(dataNames[z]))), colIndex)
-    stepVAR <- SignifReg(scope=F1_Exec_Comp_Cog_Accuracy~., data=get(dataNames[z])[which(get(dataNames[z])$sex==g),colIndex], alpha=.05, direction="forward", criterion="p-value")
-    foobar <- stepVAR$coefficients[2:length(stepVAR$coefficients)]
-    newColIndex <- match(names(foobar), names(get(dataNames[z])))
-    newColIndex <- append(grep('F1_Exec_Comp_Cog_Accuracy', names(get(dataNames[z]))), newColIndex)
-    inputData <- scale(tmpDF[which(get(dataNames[z])$sex==g),newColIndex])
-    modelOut <- as.formula(paste('F1_Exec_Comp_Cog_Accuracy ~', paste(names(foobar), collapse='+')))
-    if(dim(inputData)[2] > 2){
-      inputData <- regressWithinModality(inputData, grepPattern=dataGrepNames[z])
-    }
-    modm <- lm(modelOut, data=as.data.frame(inputData))
-    foobarlar <- coefficients(modm)[2:length(coefficients(modm))]
-    names(foobarlar) <- gsub(x=names(foobarlar), pattern=dataGrepNames[z], replacement='')
-    foobar <- vals[[2]][2:length(vals[[2]])]
-    names(foobar) <- strSplitMatrixReturn(gsub(x=names(foobar), pattern=dataGrepNames[z], replacement=''), ')')[,2]
-    tmp <- cbind(foobarlar, foobar[match(names(foobarlar), names(foobar))])
-    print(cor(tmp[,1], tmp[,2]))
-    selectedBeta[match(names(foobar), rownames(selectedOutput)),z] <- foobar
-    foobar <- vals[[3]]
-    rownames(foobar) <- gsub(x=rownames(foobar), pattern=dataGrepNames[z], replacement='')
-    selectedOutput[match(rownames(foobar), rownames(selectedOutput)),z] <- foobar[,1]
+    #tmpDF <- tmpDF[tmpDF$bblid %in% raceVals$bblid[which(raceVals$race2==1)],]
+    vals <- returnCVStepFit(dataFrame=tmpDF, grepID=dataGrepNames[z], genderID=g, pValue=.05, iterationCount=100, nCor=5, selectionPercent=0)
+    colIndex <- grep(dataGrepNames[z], names(tmpDF))
+    colIndex <- append(grep('F1_Exec_Comp_Cog_Accuracy', names(tmpDF)), colIndex)
+    inputData <- tmpDF[,colIndex]
+    inputData <- regressWithinModality(inputData, grepPattern=dataGrepNames[z])
+    modm <- lm(F1_Exec_Comp_Cog_Accuracy~., data=inputData)
+    coefVals <- coefficients(modm)[2:length(coefficients(modm))]
+    names(coefVals) <- gsub(x=names(coefVals), pattern=dataGrepNames[z], replacement='')
+    selectedBeta[match(names(coefVals), rownames(selectedOutput)),z] <- coefVals
+    nVals <- vals[[3]]
+    rownames(nVals) <- gsub(x=rownames(nVals), pattern=dataGrepNames[z], replacement='')
+    selectedOutput[match(rownames(nVals), rownames(nVals)),z] <- nVals[,1]
   }
  nameVal <- paste(g, "selectedBetaVals.csv", sep='')
  write.csv(selectedBeta, nameVal, quote=F)
@@ -76,6 +64,7 @@ vol.data.mr <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeR
 cbf.data.mr <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeRegModalReg/cbfData.csv')
 gmd.data.mr <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeRegModalReg/gmdData.csv')
 tr.data.mr <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeRegModalReg/jlfTRData.csv')
+
 dataNamesMR <- c('vol.data.mr', 'cbf.data.mr', 'gmd.data.mr', 'tr.data.mr')
 # Now create our loops
 for(g in genderVals){
@@ -89,34 +78,20 @@ for(g in genderVals){
   colnames(selectedBeta) <- dataNames
   allOut <- NA
   for(z in 1:length(dataNames)){
-    #tmpDF <- returnPercentileGroup('me', get(dataNames[z])[,grep('F1_Exec_Comp_Cog_Accuracy', names(get(dataNames[z])))], get(dataNames[z]))
-    tmpDF <- get(dataNames[z])
+    tmpDF <- get(dataNamesMR[z])
     tmpDF <- tmpDF[which(tmpDF$sex==g),]
-    vals <- returnCVStepFit(dataFrame=tmpDF, grepID=dataGrepNames[z], genderID=g, pValue=.05, iterationCount=100, nCor=30, selectionPercent=0, regressWithin=FALSE)
-    tmp2 <- vals[[2]][2:length(vals[[2]])]
-    names(tmp2) <- strSplitMatrixReturn(names(tmp2), dataGrepNames[z])[,2]
-    colIndex <- grep(dataGrepNames[z], names(get(dataNames[z])))
-    colIndex <- append(grep('F1_Exec_Comp_Cog_Accuracy', names(get(dataNames[z]))), colIndex)
-    stepVAR <- SignifReg(scope=F1_Exec_Comp_Cog_Accuracy~., data=get(dataNames[z])[which(get(dataNames[z])$sex==g),colIndex], alpha=.05, direction="forward", criterion="p-value")
-    foobar <- stepVAR$coefficients[2:length(stepVAR$coefficients)]
-    newColIndex <- match(names(foobar), names(get(dataNames[z])))
-    newColIndex <- append(grep('F1_Exec_Comp_Cog_Accuracy', names(get(dataNames[z]))), newColIndex)
-    inputData <- scale(tmpDF[,newColIndex])
-    modelOut <- as.formula(paste('F1_Exec_Comp_Cog_Accuracy ~', paste(names(foobar), collapse='+')))
-    if(dim(inputData)[2] > 2){
-      inputData <- regressWithinModality(inputData, grepPattern=dataGrepNames[z])
-    }
-    modm <- lm(modelOut, data=as.data.frame(inputData))
-    foobarlar <- coefficients(modm)[2:length(coefficients(modm))]
-    names(foobarlar) <- gsub(x=names(foobarlar), pattern=dataGrepNames[z], replacement='')
-    foobar <- vals[[2]][2:length(vals[[2]])]
-    names(foobar) <- strSplitMatrixReturn(gsub(x=names(foobar), pattern=dataGrepNames[z], replacement=''), ')')[,2]
-    tmp <- cbind(foobarlar, foobar[match(names(foobarlar), names(foobar))])
-    print(cor(tmp[,1], tmp[,2], use='complete'))
-    selectedBeta[match(names(foobar), rownames(selectedOutput)),z] <- foobar
-    foobar <- vals[[3]]
-    rownames(foobar) <- gsub(x=rownames(foobar), pattern=dataGrepNames[z], replacement='')
-    selectedOutput[match(rownames(foobar), rownames(selectedOutput)),z] <- foobar[,1]
+    #tmpDF <- tmpDF[tmpDF$bblid %in% raceVals$bblid[which(raceVals$race2==1)],]
+    vals <- returnCVStepFit(dataFrame=tmpDF, grepID=dataGrepNames[z], genderID=g, pValue=.05, iterationCount=100, nCor=10, selectionPercent=0, regressWithin=FALSE)
+    colIndex <- grep(dataGrepNames[z], names(tmpDF))
+    colIndex <- append(grep('F1_Exec_Comp_Cog_Accuracy', names(tmpDF)), colIndex)
+    inputData <- scale(tmpDF[,colIndex])
+    modm <- bootStrapBetaWeight(y=inputData[,1], x=inputData[,2:length(colIndex)])
+    coefVals <- coefficients(modm)[2:length(coefficients(modm))]
+    names(coefVals) <- gsub(x=names(coefVals), pattern=dataGrepNames[z], replacement='')
+    nVals <- vals[[3]]
+    rownames(nVals) <- gsub(x=rownames(nVals), pattern=dataGrepNames[z], replacement='')
+    selectedBeta[match(names(coefVals), rownames(selectedOutput)),z] <- coefVals
+    selectedOutput[match(rownames(nVals), rownames(selectedOutput)),z] <- nVals[,1]
   }
  nameVal <- paste(g, "selectedBetaValsMR.csv", sep='')
  write.csv(selectedBeta, nameVal, quote=F)
@@ -134,7 +109,8 @@ for(g in genderVals){
   colnames(valsNon)[2:dim(valsNon)[2]] <- paste(colnames(valsNon[2:dim(valsNon)[2]]), '.RAW', sep='')
   colnames(valsMr)[2:dim(valsMr)[2]] <- paste(colnames(valsNon[2:dim(valsMr)[2]]), '.MR', sep='')
   output <- merge(valsNon, valsMr, by=intersect(names(valsNon), names(valsMr)))
-  outName <- paste(g, 'OutBetaVals.csv', sep='')  
+  outName <- paste(g, 'OutBetaVals.csv', sep='')
+  output <- cbind(output, apply(output[,2:9], 2, rank))  
   write.csv(output, outName, quote=F, row.names=F)
 
   # Now do the same for the selection N's
@@ -145,6 +121,7 @@ for(g in genderVals){
   colnames(valsNon)[2:dim(valsNon)[2]] <- paste(colnames(valsNon[2:dim(valsNon)[2]]), '.RAW', sep='')
   colnames(valsMr)[2:dim(valsMr)[2]] <- paste(colnames(valsNon[2:dim(valsMr)[2]]), '.MR', sep='')
   output <- merge(valsNon, valsMr, by=intersect(names(valsNon), names(valsMr)))
-  outName <- paste(g, 'OutSelectVals.csv', sep='')  
+  outName <- paste(g, 'OutSelectVals.csv', sep='')
+  output <- cbind(output, apply(output[,2:9], 2, rank))
   write.csv(output, outName, quote=F, row.names=F)  
 }
