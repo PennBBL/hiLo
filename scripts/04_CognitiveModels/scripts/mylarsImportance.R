@@ -1,7 +1,7 @@
 # First thing we need to do is load our library(s)
 source('/home/adrose/hiLo/scripts/04_CognitiveModels/functions/functions.R')
 source('/home/adrose/hiLo/scripts/01_DataPrep/functions/functions.R')
-install_load('methods', 'glmnet', 'bootstrap', 'psych','reshape2', 'caret','parcor')
+install_load('methods', 'glmnet', 'bootstrap', 'psych','reshape2', 'caret','parcor','foreach', 'doParallel')
 
 # Now we need to load the data 
 vol.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeReg/volumeData.csv')
@@ -27,16 +27,31 @@ runMyLars <- function(x , y, nIters=101, nCor=NA, alphaSequence=NA){
 
 mylars100 <- function(x, y, nIters=100){
   outputVal <- mylars(x,y)
+  # Now set up our parallel environment
+  cl <- makeCluster(5)
+  registerDoParallel(cl)
   # Now run through 100 loops and return the output vals from bootstrapped 
   # runs of mylars
-  outMeanBetaVals <- matrix(0, nrow=dim(x)[2], ncol=nIters)
-  for(i in 1:nIters){
-    index <- createDataPartition(y, list=F)
-    tmpY <- y[index]
-    tmpX <- x[index,]
-    tmpVals <- mylars(tmpX, tmpY)$coefficients
-    outMeanBetaVals[,i] <- tmpVals
+  outMeanBetaVals <- foreach(i=seq(1,nIters), .combine='cbind') %dopar% {
+      # First load required library(s)
+      source('/home/adrose/adroseHelperScripts/R/afgrHelpFunc.R')
+      source('/home/adrose/hiLo/scripts/04_CognitiveModels/functions/functions.R')
+      install_load('caret', 'parcor')
+      
+      # Create some static data points
+      dataToUse <- x
+      dataToUse$y <- y
+
+      # create our model
+      index <- createDataPartition(y,list=F)
+      tmpY <- y[index]
+      tmpX <- x[index,]
+      modOut <-  mylars(tmpX, tmpY)
+      
+      # return the output
+      coefficients(modOut)
   }
+  stopCluster(cl)
   outBeta <- apply(outMeanBetaVals, 1, mean)
   outputVal$coefficients <- outBeta
   return(outputVal)
