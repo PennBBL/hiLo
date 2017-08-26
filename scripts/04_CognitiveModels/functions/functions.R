@@ -643,8 +643,7 @@ bootStrapBetaWeight <- function(y, x, iterationCount=100, nCor=3){
       dataToUse$y <- y
 
       # create our model
-      folds <- createFolds(y, k=4, list=T, returnTrain=T)
-      index <- unlist(folds[1])
+      index <- createDataPartition(y,list=F)
       dataTrain <- dataToUse[index,]
       modOut <-  lm(y~., data=dataTrain)
       
