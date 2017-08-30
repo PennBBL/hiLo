@@ -67,9 +67,10 @@ regressOutAge <- function(valuesToBeRegressed, ageColumn, qualityColumn, raceCol
   age <- scale(ageColumn)[,1]
   ageSqu <- scale(ageColumn)[,1]^2
   ageCub <- scale(ageColumn)[,1]^3
-  raceVal <- as.factor(raceCol)
+  #raceVal <- as.factor(raceCol)
+  envSES <- scale(raceCol)
   quality <- qualityColumn
-  newValues <- lm(valuesToBeRegressed ~ age * raceVal + ageSqu + ageCub + quality)$residuals
+  newValues <- lm(valuesToBeRegressed ~ age + ageSqu + ageCub + quality)$residuals
   return(newValues)
 }
 
@@ -78,8 +79,9 @@ regressOutAgeNoQA <- function(valuesToBeRegressed, ageColumn, raceCol){
   age <- scale(ageColumn)[,1]
   ageSqu <- scale(ageColumn)[,1]^2
   ageCub <- scale(ageColumn)[,1]^3
-  raceVal <- as.factor(raceCol)
-  newValues <- lm(valuesToBeRegressed ~ age * raceVal + ageSqu + ageCub)$residuals#+ ageSqu + ageCub + quality)$residuals
+  #raceVal <- as.factor(raceCol)
+  envSES <- scale(raceCol)
+  newValues <- lm(valuesToBeRegressed ~ age + ageSqu + ageCub)$residuals#+ ageSqu + ageCub + quality)$residuals
   return(newValues)
 }
 
