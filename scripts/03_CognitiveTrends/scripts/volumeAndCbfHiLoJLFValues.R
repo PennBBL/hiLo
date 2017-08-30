@@ -60,91 +60,70 @@ tr.modal.data.age.reg$ageBin <- 'Age Regressed'
 
 ## Now prep the data 
 # Start with volume
-child.volume <- doEverythingEver(vol.modal.data, 'mprage_jlf_vol', 0, 167, 'Childhood', cerebellum=F)
-adol.volume <- doEverythingEver(vol.modal.data, 'mprage_jlf_vol', 168, 215, 'Adolescence', cerebellum=F)
-adult.volume <- doEverythingEver(vol.modal.data, 'mprage_jlf_vol', 216, 999, 'Early Adulthood', cerebellum=F)
+child.volume <- doEverythingEver(vol.modal.data, 'mprage_jlf_vol', 0, 167, 'Childhood', cerebellum=F,optionalRace=2)
+adol.volume <- doEverythingEver(vol.modal.data, 'mprage_jlf_vol', 168, 215, 'Adolescence', cerebellum=F,optionalRace=2)
+adult.volume <- doEverythingEver(vol.modal.data, 'mprage_jlf_vol', 216, 999, 'Early Adulthood', cerebellum=F,optionalRace=2)
 all.vol <- rbind(child.volume, adol.volume, adult.volume)
 # Now produce the age reg values
-age.reg.vol <- doEverythingEver(vol.modal.data.age.reg, 'mprage_jlf_vol', 0, 999, 'Age Regressed', cerebellum=F)
+age.reg.vol <- doEverythingEver(vol.modal.data.age.reg, 'mprage_jlf_vol', 0, 999, 'Age Regressed', cerebellum=F,optionalRace=2)
 
 
 # Now move to cbf
-child.cbf <- doEverythingEver(cbf.modal.data, 'pcasl_jlf_cbf', 0, 167, 'Childhood', cerebellum=F)
-adol.cbf <- doEverythingEver(cbf.modal.data, 'pcasl_jlf_cbf', 168, 215, 'Adolescence', cerebellum=F)
-adult.cbf <- doEverythingEver(cbf.modal.data, 'pcasl_jlf_cbf', 216, 999, 'Early Adulthood', cerebellum=F)
+child.cbf <- doEverythingEver(cbf.modal.data, 'pcasl_jlf_cbf', 0, 167, 'Childhood', cerebellum=F,optionalRace=2)
+adol.cbf <- doEverythingEver(cbf.modal.data, 'pcasl_jlf_cbf', 168, 215, 'Adolescence', cerebellum=F,optionalRace=2)
+adult.cbf <- doEverythingEver(cbf.modal.data, 'pcasl_jlf_cbf', 216, 999, 'Early Adulthood', cerebellum=F,optionalRace=2)
 all.cbf <- rbind(child.cbf, adol.cbf, adult.cbf)
 # Now produce the age reg values
-age.reg.cbf <- doEverythingEver(cbf.modal.data.age.reg, 'pcasl_jlf_cbf', 0, 999, 'Age Regressed', cerebellum=F)
+age.reg.cbf <- doEverythingEver(cbf.modal.data.age.reg, 'pcasl_jlf_cbf', 0, 999, 'Age Regressed', cerebellum=F,optionalRace=2)
 
 # Now do GMD
-child.gmd <- doEverythingEver(gmd.modal.data, 'mprage_jlf_gmd', 0, 167, 'Childhood', cerebellum=F)
-adol.gmd <- doEverythingEver(gmd.modal.data, 'mprage_jlf_gmd', 168, 215, 'Adolescence', cerebellum=F)
-adult.gmd <- doEverythingEver(gmd.modal.data, 'mprage_jlf_gmd', 216, 999, 'Early Adulthood', cerebellum=F)
+child.gmd <- doEverythingEver(gmd.modal.data, 'mprage_jlf_gmd', 0, 167, 'Childhood', cerebellum=F,optionalRace=2)
+adol.gmd <- doEverythingEver(gmd.modal.data, 'mprage_jlf_gmd', 168, 215, 'Adolescence', cerebellum=F,optionalRace=2)
+adult.gmd <- doEverythingEver(gmd.modal.data, 'mprage_jlf_gmd', 216, 999, 'Early Adulthood', cerebellum=F,optionalRace=2)
 all.gmd <- rbind(child.gmd, adol.gmd, adult.gmd)
 # Now do age regressed
-age.reg.gmd <- doEverythingEver(gmd.modal.data.age.reg, 'mprage_jlf_gmd', 0, 999, 'Age Regressed', cerebellum=F)
-#child.gmd.reg <- doEverythingEver(gmd.modal.data.age.reg, 'mprage_jlf_gmd', 0, 167, 'Childhood')
-#adol.gmd.reg <- doEverythingEver(gmd.modal.data.age.reg, 'mprage_jlf_gmd', 168, 215, 'Adolescence')
-#adult.gmd.reg <- doEverythingEver(gmd.modal.data.age.reg, 'mprage_jlf_gmd', 216, 999, 'Early Adulthood')
-#age.reg.gmd <- rbind(child.gmd.reg, adol.gmd.reg, adult.gmd.reg)
+age.reg.gmd <- doEverythingEver(gmd.modal.data.age.reg, 'mprage_jlf_gmd', 0, 999, 'Age Regressed', cerebellum=F,optionalRace=2)
 
 # Now try CT - disclaimer I don't think this will pass organizeLobe and other bs
-child.ct <- doEverythingEverCT(ct.modal.data, 'mprage_jlf_ct', 0, 167, 'Childhood')
-adol.ct <- doEverythingEverCT(ct.modal.data, 'mprage_jlf_ct', 168, 215, 'Adolescence')
-adult.ct <- doEverythingEverCT(ct.modal.data, 'mprage_jlf_ct', 216, 999, 'Early Adulthood')
+child.ct <- doEverythingEverCT(ct.modal.data, 'mprage_jlf_ct', 0, 167, 'Childhood',optionalRace=1)
+adol.ct <- doEverythingEverCT(ct.modal.data, 'mprage_jlf_ct', 168, 215, 'Adolescence',optionalRace=1)
+adult.ct <- doEverythingEverCT(ct.modal.data, 'mprage_jlf_ct', 216, 999, 'Early Adulthood',optionalRace=1)
 all.ct <- rbind(child.ct, adol.ct, adult.ct)
 # Now do age regressed
-age.reg.ct <- doEverythingEverCT(ct.modal.data.age.reg, 'mprage_jlf_ct', 0, 999, 'Age Regressed')
+age.reg.ct <- doEverythingEverCT(ct.modal.data.age.reg, 'mprage_jlf_ct', 0, 999, 'Age Regressed',optionalRace=1)
 
 # Now try CC
-child.cc <- doEverythingEverCT(cc.modal.data, 'mprage_jlf_cortcon', 0, 167, 'Childhood')
-adol.cc <- doEverythingEverCT(cc.modal.data, 'mprage_jlf_cortcon', 168, 215, 'Adolescence')
-adult.cc <- doEverythingEverCT(cc.modal.data, 'mprage_jlf_cortcon', 216, 999, 'Early Adulthood')
+child.cc <- doEverythingEverCT(cc.modal.data, 'mprage_jlf_cortcon', 0, 167, 'Childhood',optionalRace=1)
+adol.cc <- doEverythingEverCT(cc.modal.data, 'mprage_jlf_cortcon', 168, 215, 'Adolescence',optionalRace=1)
+adult.cc <- doEverythingEverCT(cc.modal.data, 'mprage_jlf_cortcon', 216, 999, 'Early Adulthood',optionalRace=1)
 all.cc <- rbind(child.cc, adol.cc, adult.cc)
 # Now do age regressed
-age.reg.cc <- doEverythingEverCT(cc.modal.data.age.reg, 'mprage_jlf_cortcon', 0, 999, 'Age Regressed')
-
+age.reg.cc <- doEverythingEverCT(cc.modal.data.age.reg, 'mprage_jlf_cortcon', 0, 999, 'Age Regressed',optionalRace=1)
 
 # Now do reho
-child.rh <- doEverythingEver(reho.modal.data, 'rest_jlf_reho', 0, 167, 'Childhood', cerebellum=F)
-adol.rh <- doEverythingEver(reho.modal.data, 'rest_jlf_reho', 168, 215, 'Adolescence', cerebellum=F)
-adult.rh <- doEverythingEver(reho.modal.data, 'rest_jlf_reho', 216, 999, 'Early Adulthood', cerebellum=F)
+child.rh <- doEverythingEver(reho.modal.data, 'rest_jlf_reho', 0, 167, 'Childhood', cerebellum=F,optionalRace=2)
+adol.rh <- doEverythingEver(reho.modal.data, 'rest_jlf_reho', 168, 215, 'Adolescence', cerebellum=F,optionalRace=2)
+adult.rh <- doEverythingEver(reho.modal.data, 'rest_jlf_reho', 216, 999, 'Early Adulthood', cerebellum=F,optionalRace=2)
 all.rh <- rbind(child.rh, adol.rh, adult.rh)
 # Now do age regressed
-age.reg.rh <- doEverythingEver(reho.modal.data.age.reg, 'rest_jlf_reho', 0, 999, 'Age Regressed', cerebellum=F)
+age.reg.rh <- doEverythingEver(reho.modal.data.age.reg, 'rest_jlf_reho', 0, 999, 'Age Regressed', cerebellum=F,optionalRace=2)
 
 
 # Now ALFF
-child.al <- doEverythingEver(alff.modal.data, 'rest_jlf_alff', 0, 167, 'Childhood', cerebellum=F)
-adol.al <- doEverythingEver(alff.modal.data, 'rest_jlf_alff', 168, 215, 'Adolescence', cerebellum=F)
-adult.al <- doEverythingEver(alff.modal.data, 'rest_jlf_alff', 216, 999, 'Early Adulthood', cerebellum=F)
+child.al <- doEverythingEver(alff.modal.data, 'rest_jlf_alff', 0, 167, 'Childhood', cerebellum=F,optionalRace=2)
+adol.al <- doEverythingEver(alff.modal.data, 'rest_jlf_alff', 168, 215, 'Adolescence', cerebellum=F,optionalRace=2)
+adult.al <- doEverythingEver(alff.modal.data, 'rest_jlf_alff', 216, 999, 'Early Adulthood', cerebellum=F,optionalRace=2)
 all.al <- rbind(child.al, adol.al, adult.al)
 # Now do age regressed
-age.reg.al <- doEverythingEver(alff.modal.data.age.reg, 'rest_jlf_alff', 0, 999, 'Age Regressed', cerebellum=F)
-
-# Now AD
-child.ad <- doEverythingEver(ad.modal.data, 'dti_jlf_ad', 0, 167, 'Childhood', cerebellum=F)
-adol.ad <- doEverythingEver(ad.modal.data, 'dti_jlf_ad', 168, 215, 'Adolescence', cerebellum=F)
-adult.ad <- doEverythingEver(ad.modal.data, 'dti_jlf_ad', 216, 999, 'Early Adulthood', cerebellum=F)
-all.ad <- rbind(child.ad, adol.ad, adult.ad)
-# Now age reg
-age.reg.ad <- doEverythingEver(ad.modal.data.age.reg, 'dti_jlf_ad', 0, 167, 'Age Regressed', cerebellum=F)
-
-# Now onto RD
-child.rd <- doEverythingEver(rd.modal.data, 'dti_jlf_rd', 0, 167, 'Childhood', cerebellum=F)
-adol.rd <- doEverythingEver(rd.modal.data, 'dti_jlf_rd', 168, 215, 'Adolescence', cerebellum=F)
-adult.rd <- doEverythingEver(rd.modal.data, 'dti_jlf_rd', 216, 999, 'Early Adulthood', cerebellum=F)
-all.rd <- rbind(child.rd, adol.rd, adult.rd)
-# Now age reg
-age.reg.rd <- doEverythingEver(rd.modal.data.age.reg, 'dti_jlf_rd', 0, 167, 'Age Regressed', cerebellum=F)
+age.reg.al <- doEverythingEver(alff.modal.data.age.reg, 'rest_jlf_alff', 0, 999, 'Age Regressed', cerebellum=F,optionalRace=2)
 
 # Now onto TR
-child.tr <- doEverythingEver(tr.modal.data, 'dti_jlf_tr', 0, 167, 'Childhood', cerebellum=F)
-adol.tr <- doEverythingEver(tr.modal.data, 'dti_jlf_tr', 168, 215, 'Adolescence', cerebellum=F)
-adult.tr <- doEverythingEver(tr.modal.data, 'dti_jlf_tr', 216, 999, 'Early Adulthood', cerebellum=F)
+child.tr <- doEverythingEver(tr.modal.data, 'dti_jlf_tr', 0, 167, 'Childhood', cerebellum=F,optionalRace=2)
+adol.tr <- doEverythingEver(tr.modal.data, 'dti_jlf_tr', 168, 215, 'Adolescence', cerebellum=F,optionalRace=2)
+adult.tr <- doEverythingEver(tr.modal.data, 'dti_jlf_tr', 216, 999, 'Early Adulthood', cerebellum=F,optionalRace=2)
 all.tr <- rbind(child.tr, adol.tr, adult.tr)
 # Now age reg
-age.reg.tr <- doEverythingEver(tr.modal.data.age.reg, 'dti_jlf_tr', 0, 167, 'Age Regressed', cerebellum=F)
+age.reg.tr <- doEverythingEver(tr.modal.data.age.reg, 'dti_jlf_tr', 0, 167, 'Age Regressed', cerebellum=F,optionalRace=2)
 
 # Now plot dis shiiizzz
 volPlot <- createGGPlotImage(all.vol, 'Volume Hi-Lo JLF Data', -.8, 1.4, .2)
@@ -154,8 +133,6 @@ ctPlot <- createGGPlotImage(all.ct, 'CT Hi-Lo JLF Data', -.8, 1.4, .2)
 ccPlot <- createGGPlotImage(all.cc, 'CC Hi-Lo JLF Data', -.8, 1.4, .2)
 rhPlot <- createGGPlotImage(all.rh, 'ReHo Hi-Lo JLF Data', -.8, 1.4, .2)
 alPlot <- createGGPlotImage(all.al, 'ALFF Hi-Lo JLF Data', -.8, 1.4, .2)
-adPlot <- createGGPlotImage(all.ad, 'AD Hi-Lo JLF Data', -1.6 , 1.2, .2)
-rdPlot <- createGGPlotImage(all.rd, 'RD Hi-Lo JLF Data', -1.6, 1.2, .2)
 trPlot <- createGGPlotImage(all.tr, 'TR Hi-Lo JLF Data', -1.6, 1.2, .2)
 
 volPlotAgeReg <- createGGPlotImage(age.reg.vol, 'Volume Hi-Lo JLF Data Age Reg', -1, 1, .2)
@@ -165,8 +142,6 @@ ctPlotAgeReg <- createGGPlotImage(age.reg.ct, 'CT Hi-Lo JLF Data Age Reg', -1, 1
 ccPlotAgeReg <- createGGPlotImage(age.reg.cc, 'CC Hi-Lo JLF Data Age Reg', -1, 1, .2)
 rhPlotAgeReg <- createGGPlotImage(age.reg.rh, 'ReHo Hi-Lo JLF Data Age Reg', -1, 1, .2)
 alPlotAgeReg <- createGGPlotImage(age.reg.al, 'ALFF Hi-Lo JLF Data Age Reg', -1, 1, .2)
-adPlotAgeReg <- createGGPlotImage(age.reg.ad, 'AD Hi-Lo JLF Data Age Reg', -1 , 1, .2)
-rdPlotAgeReg <- createGGPlotImage(age.reg.rd, 'RD Hi-Lo JLF Data Age Reg', -1, 1, .2)
 trPlotAgeReg <- createGGPlotImage(age.reg.tr, 'TR Hi-Lo JLF Data Age Reg', -1, 1, .2)
 
 # Now print our output
@@ -178,8 +153,6 @@ ctPlot
 ccPlot
 rhPlot
 alPlot
-adPlot
-rdPlot
 trPlot
 dev.off()
 
@@ -191,8 +164,6 @@ ctPlotAgeReg
 ccPlotAgeReg
 rhPlotAgeReg
 alPlotAgeReg
-adPlotAgeReg
-rdPlotAgeReg
 trPlotAgeReg
 dev.off()
 

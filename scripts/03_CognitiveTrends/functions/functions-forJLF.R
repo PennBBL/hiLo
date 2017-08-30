@@ -430,8 +430,10 @@ addAgeBin <- function(df, ageColumn, youngUpper, middleUpper, olderLower){
 }
 
 # Do everything Ever function
-doEverythingEver <- function(df, modalityGrepPattern, lowerAge.e, upperAge.e, ageBinName.e, cerebellum=F){
-  #tmp <- addAgeBins(df$ageAtGo1Scan, df, lowerAge.e, upperAge.e, ageBinName.e)
+doEverythingEver <- function(df, modalityGrepPattern, lowerAge.e, upperAge.e, ageBinName.e, cerebellum=F, optionalRace=NULL){
+  if(!identical(optionalRace, NULL)){
+    df <- df[which(df$race2==optionalRace),]
+  }
   tmp <- standardizePerfGroups(df, modalityGrepPattern, ageBinName.e)
   tmp <- organizeROINames(tmp, cerebellum=cerebellum)
   tmp <- subtractHiFromLo(tmp)
@@ -558,7 +560,10 @@ organizeROINamesCT <- function(dataFrame){
   return(outputDataFrame)
 }
 # Do everything Ever function
-doEverythingEverCT <- function(df, modalityGrepPattern, lowerAge.e, upperAge.e, ageBinName.e){
+doEverythingEverCT <- function(df, modalityGrepPattern, lowerAge.e, upperAge.e, ageBinName.e, optionalRace=NULL){
+  if(!identical(optionalRace, NULL)){
+    df <- df[which(df$race2==optionalRace),]
+  }
   #tmp <- addAgeBins(df$ageAtGo1Scan, df, lowerAge.e, upperAge.e, ageBinName.e)
   tmp <- standardizePerfGroups(df, modalityGrepPattern, ageBinName.e)
   tmp <- organizeROINamesCT(tmp)
