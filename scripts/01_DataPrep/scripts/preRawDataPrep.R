@@ -24,7 +24,7 @@ write.csv(volData, '/home/adrose/dataPrepForHiLoPaper/data/rawData/n1601_antsCtV
 
 # Now do the GMD and CT and cortcon
 gmdData <- merge(t1QA, jlfGmd, by=c('bblid','scanid'))
-gmdData <- merge(gmdData, gmdFactor, by='bblid')
+#gmdData <- merge(gmdData, gmdFactor, by='bblid')
 #write csv...
 write.csv(gmdData, '/home/adrose/dataPrepForHiLoPaper/data/rawData/n1601_jlfGMD.csv', quote=F, row.names=F)
 
