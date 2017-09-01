@@ -600,6 +600,9 @@ playTheViolin <- function(zScoreVals, xValue){
   plotData <- melt(zScoreVals)
   plotData[plotData=='NaN'] <- NA
   plotData <- plotData[complete.cases(plotData),]
+  orderVals <- summarySE(plotData, measurevar='value', groupvars='Var1', na.rm=T)
+  orderVals <- orderVals[order(orderVals$value, decreasing=T),1]
+  plotData$Var1 <- factor(plotData$Var1, levels=orderVals)
   # Now plot the data
   outPlot <- ggplot(plotData, aes(x=Var1, y=value)) +
     geom_violin() + 
@@ -614,6 +617,9 @@ playTheViola <- function(zScoreVals, xValue){
   plotData <- zScoreVals
   plotData[plotData=='NaN'] <- NA
   plotData <- plotData[complete.cases(plotData),]
+  orderVals <- summarySE(plotData, measurevar='value', groupvars='Var1', na.rm=T)
+  orderVals <- orderVals[order(orderVals$value, decreasing=T),1]
+  plotData$Var1 <- factor(plotData$Var1, levels=orderVals)
   # Now plot the data
   outPlot <- ggplot(plotData, aes(x=Var1, y=value)) +
     geom_violin() + 
