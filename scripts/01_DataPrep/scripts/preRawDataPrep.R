@@ -6,17 +6,20 @@ install_load('psych', 'sas7bdat', 'mi', 'methods', 'doParallel')
 
 # Start with T1 values 
 jlfVol <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/preRaw2017/n1601_jlfAntsCTIntersectionVol_20170323.csv')
+icvVol <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/preRaw2017/outIcv.csv')
 jlfWmVol <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/preRaw2017/n1601_jlfWmVol_20170303.csv')
 antsVol <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/preRaw/t1/n1601_antsCtVol.csv')
 jlfCt <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/preRaw2017/n1601_jlfAtroposIntersectionCT_20170331.csv')
 jlfCC <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/preRaw2017/n1601CCVals.csv')
 jlfGmd <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/preRaw2017/n1601_jlfAtroposIntersectionGMD_20170410.csv')
+meanGmd <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/preRaw2017/averageGMD.csv')
 gmdFactor <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/preRaw2017/GMD_Factor.csv')
 t1QA <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/preRaw2017/n1601_t1QaData_20170306.csv')
 
 # Now merge all of the t1 data
 volData <- merge(t1QA, jlfVol, by=c('bblid', 'scanid'))
 volData <- merge(volData, jlfWmVol, by=c('bblid', 'scanid'))
+volData <- merge(volData, icvVol, by=c('bblid','scanid'))
 volData <- merge(volData, antsVol, by=c('bblid', 'scanid'))
 
 # Now write our csv
@@ -24,6 +27,7 @@ write.csv(volData, '/home/adrose/dataPrepForHiLoPaper/data/rawData/n1601_antsCtV
 
 # Now do the GMD and CT and cortcon
 gmdData <- merge(t1QA, jlfGmd, by=c('bblid','scanid'))
+gmdData <- merge(gmdData, meanGmd, by=c('bblid', 'scanid'))
 #gmdData <- merge(gmdData, gmdFactor, by='bblid')
 #write csv...
 write.csv(gmdData, '/home/adrose/dataPrepForHiLoPaper/data/rawData/n1601_jlfGMD.csv', quote=F, row.names=F)
