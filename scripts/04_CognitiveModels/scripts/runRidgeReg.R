@@ -17,14 +17,19 @@ rd.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeReg/j
 tr.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeReg/jlfTRData.csv')
 tr.data$dti_jlf_tr_MeanTR <- apply(tr.data[,grep('dti_jlf_tr_', names(tr.data))], 1, mean)
 
+# Now prepare the all data values 
+all.data <- merge(vol.data, cbf.data, by=intersect(names(vol.data), names(cbf.data)))
+all.data <- merge(all.data, gmd.data, by=intersect(names(all.data), names(gmd.data)))
+all.data <- merge(all.data, tr.data, by=intersect(names(all.data), names(tr.data)))
+
 ## This script is going to be used to build ridge regression models in a cv'ed manner
 ## The important aspect is the twice 10 fold cross validation.
 ## Models will be trained within the training 9 folds in a 10 -fold cv manner, and then validated in the left out
 ## 1/10th fold - 10 times.
 
 ## Now create a loop to go though each image modality, gender, and return the CVR^2
-dataNames <- c('vol.data', 'cbf.data', 'gmd.data', 'tr.data')
-dataGrepNames <- c('mprage_jlf_vol_', 'pcasl_jlf_cbf_', 'mprage_jlf_gmd_','dti_jlf_tr_')
+dataNames <- c('vol.data', 'cbf.data', 'gmd.data', 'tr.data', 'all.data')
+dataGrepNames <- c('mprage_jlf_vol_', 'pcasl_jlf_cbf_', 'mprage_jlf_gmd_','dti_jlf_tr_', '_jlf_')
 allRVals <- NA
 for(g in 1:2){
   for(z in 1:length(dataNames)){
@@ -82,3 +87,4 @@ allPlot <- ggplot(allRValsPlot, aes(x=V2, y=value, color=g, fill=variable)) +
     stat_summary(fun.y=median, geom="point", size=2, color="red", position=position_dodge(.1)) + 
     theme(axis.text.x=element_text(angle=90)) + 
     labs(y="R-Squared", x='Modality')
+
