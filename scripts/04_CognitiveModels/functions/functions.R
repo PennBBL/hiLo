@@ -667,3 +667,50 @@ bootStrapBetaWeight <- function(y, x, iterationCount=100, nCor=3){
   # Now return the output binary matrix
   return(output) 
 }
+
+## I am going to try and build a function which wil do this across each of the folds
+### Steps involved in this function include:
+###	1.) Creaeting 10 folds to train w/in (caret: createFolds)
+###	2.) Train a cv.glmnet w/in the training fold **Tune the lmabda using cv.glmnet**
+###		Then train the model using glmnet
+###	3.) Get the fit statistics in the left out data set - this is what we return
+###	4.) Run 1-3 for each fold - find the average of the fit stats 
+### This function should return a crossvallidated fit value for each of the input data set 
+runRidgeOnAll <- function(x, y, nFold=10, nCor=5, lambdaSeq=10^seq(3, -2, by = -.1)){
+  # The first thing we have to do is split our data into 10 folds
+  folds <- createFolds(y, k=nFold, list=T, returnTrain=T)
+  
+  # Now declare the output variables
+  outputCvValsR <- rep(NA, length(y))
+  outputCvBeta <- matrix(0, nrow=dim(x)[2], ncol=10)
+  outputCvValsL <- rep(NA, length(y))  
+  trainSeq <- seq(1, length(y))
+  # Now we need to loop thorugh each fold and get our output fit stats
+  for(i in 1:nFold){
+    index <- unlist(folds[[i]])
+    trainX <- as.matrix(x)[index,]
+    trainY <- as.vector(y)[index]
+    testX <- as.matrix(x)[-index,]
+    # Now grab our lambda to use 
+    fit.cv <- cv.glmnet(x=trainX, y=trainY, alpha=0, lambda=lambdaSeq, nfolds=10)
+    lambdaVal <- fit.cv$lambda[which(fit.cv$cvm==min(fit.cv$cvm))]
+    modelFit <- glmnet(x=trainX, y=trainY, alpha=0, lambda=lambdaVal)
+
+    # Now get our prediction values in the test values
+    outputCvValsR[trainSeq[-index]] <- predict(modelFit, testX)
+    outputCvBeta[,i] <- coef(modelFit)[-1]
+
+    # Now do the same with linear regression
+    tmpDF <- as.data.frame(cbind(trainY, trainX))
+    lmMod <- lm(trainY~., data=tmpDF)
+    # Now get the predictide values
+    outputCvValsL[trainSeq[-index]] <- predict(lmMod, newdata=as.data.frame(testX))
+  }
+
+  # Now return the output CvVals
+  output <- list()
+  output[[1]] <- outputCvValsR
+  output[[2]] <- outputCvValsL
+  output[[3]] <- outputCvBeta
+  return(output)
+}

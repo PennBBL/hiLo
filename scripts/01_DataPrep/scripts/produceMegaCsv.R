@@ -3,8 +3,7 @@ basePath <- '/home/adrose/dataPrepForHiLoPaper/data/rawData/n1601_'
 # Create a loop to load, and merge all data
 allData <- read.csv(paste(basePath, 'antsCtVol_jlfVol.csv', sep=''))
 allData <- allData[,-grep('Cerebral_White_Matter', names(allData))]
-allData <- allData[,-grep("4th_Ventricle", names(allData))]
-allData <- allData[which(allData$t1Exclude==1),grep('mprage_jlf_vol_', names(allData))] <- NA
+allData[which(allData$t1Exclude==1),grep('mprage_jlf_vol_', names(allData))] <- NA
 
 suffixVals <- c('jlfCt.csv','jlfGMD.csv','jlfCc.csv','jlfCbf-Impute.csv','jlfTR.csv','jlfRD.csv','jlfAD.csv','jlfFA.csv','jlfAlff.csv','jlfReho.csv','jhuTRTracts.csv','jhuRDTracts.csv','jhuADTracts.csv','jhuFATracts.csv')
 exclusionVals <- c('t1Exclude', 't1Exclude', 't1Exclude', 'pcaslExclude', 'include_64', 'include_64', 'include_64', 'include_64','restExclude', 'restExclude','include_64','include_64','include_64','include_64')
