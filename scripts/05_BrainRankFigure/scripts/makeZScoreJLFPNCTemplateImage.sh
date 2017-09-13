@@ -23,6 +23,7 @@ pncJlfLabelImage="/data/joy/BBL/studies/pnc/template/jlf/Younger24/pncTemplateJL
 if [ ! "X${4}" == "X" ] ; then 
   jlfLookUp="/data/joy/BBL/studies/pnc/template/jlf/hiLoLookup/jlf_lookup${4}.csv" ; 
 fi 
+echo ${jlfLookUp}
 inputCSV=${1}
 colOfInterest=${2}
 glassBrain=${3}
