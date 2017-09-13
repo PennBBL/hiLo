@@ -132,8 +132,8 @@ write.csv(trData, '/home/adrose/dataPrepForHiLoPaper/data/rawData/n1601_jhuTRTra
 # Now onto DTI GM values
 adLabels <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/preRaw2017/n1601_jlfADValues_20170411.csv')
 rdLabels <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/preRaw2017/n1601_jlfRDValues_20170411.csv')
-trLabels <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/preRaw2017/n1601_jlfTRValues_20170411.csv')
-faLabels <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/preRaw2017/n1601_jlfFAValues_20170411.csv')
+trLabels <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/preRaw2017/n1601_jlfTRValues_20170411WithMean.csv')
+faLabels <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/preRaw2017/n1601_jlfFAValues_20170411WithMean.csv')
 adLabelWM <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/preRaw2017/n1601_jlfWmLobesADValues_20170405.csv')
 rdLabelWM <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/preRaw2017/n1601_jlfWmLobesRDValues_20170405.csv')
 trLabelWM <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/preRaw2017/n1601_jlfWmLobesTRValues_20170405.csv')
@@ -157,4 +157,3 @@ write.csv(adData, '/home/adrose/dataPrepForHiLoPaper/data/rawData/n1601_jlfAD.cs
 write.csv(faData, '/home/adrose/dataPrepForHiLoPaper/data/rawData/n1601_jlfFA.csv', quote=F, row.names=F)
 write.csv(rdData, '/home/adrose/dataPrepForHiLoPaper/data/rawData/n1601_jlfRD.csv', quote=F, row.names=F)
 write.csv(trData, '/home/adrose/dataPrepForHiLoPaper/data/rawData/n1601_jlfTR.csv', quote=F, row.names=F)
-
