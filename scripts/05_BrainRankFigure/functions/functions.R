@@ -96,7 +96,7 @@ returnPosNegAndNeuColorScale <- function(outputZScores, colorScaleNeg=c('blue', 
     #startPoint <- NULL
     output <- blankRow
     if(length(negativeValues) > 0 ){
-        negativeColors <- returnHeatMapITKSnapVals(negativeValues, lowColor=colorScaleNeg, hiColor='light blue', minValue=minimum[1], maxValue=minimum[2])[2:(length(negativeValues)+1),]
+        negativeColors <- returnHeatMapITKSnapVals(negativeValues, lowColor=colorScaleNeg, hiColor='dark blue', minValue=minimum[1], maxValue=minimum[2])[2:(length(negativeValues)+1),]
         #negIndex <- max(as.numeric(as.character(negativeColors[,1])))
         #startPoint <- cbind(startPoint, negIndex)
         output <- rbind(output, negativeColors)
@@ -118,14 +118,15 @@ returnPosNegAndNeuColorScale <- function(outputZScores, colorScaleNeg=c('blue', 
 # Declare a function to write the table and key
 writeColorTableandKey <- function(inputData, inputColumn, outName, minTmp=NULL, maxTmp=NULL){
   # First create the color table
-  tmpColorTable <- returnPosNegAndNeuColorScale(inputData[complete.cases(inputData[,inputColumn]),inputColumn], colorScaleNeg=c('dark blue', 'blue'), colorScalePos=c('orange', 'yellow', 'white'), sigThreshold=1, minimum=minTmp, maximum=maxTmp)
+  tmpColorTable <- returnPosNegAndNeuColorScale(inputData[complete.cases(inputData[,inputColumn]),inputColumn], colorScaleNeg=c('light blue'), colorScalePos=c('orange', 'yellow', 'white'), sigThreshold=1, minimum=minTmp, maximum=maxTmp)
   valuesToBind <- c('1616', '190', '190', '190', '0.40', '1', '1', '"Label Nonsense"')
 
   # Now produce the output key 
   tmpOutputKey <- matrix(NA, nrow=dim(tmpColorTable)[1]-1, ncol=3)
   tmpOutputKey[,1] <- as.character(inputData[complete.cases(inputData[,inputColumn]),1])
   tmpOutputKey[,2] <- as.character(inputData[complete.cases(inputData[,inputColumn]),inputColumn])
-  tmpOutputKey[,3] <- seq(dim(tmpColorTable)[1]-1, 1, -1)
+  tmpOutputKey <- tmpOutputKey[order(as.numeric(tmpOutputKey[,2])),]
+  tmpOutputKey[,3] <- rev(seq(dim(tmpColorTable)[1]-1, 1, -1))
   tmpOutputKeyFlip <- tmpOutputKey
   tmpOutputKey[,1] <- paste('R_', tmpOutputKey[,1], sep='')
   tmpOutputKeyFlip[,1] <- paste('L_', tmpOutputKeyFlip[,1], sep='')

@@ -35,7 +35,7 @@ calculateDeltaHiMeLo <- function(data, suffix) {
 }
 
 
-data.cbf <- read.csv("/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeReg/cbfData.csv-imputed")
+data.cbf <- read.csv("/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeReg/cbfData.csv")
 suffix.cbf <- "pcasl_jlf_cbf_"
 
 data.cbf.male <- data.cbf[which(data.cbf$sex == 1), ]
@@ -62,7 +62,14 @@ output.gmd.male <- calculateDeltaHiMeLo(data.gmd.male, suffix.gmd)
 data.gmd.female <- data.gmd[which(data.gmd$sex == 2), ]
 output.gmd.female <- calculateDeltaHiMeLo(data.gmd.female, suffix.gmd)
 
+data.tr <- read.csv("/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeReg/jlfTRData.csv")
+suffix.tr <- "dti_jlf_tr_"
 
+data.tr.male <- data.tr[which(data.tr$sex == 1), ]
+output.tr.male <- calculateDeltaHiMeLo(data.tr.male, suffix.tr)
+
+data.tr.female <- data.tr[which(data.tr$sex == 2), ]
+output.tr.female <- calculateDeltaHiMeLo(data.tr.female, suffix.tr)
 
 write.csv(output.vol.male, "output_hi-me-low_vol_male.csv")
 write.csv(output.vol.female, "output_hi-me-low_vol_female.csv")
@@ -70,3 +77,6 @@ write.csv(output.gmd.male, "output_hi-me-low_gmd_male.csv")
 write.csv(output.gmd.female, "output_hi-me-low_gmd_female.csv")
 write.csv(output.cbf.male, "output_hi-me-low_cbf_male.csv")
 write.csv(output.cbf.female, "output_hi-me-low_cbf_female.csv")
+write.csv(output.tr.male, "output_hi-me-low_tr_male.csv")
+write.csv(output.tr.female, "output_hi-me-low_tr_female.csv")
+
