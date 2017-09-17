@@ -284,8 +284,8 @@ addAgeBins <- function(ageValues, dataFrame, lowerAge, upperAge, ageBinName){
 
 addAgeBin <- function(df, ageColumn, youngUpper, middleUpper, olderLower){
   output.young <- addAgeBins(ageColumn, df, 0, youngUpper, 'Childhood')
-  output.middle <- addAgeBins(ageColumn, df, youngUpper+1, middleUpper, 'Adolescence')
-  output.older <- addAgeBins(ageColumn, df, middleUpper+1, 999, 'Early Adulthood')
+  output.middle <- addAgeBins(ageColumn, df, youngUpper, middleUpper, 'Adolescence')
+  output.older <- addAgeBins(ageColumn, df, middleUpper, 999, 'Early Adulthood')
   output <- rbind(output.young, output.middle, output.older)
   return(output)
 }

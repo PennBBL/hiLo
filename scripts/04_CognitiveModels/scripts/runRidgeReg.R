@@ -83,8 +83,8 @@ allRValsPlot <- melt(allRValsPlot, id.vars=c('g', 'V2'))
 allRValsPlot$value <- as.numeric(as.character(allRValsPlot$value))
 allPlot <- ggplot(allRValsPlot, aes(x=V2, y=value, color=g, fill=variable)) + 
     geom_violin() + 
-    stat_summary(fun.y=mean, geom="point", shape=23, position=position_dodge(.1)) + 
-    stat_summary(fun.y=median, geom="point", size=2, color="red", position=position_dodge(.1)) + 
+    #stat_summary(fun.y=mean, geom="point", shape=23, position=position_dodge(.1)) + 
+    #stat_summary(fun.y=median, geom="point", size=2, color="red", position=position_dodge(.1)) + 
     theme(axis.text.x=element_text(angle=90)) + 
     labs(y="R-Squared", x='Modality')
 
