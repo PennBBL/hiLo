@@ -656,3 +656,12 @@ outputLongFormat4wayNoZ <- function(dataFrame, modalityName, ageBand){
   }
   return(outputDataframe)
 }
+
+
+regressOutAgeNoQAMGI <- function(valuesToBeRegressed, ageColumn){
+  age <- scale(ageColumn)[,1]
+  ageSqu <- scale(ageColumn)[,1]^2
+  ageCub <- scale(ageColumn)[,1]^3
+  newValues <- lm(valuesToBeRegressed ~ age + ageSqu + ageCub)$residuals#+ ageSqu + ageCub + quality)$residuals
+  return(newValues)
+}
