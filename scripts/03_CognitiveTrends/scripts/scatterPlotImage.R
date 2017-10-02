@@ -55,24 +55,80 @@ fa.modal.data.age.reg$ageBin <- 'Age Regressed'
 rd.modal.data.age.reg$ageBin <- 'Age Regressed'
 tr.modal.data.age.reg$ageBin <- 'Age Regressed'
 
-# Now prepare the values
+# Start with the age regressed data 
+data.names <- c('vol', 'cbf', 'gmd', 'reho', 'alff', 'tr', 'ct', 'cc')
+grepVals <- c('mprage_jlf_vol_', 'pcasl_jlf_cbf_', 'mprage_jlf_gmd_', 'rest_jlf_reho_', 'rest_jlf_alff_', 'dti_jlf_tr_', 'mprage_jlf_ct_', 'mprage_jlf_cortcon_')
+pdf('ageRegressed.pdf')
+for(q in 1:6){
+  print(data.names[q])
+  dfName <- paste(data.names[q], ".modal.data.age.reg", sep='')
+  data <- doEverythingEver(get(dfName), grepVals[q], 0, 999, 'Age Regressed', cerebellum=F, optionalRace=NULL)
+  outPlot <- scatMan(data, data.names[q])
+  print(outPlot)
+}
+# Now do CT and CC
+for(q in 7:length(data.names)){
+  dfName <- paste(data.names[q], ".modal.data.age.reg", sep='')
+  data <- doEverythingEverCT(get(dfName), grepVals[q], 0, 999, 'Age Regressed', optionalRace=NULL)
+  outPlot <- scatMan(data, data.names[q])
+  print(outPlot)
+}
+dev.off()
 
-## Now prep the data 
-# Start with volume
-child.volume <- doEverythingEver(vol.modal.data, 'mprage_jlf_vol', 0, 167, 'Childhood', cerebellum=F,optionalRace=NULL)
-adol.volume <- doEverythingEver(vol.modal.data, 'mprage_jlf_vol', 168, 215, 'Adolescence', cerebellum=F,optionalRace=NULL)
-adult.volume <- doEverythingEver(vol.modal.data, 'mprage_jlf_vol', 216, 999, 'Early Adulthood', cerebellum=F,optionalRace=NULL)
-all.vol <- rbind(child.volume, adol.volume, adult.volume)
-# Now produce the age reg values
-age.reg.vol <- doEverythingEver(vol.modal.data.age.reg, 'mprage_jlf_vol', 0, 999, 'Age Regressed', cerebellum=F,optionalRace=NULL)
-allData <- reshape(data=age.reg.vol, direction="wide", idvar="ROI", timevar='sex', v.names='zScoreDifference')
-corVal <- paste("r = ", round(cor(allData$zScoreDifference.M, allData$zScoreDifference.F), digits=2))
-scatMan <- ggplot(allData, aes(x=zScoreDifference.M, y=zScoreDifference.F)) + 
-  geom_point(aes(fill=lobe)) + 
-  geom_smooth(method=lm) + 
-  geom_label_repel(aes(label=ROI, color=lobe, size=3.5), box.padding = unit(0.35, "lines"),point.padding = unit(0.5, "lines")) + 
-  coord_cartesian(xlim=c(.2, .9), ylim=c(.2, .9)) + 
-  xlab("Male z score difference") + 
-  ylab("Female z score difference") + 
-  geom_text(aes(x=-Inf, y=Inf, hjust=0, vjust=1, label=corVal))
-  
+# Now go through the age bins 
+ # Start with childhood
+#child.volume <- doEverythingEver(vol.modal.data, 'mprage_jlf_vol', 0, 167, 'Childhood', cerebellum=F,optionalRace=NULL)
+pdf('Childhood.pdf')
+for(q in 1:6){
+  print(data.names[q])
+  dfName <- paste(data.names[q], ".modal.data", sep='')
+  data <- doEverythingEver(get(dfName), grepVals[q], 0, 167, 'Childhood', cerebellum=F, optionalRace=NULL)
+  outPlot <- scatMan(data, data.names[q])
+  print(outPlot)
+}
+# Now do CT and CC
+for(q in 7:length(data.names)){
+  dfName <- paste(data.names[q], ".modal.data", sep='')
+  data <- doEverythingEverCT(get(dfName), grepVals[q], 0, 167, 'Childhood', optionalRace=NULL)
+  outPlot <- scatMan(data, data.names[q])
+  print(outPlot)
+}
+dev.off()
+
+# Now adolescent
+#doEverythingEver(vol.modal.data, 'mprage_jlf_vol', 168, 215, 'Adolescence', cerebellum=F,optionalRace=NULL)
+pdf('Adolescence.pdf')
+for(q in 1:6){
+  print(data.names[q])
+  dfName <- paste(data.names[q], ".modal.data", sep='')
+  data <- doEverythingEver(get(dfName), grepVals[q], 168, 215, 'Adolescence', cerebellum=F, optionalRace=NULL)
+  outPlot <- scatMan(data, data.names[q])
+  print(outPlot)
+}
+# Now do CT and CC
+for(q in 7:length(data.names)){
+  dfName <- paste(data.names[q], ".modal.data", sep='')
+  data <- doEverythingEverCT(get(dfName), grepVals[q], 168, 215, 'Adolescence', optionalRace=NULL)
+  outPlot <- scatMan(data, data.names[q])
+  print(outPlot)
+}
+dev.off()
+
+# And finally early adulthood
+#adult.cbf <- doEverythingEver(cbf.modal.data, 'pcasl_jlf_cbf', 216, 999, 'Early Adulthood', cerebellum=F,optionalRace=NULL)
+pdf('EarlyAdulthood.pdf')
+for(q in 1:6){
+  print(data.names[q])
+  dfName <- paste(data.names[q], ".modal.data", sep='')
+  data <- doEverythingEver(get(dfName), grepVals[q], 216, 999, 'Early Adulthood', cerebellum=F, optionalRace=NULL)
+  outPlot <- scatMan(data, data.names[q])
+  print(outPlot)
+}
+# Now do CT and CC
+for(q in 7:length(data.names)){
+  dfName <- paste(data.names[q], ".modal.data", sep='')
+  data <- doEverythingEverCT(get(dfName), grepVals[q], 216, 999, 'Early Adulthood', optionalRace=NULL)
+  outPlot <- scatMan(data, data.names[q])
+  print(outPlot)
+}
+dev.off()
