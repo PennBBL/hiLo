@@ -14,7 +14,11 @@ cc.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/rawDataMGI/n1601_jlf
 
 # Create the age regressed overall scores here
 modal.scores <- merge(data.values, modal.scores, by='bblid')
-modal.scores$Overall_EfficiencyAR <- lm(Overall_Efficiency ~ age + age^2 + age^3, data=modal.scores)$residuals
+ageVal <- scale(modal.scores$age)
+ageSqu <- scale(modal.scores$age)^2
+ageCub <- scale(modal.scores$age)^3
+modal.scores$Overall_EfficiencyAR <- lm(modal.scores$Overall_Efficiency ~ ageVal + ageSqu + ageCub, data=modal.scores)$residuals
+modal.scores$Diagnosis <- gsub(x=modal.scores$Diagnosis, pattern=',', replacement='')
 
 # Now find subjects that we should not use
 bblid.index <- modal.scores$bblid
@@ -33,6 +37,7 @@ outputMeanLRAgeRegModReg <- "/home/adrose/dataPrepForHiLoPaper/data/meanLRVoland
 for(i in 1:length(dataVals)){
   # First load the data set, and create all of our output names
   tmpData <- get(dataVals[i])
+  
   outMean <- paste(outputMeanLR, outNames[i], sep='')
   outAge <- paste(outputMeanLRAgeReg, outNames[i], sep='')
   outMod <- paste(outputMeanLRAgeRegModReg, outNames[i], sep='')
@@ -58,6 +63,7 @@ for(i in 1:length(dataVals)){
   tmpMR <- regressWithinModality(tmpAR, modalNames[i])
 
   # Now write the csvs
+  print(dim(tmpLR))
   write.csv(tmpLR, outMean, quote=F, row.names=F)
   write.csv(tmpAR, outAge, quote=F, row.names=F)
   write.csv(tmpMR, outMod, quote=F, row.names=F)
