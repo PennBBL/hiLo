@@ -576,4 +576,31 @@ doEverythingEverCT <- function(df, modalityGrepPattern, lowerAge.e, upperAge.e, 
   return(tmp)
 }
 
-
+scatMan <- function(outputFromDo, plotMain){
+  allData <- reshape(data=outputFromDo, direction="wide", idvar="ROI", timevar='sex', v.names='zScoreDifference')
+  minVal <- range(outputFromDo$zScoreDifference)[1]-.1
+  maxVal <- range(outputFromDo$zScoreDifference)[2]+.1
+  if(minVal > 0){
+    minVal <- -.05
+  }
+  corVal <- paste("r = ", round(cor(allData$zScoreDifference.M, allData$zScoreDifference.F), digits=2))
+  plotOut <-  ggplot(allData, aes(x=zScoreDifference.M, y=zScoreDifference.F)) + 
+  geom_point(aes(fill=lobe)) + 
+  geom_smooth(method=lm) + 
+  geom_label_repel(aes(label=ROI,color=lobe,size=3.5),box.padding=unit(0.35,"lines"),point.padding=unit(0.5,"lines")) + 
+  coord_cartesian(xlim=c(minVal, maxVal), ylim=c(minVal, maxVal)) + 
+  xlab("Male z-score difference") + 
+  ylab("Female z-score difference") + 
+  geom_hline(yintercept = 0 , linetype=3) + 
+  geom_vline(xintercept = 0 , linetype=3) + 
+  theme(legend.position="none") + 
+  ggtitle(plotMain) +
+  geom_text(aes(x=-Inf, y=Inf, hjust=0, vjust=1, label=corVal))
+  if(cor(allData$zScoreDifference.M, allData$zScoreDifference.F) > 0){
+    plotOut <- plotOut + geom_abline(intercept=0, slope=1)
+  }
+  if(cor(allData$zScoreDifference.M, allData$zScoreDifference.F) < 0){
+    plotOut <- plotOut + geom_abline(intercept=0, slope=-1)
+  }
+  return(plotOut)
+}
