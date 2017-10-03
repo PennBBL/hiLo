@@ -1,4 +1,4 @@
-install_load('psych', 'sas7bdat', 'mi', 'methods', 'doParallel')
+install_load('psych', 'sas7bdat', 'mi', 'methods', 'doParallel', 'missForest')
 
 x <- read.csv("/home/tymoore/MGI2_CNB.csv")
 
@@ -33,6 +33,10 @@ t_LAN)
 
 detach(x)
 
+# Now remove the rows with entire NA
+x <- x[rowSums(is.na(x))<10,1:25]
+orig <- x
+
 # Now impute missing data 
 toImpute <- x[,2:25]
 options(mc.cores=4)
@@ -45,10 +49,24 @@ output.4 <- output[[4]][,1:24]
 output <- (output.1 + output.2 + output.3 + output.4)/4
 x[,2:25] <- output
 
+# Now explore impossible values 
+# First I need to find negative values
+x[x<0] <- NA
+
+
+# Also explore nonparametric imputation methods here
+toImpute <- orig[,2:25]
+output <- missForest(toImpute)
+x[,2:25] <- output[[1]]
+
+# Now rescale
 x[,2:25] <- scale(x[,2:25])
 
+
+# Compute efficiency 
 eff <- scale(x[,2:13] - x[,14:25])
 
+# append efficiency 
 x <- data.frame(x,eff)
 
 colnames(x)[26:37] <- c(
@@ -67,5 +85,5 @@ colnames(x)[26:37] <- c(
 
 x$Overall_Accuracy_no_pvrt <- scale(rowMeans(x[,2:13]))
 x$Overall_Efficiency <- scale(rowMeans(x[,26:37]))
-
+colnames(x)[1] <- 'bblid'
 write.csv(x,"/home/adrose/dataPrepForHiLoPaper/data/mgiData/MGI_FScores.csv",na="", quote=F, row.names=F)
