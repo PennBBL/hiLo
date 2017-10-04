@@ -1,5 +1,5 @@
 source('/home/adrose/hiLo/scripts/04_CognitiveModels/functions/functions.R')
-install_load('foreach', 'doParallel', 'glmnet','psych','reshape2', 'caret','MASS', 'methods')
+install_load('foreach', 'doParallel', 'glmnet','psych','reshape2', 'caret','MASS', 'methods', 'ggplot2')
 
 
 # Now run variable selection with the modality regressed variables and see if this alters our selection at all
@@ -52,11 +52,31 @@ for(g in 1:2){
 }
 write.csv(allRVals, 'enetCompareLinReg.csv', quote=F, row.names=F)
 
+# Now try austin on all
+# First remove the summary variables
+all.data.var.select <- all.data
+valsToRM <- grep('_Mean', names(all.data.var.select))
+valsToRM <- c(grep('_ICV', names(all.data.var.select)), valsToRM)
+all.data.var.select <- all.data.var.select[,-valsToRM]
+selectVals <- returnSelectionN(all.data.var.select, grepID='_jlf_', genderID=1, nCor=25, dir='backward', iterationCount=50)
+tmp <- all.data[which(all.data$sex==1),grep('_jlf_', names(all.data))]
+namesToUse <- rownames(selectVals)[which(returnSelectionCol(selectVals)>24)]
+index <- colnames(tmp) %in% namesToUse
+tmpP <- tmp[,index]
+foo <- runRidgeOnAll(x=tmpP, y=all.data$F1_Exec_Comp_Cog_Accuracy[which(all.data$sex==1)])
+
 # Now run the previous loop 100 times and see what kind of variance we get in the r^2 vals
-allRVals <- NA
-for(q in seq(1,50)){
+# Also create a vector with the summary metrics so we now what to grep for and rm
+allRVals <- NULL
+vol.data.step <- vol.data[,-grep('mprage_jlf_vol_ICV', names(vol.data))]
+cbf.data.step <- cbf.data[,-grep('pcasl_jlf_cbf_MeanGM', names(cbf.data))]
+gmd.data.step <- gmd.data[,-grep('mprage_jlf_gmd_MeanGMD', names(gmd.data))]
+tr.data.step <- tr.data[,-grep('dti_jlf_tr_MeanTR', names(tr.data))]
+data.step <- c('vol.data.step', 'cbf.data.step', 'gmd.data.step', 'tr.data.step', 'all.data.var.select')
+for(q in seq(1,10)){
   for(g in 1:2){
-    for(z in 1:length(dataNames)){
+    for(z in 1:4){
+      print(q)
       tmpDF <- get(dataNames[z])
       tmpDF <- tmpDF[which(tmpDF$sex==g),]
       tmp.col <- grep(dataGrepNames[z], names(tmpDF))
@@ -64,6 +84,12 @@ for(q in seq(1,50)){
       tmp.out <- scale(tmpDF$F1_Exec_Comp_Cog_Accuracy)
       tmp.out <- tmp.out[complete.cases(tmpDF[,tmp.col])]
       tmp.values <- tmp.values[complete.cases(tmpDF[,tmp.col]),]
+      if(z > 0){
+        selectVals <- returnSelectionN(dataFrame=get(data.step[z]), grepID=dataGrepNames[z], genderID=g, nCor=10, dir='backward', iterationCount=51)
+        namesToUse <- rownames(selectVals)[which(returnSelectionCol(selectVals)>(dim(selectVals)[2]/2))]
+        index <- colnames(tmp.values) %in% namesToUse
+        tmp.values <- tmp.values[,index]
+      }
       print(dim(tmp.values))
       # Now produce the beta weights
       outVals <- runRidgeOnAll(x=tmp.values, y=tmp.out)
@@ -77,7 +103,6 @@ for(q in seq(1,50)){
 }
 
 # Now plot a violin plot of the RVals
-allRVals <- allRVals[-1,]
 allRValsPlot <- as.data.frame(allRVals)
 allRValsPlot <- melt(allRValsPlot, id.vars=c('g', 'V2'))
 allRValsPlot$value <- as.numeric(as.character(allRValsPlot$value))
@@ -86,5 +111,29 @@ allPlot <- ggplot(allRValsPlot, aes(x=V2, y=value, color=g, fill=variable)) +
     #stat_summary(fun.y=mean, geom="point", shape=23, position=position_dodge(.1)) + 
     #stat_summary(fun.y=median, geom="point", size=2, color="red", position=position_dodge(.1)) + 
     theme(axis.text.x=element_text(angle=90)) + 
-    labs(y="R-Squared", x='Modality')
+    labs(y="R-Squared", x='Modality') + 
+    coord_cartesian(ylim=c(0, .3), expand=T)
+pdf('backwardVarSelectOutVals.pdf')
+print(allPlot)
+dev.off()
 
+# Now I need to explore selection trends within each modality
+data.step <- c('vol.data.step', 'cbf.data.step', 'gmd.data.step', 'tr.data.step', 'all.data.var.select')
+output <- NULL
+for(g in 1:2){
+  for(z in 1:4){
+    outVal <- NULL
+    for(p in 1:20){
+      selectVals <- returnSelectionN(dataFrame=get(data.step[z]), grepID=dataGrepNames[z], genderID=g, nCor=25, dir='backward', iterationCount=100)
+      outputVals <- returnSelectionCol(selectVals)
+      outVal <- cbind(outVal, outputVals) 
+      print(g,z,p)          
+    }
+    rownames(outVal) <- rownames(selectVals)
+    outMean <- rowMeans(outVal)
+    outSD <- apply(outVal, 1, sd)
+    toWrite <- cbind(outMean, outSD)
+    outCSV <- paste(g,z,'selectVals.csv', sep='')
+    write.csv(toWrite, outCSV, row.names=T, quote=F)
+  }  
+}
