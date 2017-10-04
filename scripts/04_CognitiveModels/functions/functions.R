@@ -256,8 +256,19 @@ stand_err <- function(input_vector){
   tmp <- sd(input_vector,na.rm=T)/sqrt(sum(!is.na(input_vector)))
   return(tmp)
 }
+has.interaction <- function(x,terms){
+    out <- sapply(terms,function(i){
+        sum(1-(strsplit(x,":")[[1]] %in% strsplit(i,":")[[1]]))==0
+    })
+    return(sum(out)>0)
+}
 
-model.select <- function(model,keep,sig=0.05,verbose=F, data=NULL){
+# Function Model.select
+# model is the lm object of the full model
+# keep is a list of model terms to keep in the model at all times
+# sig gives the significance for removal of a variable. Can be 0.1 too (see SPSS)
+# verbose=T gives the F-tests, dropped var and resulting model after 
+model.select <- function(model,keep,sig=0.05,verbose=F){
       counter=1
       # check input
       if(!is(model,"lm")) stop(paste(deparse(substitute(model)),"is not an lm object\n"))
@@ -355,7 +366,7 @@ returnCVStepFit <- function(dataFrame, genderID, grepID, pValue=.05, iterationCo
       install_load('caret', 'SignifReg')
       
       # create our model
-      folds <- createDataPartition(dataToUse$V1,list=T)
+      folds <- createResample(dataToUse$V1,list=T)
       index <- unlist(folds[1])
       dataTrain <- dataToUse[index,]
       stepVAR <- SignifReg(scope=V1~., data=dataTrain, alpha=pValue, direction="forward", criterion="p-value")
@@ -434,7 +445,7 @@ has.interaction <- function(x,terms){
     return(sum(out)>0)
 }
 
-returnSelection <- function(dataFrame, genderID, grepID, pValue=.05, iterationCount=1000, nCor=3, selectionPercent=.75, returnBetas=TRUE){
+returnSelectionN <- function(dataFrame, genderID, grepID, pValue=.05, iterationCount=1000, nCor=3, dir='forward'){
   # Prepare our data
   isolatedGender <- dataFrame[which(dataFrame$sex==genderID),]
   colsOfInterest <- grep(grepID, names(isolatedGender))
@@ -448,17 +459,27 @@ returnSelection <- function(dataFrame, genderID, grepID, pValue=.05, iterationCo
   registerDoParallel(cl)
 
   # Bootstrap forward p value step wise model selection
-  output <- foreach(i=seq(1,iterationCount), .combine='cbind') %dopar% {
+  output <- foreach(i=seq(1,iterationCount), .combine='cbind',.export=ls(envir=globalenv()),.errorhandling = 'remove') %dopar% {
       # First load required library(s)
       source('/home/adrose/adroseHelperScripts/R/afgrHelpFunc.R')
       source('/home/adrose/hiLo/scripts/04_CognitiveModels/functions/functions.R')
-      install_load('caret', 'SignifReg')
+      install_load('caret', 'SignifReg', 'MASS')
       
       # create our model
-      folds <- createFolds(dataToUse$V1, k=4, list=T, returnTrain=T)
+      folds <- createResample(dataToUse$V1,list=T)
       index <- unlist(folds[1])
       dataTrain <- dataToUse[index,]
-      stepVAR <- SignifReg(scope=V1~., data=dataTrain, alpha=pValue, direction="forward", criterion="p-value")
+      if(dir=='forward'){
+        stepVAR <- SignifReg(scope=V1~., data=dataTrain, alpha=pValue, direction='forward', criterion="p-value")
+      }
+      if(dir=='backward'){
+        fitVals <- lm(V1~., data=dataTrain)
+        stepVAR <- model.select(fitVals, verbose=T)
+      }
+      if(dir=='both'){
+        fitVals <- lm(V1~., data=dataTrain)
+        stepVAR <- stepAIC(fitVals, direction='both')
+      }
       
       # now create our output vector
       outCol <- matrix(0, nrow=dim(dataToUse)[2], ncol=1)
