@@ -85,7 +85,7 @@ for(q in seq(1,10)){
       tmp.out <- tmp.out[complete.cases(tmpDF[,tmp.col])]
       tmp.values <- tmp.values[complete.cases(tmpDF[,tmp.col]),]
       if(z > 0){
-        selectVals <- returnSelectionN(dataFrame=get(data.step[z]), grepID=dataGrepNames[z], genderID=g, nCor=10, dir='backward', iterationCount=51)
+        selectVals <- returnSelectionN(dataFrame=get(data.step[z]), grepID=dataGrepNames[z], genderID=g, nCor=10, dir='forward', iterationCount=51)
         namesToUse <- rownames(selectVals)[which(returnSelectionCol(selectVals)>(dim(selectVals)[2]/2))]
         index <- colnames(tmp.values) %in% namesToUse
         tmp.values <- tmp.values[,index]
@@ -123,7 +123,7 @@ output <- NULL
 for(g in 1:2){
   for(z in 1:4){
     outVal <- NULL
-    for(p in 1:20){
+    for(p in 1:10){
       selectVals <- returnSelectionN(dataFrame=get(data.step[z]), grepID=dataGrepNames[z], genderID=g, nCor=25, dir='backward', iterationCount=100)
       outputVals <- returnSelectionCol(selectVals)
       outVal <- cbind(outVal, outputVals) 
@@ -136,4 +136,27 @@ for(g in 1:2){
     outCSV <- paste(g,z,'selectVals.csv', sep='')
     write.csv(toWrite, outCSV, row.names=T, quote=F)
   }  
+}
+
+# Now try the step wise austin heirarchy model building 
+dataNames <- c('vol.data', 'cbf.data', 'gmd.data', 'tr.data', 'all.data')
+data.step <- c('vol.data.step', 'cbf.data.step', 'gmd.data.step', 'tr.data.step', 'all.data.var.select')
+dataGrepNames <- c('mprage_jlf_vol_', 'pcasl_jlf_cbf_', 'mprage_jlf_gmd_','dti_jlf_tr_', '_jlf_')
+allRVals <- NA
+for(g in 1:2){
+  for(z in 1:length(dataNames)){
+    tmpDF <- get(dataNames[z])
+    tmpDF <- tmpDF[which(tmpDF$sex==g),]
+    tmp.col <- grep(dataGrepNames[z], names(tmpDF))
+    tmp.values <- scale(tmpDF[,tmp.col])[,1:length(tmp.col)]
+    tmp.out <- scale(tmpDF$F1_Exec_Comp_Cog_Accuracy)
+    tmp.out <- tmp.out[complete.cases(tmpDF[,tmp.col])]
+    tmp.values <- tmp.values[complete.cases(tmpDF[,tmp.col]),]
+    # Produce the selection count 
+    selectN <- returnSelectionN(dataFrame=get(data.step[z]), grepID=dataGrepNames[z], genderID = g, nCor=25, iterationCount=100)
+    # Now build the model
+    # Now get all of the R^2 values
+    modelOut <- buildAustinModel(selectN, predVals=tmp.values, outVals=tmp.out)
+    allRVals <- rbind(allRVals, modelOut)
+  }
 }

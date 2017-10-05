@@ -118,12 +118,14 @@ rmFat <- function(outputFromrunLasso, imagingData, percentileToApply){
   index <- which(boo.vec=='TRUE')
   # Now apply our boo vec to the imaging data
   output <- imagingData[,index]
+
   return(output)
 }
 
 returnSelectionCol <- function(outputFromrunLasso){
   sumIndex <- rowSums(abs(sign(apply(outputFromrunLasso[,2:ncol(outputFromrunLasso)], 
               2, function(x) as.numeric(as.character(x))))))
+  sumIndex <- cbind(rownames(outputFromrunLasso), sumIndex)
   return(sumIndex)
 }
 
@@ -697,7 +699,7 @@ bootStrapBetaWeight <- function(y, x, iterationCount=100, nCor=3){
 ###	3.) Get the fit statistics in the left out data set - this is what we return
 ###	4.) Run 1-3 for each fold - find the average of the fit stats 
 ### This function should return a crossvallidated fit value for each of the input data set 
-runRidgeOnAll <- function(x, y, nFold=10, nCor=5, lambdaSeq=10^seq(3, -2, by = -.1)){
+runRidgeOnAll <- function(x, y, nFold=10, lambdaSeq=10^seq(3, -2, by = -.1), rmLmSummary=TRUE){
   # The first thing we have to do is split our data into 10 folds
   folds <- createFolds(y, k=nFold, list=T, returnTrain=T)
   
@@ -723,6 +725,17 @@ runRidgeOnAll <- function(x, y, nFold=10, nCor=5, lambdaSeq=10^seq(3, -2, by = -
 
     # Now do the same with linear regression
     tmpDF <- as.data.frame(cbind(trainY, trainX))
+
+    # Check to see if summary metric flag is set to T
+    if(rmLmSummary){
+      grepVals <- c('Mean', 'ICV')
+      valsToRm <- NULL
+      for(nameVal in grepVals){
+        grepOut <- grep(nameVal, names(tmpDF))
+        valsToRm <- append(valsToRm, grepOut)
+      }
+      tmpDF <- tmpDF[,-valsToRm]
+    }
     lmMod <- lm(trainY~., data=tmpDF)
     # Now get the predictide values
     outputCvValsL[trainSeq[-index]] <- predict(lmMod, newdata=as.data.frame(testX))
@@ -733,5 +746,66 @@ runRidgeOnAll <- function(x, y, nFold=10, nCor=5, lambdaSeq=10^seq(3, -2, by = -
   output[[1]] <- outputCvValsR
   output[[2]] <- outputCvValsL
   output[[3]] <- outputCvBeta
+  return(output)
+}
+
+# Now write a function to run through the austin n values and build a model
+# based on the n hierarchy. 
+# The inputs will be: 1. the austin n values 2. the the x values 3. the y values to predict
+buildAustinModel <- function(austinValues, predVals, outVals, addSummary=TRUE){
+  # First organize the austin values
+  selectionN <- returnSelectionCol(austinValues)
+  selectionN <- selectionN[order(as.numeric(selectionN[,2]), decreasing=T),]
+
+  # Now get the model order
+  modelOrder <- selectionN[,1]
+  
+  # Get our static value
+  staticValue <- grep('ICV', colnames(predVals))
+  staticValue <- append(staticValue, grep('Mean', colnames(predVals)))
+
+  # Now initialize a model
+  initModel <- runRidgeOnAll(x = predVals[,c(staticValue, which(colnames(predVals) %in% modelOrder[1]))], y = outVals)
+  initValue <- cor(initModel[[1]], outVals)^2
+
+  # Now run the model building procedure through a while loop
+  # Now get some static variables for the chi squared computation
+  n <- dim(predVals)[1]
+  modelStep <- 2
+  pValue <- 0 
+  while(pValue < .1){
+    # First get our model input values
+    modelValues <- modelOrder[1:modelStep]  
+    
+    # Now build our model
+    newModel <- runRidgeOnAll(x = predVals[,c(staticValue, which(colnames(predVals) %in% modelValues))], y = outVals)
+    newValue <- cor(newModel[[1]], outVals)^2
+
+    # Now compute the F statistic
+    diffInR <- newValue - initValue
+    denominatorForDiffInR <- 1
+    distanceFromOne <- 1 - newValue
+    degreeFree <- n - length(modelValues) 
+    denomValue <- distanceFromOne / degreeFree
+    fValue <- diffInR / denomValue
+    pValue <- pf(fValue, 1, degreeFree, lower.tail=F)
+    print(newValue)
+    print(pValue)
+  
+    # If we have gotten this far we are still building our model
+    # Now we need to export the new model to the old variable
+    initModel <- newModel
+    initValue <- newValue
+    modelStep <- modelStep + 1
+  }
+
+  # Now return all of the output!
+  outVal1 <- modelStep
+  outVal2 <- n
+  outVal3 <- paste(modelValues, collapse='+')
+  outVal4 <- initValue
+
+  # Now Export the values!
+  output <- cbind(outVal1, outVal2, outVal3, outVal4)
   return(output)
 }
