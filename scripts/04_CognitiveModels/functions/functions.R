@@ -752,7 +752,7 @@ runRidgeOnAll <- function(x, y, nFold=10, lambdaSeq=10^seq(3, -2, by = -.1), rmL
 # Now write a function to run through the austin n values and build a model
 # based on the n hierarchy. 
 # The inputs will be: 1. the austin n values 2. the the x values 3. the y values to predict
-buildAustinModel <- function(austinValues, predVals, outVals, addSummary=TRUE){
+buildAustinModel <- function(austinValues, predVals, outVals, addSummary=TRUE, breakValue=.1, returnStepVals=FALSE, nIters=100, stepSize=1){
   # First organize the austin values
   selectionN <- returnSelectionCol(austinValues)
   selectionN <- selectionN[order(as.numeric(selectionN[,2]), decreasing=T),]
@@ -773,7 +773,9 @@ buildAustinModel <- function(austinValues, predVals, outVals, addSummary=TRUE){
   n <- dim(predVals)[1]
   modelStep <- 2
   pValue <- 0 
-  while(pValue < .1){
+  cvValueOut <- NULL
+  oldP <- 2
+  while(pValue < breakValue){
     # First get our model input values
     modelValues <- modelOrder[1:modelStep]  
     
@@ -781,31 +783,43 @@ buildAustinModel <- function(austinValues, predVals, outVals, addSummary=TRUE){
     newModel <- runRidgeOnAll(x = predVals[,c(staticValue, which(colnames(predVals) %in% modelValues))], y = outVals)
     newValue <- cor(newModel[[1]], outVals)^2
 
+    # Now get the length of p
+    newP <- length(c(staticValue, which(colnames(predVals) %in% modelValues)))
+
     # Now compute the F statistic
     diffInR <- newValue - initValue
-    denominatorForDiffInR <- 1
+    denominatorForDiffInR <- oldP - newP
     distanceFromOne <- 1 - newValue
     degreeFree <- n - length(modelValues) 
     denomValue <- distanceFromOne / degreeFree
     fValue <- diffInR / denomValue
     pValue <- pf(fValue, 1, degreeFree, lower.tail=F)
     print(newValue)
-    print(pValue)
+    #print(pValue)
   
     # If we have gotten this far we are still building our model
     # Now we need to export the new model to the old variable
+    cvValueOut <- append(cvValueOut, newValue)
     initModel <- newModel
     initValue <- newValue
-    modelStep <- modelStep + 1
+    modelStep <- modelStep + stepSize
+    oldP <- length(c(staticValue, which(colnames(predVals) %in% modelValues)))
+
+    # Now check for a forced break
+    if(modelStep > nIters){
+      break
+    }
   }
 
   # Now return all of the output!
-  outVal1 <- modelStep
+  outVal1 <- modelStep - 1
   outVal2 <- n
-  outVal3 <- paste(modelValues, collapse='+')
-  outVal4 <- initValue
+  outVal3 <- paste(modelValues[1:(length(modelValues)-stepSize)], collapse='+')
+  outVal4 <- max(cvValueOut)
 
   # Now Export the values!
-  output <- cbind(outVal1, outVal2, outVal3, outVal4)
+  output <- list()
+  output[[1]] <- cbind(outVal1, outVal2, outVal3, outVal4)
+  output[[2]] <- cvValueOut
   return(output)
 }

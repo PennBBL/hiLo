@@ -143,8 +143,9 @@ dataNames <- c('vol.data', 'cbf.data', 'gmd.data', 'tr.data', 'all.data')
 data.step <- c('vol.data.step', 'cbf.data.step', 'gmd.data.step', 'tr.data.step', 'all.data.var.select')
 dataGrepNames <- c('mprage_jlf_vol_', 'pcasl_jlf_cbf_', 'mprage_jlf_gmd_','dti_jlf_tr_', '_jlf_')
 allRVals <- NA
+pdf('outCVTrends.pdf')
 for(g in 1:2){
-  for(z in 1:length(dataNames)){
+  for(z in 1:5){
     tmpDF <- get(dataNames[z])
     tmpDF <- tmpDF[which(tmpDF$sex==g),]
     tmp.col <- grep(dataGrepNames[z], names(tmpDF))
@@ -156,7 +157,14 @@ for(g in 1:2){
     selectN <- returnSelectionN(dataFrame=get(data.step[z]), grepID=dataGrepNames[z], genderID = g, nCor=25, iterationCount=100)
     # Now build the model
     # Now get all of the R^2 values
-    modelOut <- buildAustinModel(selectN, predVals=tmp.values, outVals=tmp.out)
-    allRVals <- rbind(allRVals, modelOut)
+    if(z < 5){
+      modelOut <- buildAustinModel(selectN, predVals=tmp.values, outVals=tmp.out, breakValue=1, nIters=dim(selectN)[1], stepSize=5)
+    }
+    if(z==5){
+      modelOut <- buildAustinModel(selectN, predVals=tmp.values, outVals=tmp.out, breakValue=1, nIters=dim(selectN)[1], stepSize=10)
+    }
+    print(plot(modelOut[[2]], main=data.step[z], ylab='CV R-Squared'))
+    allRVals <- rbind(allRVals, modelOut[[1]])
   }
 }
+dev.off()
