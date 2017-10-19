@@ -755,6 +755,7 @@ runRidgeOnAll <- function(x, y, nFold=10, lambdaSeq=10^seq(3, -2, by = -.1), rmL
 buildAustinModel <- function(austinValues, predVals, outVals, addSummary=TRUE, breakValue=.1, returnStepVals=FALSE, nIters=100, stepSize=1){
   # First organize the austin values
   selectionN <- returnSelectionCol(austinValues)
+  selectionN[,1] <- rownames(selectionN)
   selectionN <- selectionN[order(as.numeric(selectionN[,2]), decreasing=T),]
 
   # Now get the model order
@@ -774,6 +775,7 @@ buildAustinModel <- function(austinValues, predVals, outVals, addSummary=TRUE, b
   modelStep <- 2
   pValue <- 0 
   cvValueOut <- NULL
+  modelValueOut <- paste(colnames(predVals[,c(staticValue, which(colnames(predVals) %in% modelOrder[1]))]), collapse='+')
   oldP <- 2
   while(pValue < breakValue){
     # First get our model input values
@@ -800,6 +802,7 @@ buildAustinModel <- function(austinValues, predVals, outVals, addSummary=TRUE, b
     # If we have gotten this far we are still building our model
     # Now we need to export the new model to the old variable
     cvValueOut <- append(cvValueOut, newValue)
+    modelValueOut <- rbind(modelValueOut,  paste(colnames(predVals[,c(staticValue, which(colnames(predVals) %in% modelValues))]), collapse='+'))
     initModel <- newModel
     initValue <- newValue
     modelStep <- modelStep + stepSize
@@ -821,5 +824,6 @@ buildAustinModel <- function(austinValues, predVals, outVals, addSummary=TRUE, b
   output <- list()
   output[[1]] <- cbind(outVal1, outVal2, outVal3, outVal4)
   output[[2]] <- cvValueOut
+  output[[3]] <- modelValueOut
   return(output)
 }
