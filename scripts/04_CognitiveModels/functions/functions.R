@@ -699,7 +699,7 @@ bootStrapBetaWeight <- function(y, x, iterationCount=100, nCor=3){
 ###	3.) Get the fit statistics in the left out data set - this is what we return
 ###	4.) Run 1-3 for each fold - find the average of the fit stats 
 ### This function should return a crossvallidated fit value for each of the input data set 
-runRidgeOnAll <- function(x, y, nFold=10, lambdaSeq=10^seq(3, -2, by = -.1), rmLmSummary=TRUE){
+runRidgeOnAll <- function(x, y, nFold=10, lambdaSeq=10^seq(3, -2, by = -.1), rmLmSummary=TRUE, outcome="gaussian"){
   # The first thing we have to do is split our data into 10 folds
   folds <- createFolds(y, k=nFold, list=T, returnTrain=T)
   
@@ -715,9 +715,9 @@ runRidgeOnAll <- function(x, y, nFold=10, lambdaSeq=10^seq(3, -2, by = -.1), rmL
     trainY <- as.vector(y)[index]
     testX <- as.matrix(x)[-index,]
     # Now grab our lambda to use 
-    fit.cv <- cv.glmnet(x=trainX, y=trainY, alpha=0, lambda=lambdaSeq, nfolds=10)
+    fit.cv <- cv.glmnet(x=trainX, y=trainY, alpha=0, lambda=lambdaSeq, nfolds=10, family=outcome)
     lambdaVal <- fit.cv$lambda[which(fit.cv$cvm==min(fit.cv$cvm))]
-    modelFit <- glmnet(x=trainX, y=trainY, alpha=0, lambda=lambdaVal)
+    modelFit <- glmnet(x=trainX, y=trainY, alpha=0, lambda=lambdaVal, family=outcome)
 
     # Now get our prediction values in the test values
     outputCvValsR[trainSeq[-index]] <- predict(modelFit, testX)
@@ -826,4 +826,49 @@ buildAustinModel <- function(austinValues, predVals, outVals, addSummary=TRUE, b
   output[[2]] <- cvValueOut
   output[[3]] <- modelValueOut
   return(output)
+}
+
+
+# Now build a model to run tpot output
+runTpotModel <- function(inputData, inputGender){
+  inputData <- inputData[which(inputData$sex==inputGender),]
+  dataI <- inputData[,c(grep('F1_Exec_Comp_Cog_Accuracy', names(inputData)), grep('_jlf_', names(inputData)))]
+
+  # Now split into train test
+  index <- createFolds(dataI$F1_Exec_Comp_Cog_Accuracy, 5)$Fold1
+  dataTest <- dataI[index,]
+  dataI <- dataI[-index,]
+
+  # Now make sure we only have complete data 
+  dataI <- dataI[complete.cases(dataI),]
+  dataTest <- dataTest[complete.cases(dataTest),]
+
+  # Now run Austin
+  selectVals <- returnSelectionN(inputData[index,], grepID='_jlf_', genderID=inputGender, nCor=4, iterationCount=100)
+  valsToUse <- which(as.numeric(returnSelectionCol(selectVals)[,2]) > 24)
+  nameVals <- rownames(selectVals)[valsToUse]
+  colVals <- which(colnames(dataI) %in% nameVals)
+  dataI <- dataI[c(1, colVals)]
+  dataTest <- dataTest[,c(1, colVals)]
+
+  # Now build a regression tree
+  tree1 <- rpart(F1_Exec_Comp_Cog_Accuracy~.,method='anova',data=dataI,control=rpart.control(minsplit=10,maxdepth=1))
+  dataI$outVal <- predict(tree1)
+  dataTest$outVal <- predict(tree1, dataTest)
+
+  # Now scale the values
+  dataI <- scale(dataI)
+  dataTest <- scale(dataTest)  
+
+  # Now build an enet model 
+  tmpVal <- cv.glmnet(y=dataI[,1], x=dataI[,2:dim(dataI)[2]], alpha=.55)
+  finalMod <- glmnet(y=dataI[,1], x=dataI[,2:dim(dataI)[2]],alpha=.55,lambda=tmpVal$lambda.min)
+
+  # Now get some fit metrics 
+  outTrainR2 <- cor(predict(finalMod, dataI[,2:dim(dataI)[2]]), dataI[,1], use='complete')^2
+  outTestR2 <- cor(predict(finalMod, dataTest[,2:dim(dataTest)[2]]), dataTest[,1], use='complete')^2
+
+  # Now return the out val
+  outVal <- cbind(outTrainR2, outTestR2, dim(dataI)[2], dim(dataTest)[1])
+  return(outVal)
 }

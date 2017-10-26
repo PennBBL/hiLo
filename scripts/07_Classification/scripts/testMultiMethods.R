@@ -1,5 +1,5 @@
 # Load library(s)
-install_load('caret', 'foreign', 'nnet', 'ggplot2', 'reshape2', 'MASS', 'Hmisc', 'adabag')
+install_load('caret', 'foreign', 'nnet', 'ggplot2', 'reshape2', 'MASS', 'Hmisc', 'adabag', 'gbm')
 
 # Load data
 # Now run variable selection with the modality regressed variables and see if this alters our selection at all
@@ -35,7 +35,7 @@ returnPerfBin <- function(data) {
   data$perfBin <- 0
   data$perfBin[which(data$F1_Exec_Comp_Cog_Accuracy < quantiles[2])] <- 3
   data$perfBin[which(data$F1_Exec_Comp_Cog_Accuracy >= quantiles[2] &
-                          data$F1_Exec_Comp_Cog_Accuracy <= quantiles[3])] <- 2
+                          data$F1_Exec_Comp_Cog_Accuracy <= quantiles[3])] <- 1
   data$perfBin[which(data$F1_Exec_Comp_Cog_Accuracy > quantiles[3])] <- 1
   return(data)
 }
@@ -70,3 +70,38 @@ tmpDatTrain <- tmpDat[index,]
 tmpDatValid <- tmpDat[-index,]
 m5 <- boosting(perfBin ~ ., tmpDatTrain)
 outPred <- predict(m5, tmpDatValid)
+
+# Now eploring regression boosting
+tmpDat <- all.data.male[,c(grep('F1_Exec_Comp_Cog_Accuracy', names(all.data.male)), grep('_jlf_', names(all.data.male)))]
+tmpDat <- scale(tmpDat)
+tmpDat <- as.data.frame(tmpDat)
+index <- createFolds(tmpDat$F1_Exec_Comp_Cog_Accuracy, k=5, list=T, returnTrain=T)[[1]]
+tmpDatTrain <- tmpDat[index,]
+tmpDatValid <- tmpDat[-index,]
+m4 <- gbm(formula = F1_Exec_Comp_Cog_Accuracy ~.,distribution="gaussian",data=tmpDatTrain,n.trees=10000,interaction.depth=2,shrinkage = 0.001, cv.fold=10, bag.fraction=.5,train.fraction=.5)
+#m5 <- gbm(formula = F1_Exec_Comp_Cog_Accuracy ~.,distribution="tdist",data=tmpDatTrain,n.trees=10000,interaction.depth=4,shrinkage = 0.01)
+cor(tmpDatValid$F1_Exec_Comp_Cog_Accuracy, predict(m4, newdata=tmpDatValid, n.trees=gbm.perf(m4)))
+
+# Now try adding variable selection to this garbage 
+source('/home/adrose/hiLo/scripts/04_CognitiveModels/functions/functions.R')
+install_load('foreach', 'doParallel', 'glmnet','psych','reshape2', 'caret','MASS', 'methods', 'ggplot2')
+
+index <- createFolds(vol.data.male$F1_Exec_Comp_Cog_Accuracy, k=5, list=T, returnTrain=T)[[1]]
+vol.data.male.test <- vol.data.male[-index,]
+vol.data.male <- vol.data.male[index,]
+selectN <- returnSelectionN(dataFrame=vol.data.male, grepID='_jlf_', genderID = 1, nCor=30, iterationCount=100)
+
+tmpDatTrain <- vol.data.male[,c(grep('F1_Exec_Comp_Cog_Accuracy', names(vol.data.male)), grep('_jlf_', names(vol.data.male)))]
+tmpDatValid <- vol.data.male.test[,c(grep('F1_Exec_Comp_Cog_Accuracy', names(vol.data.male.test)), grep('_jlf_', names(vol.data.male.test)))]
+allMod <- gbm(formula = F1_Exec_Comp_Cog_Accuracy ~.,distribution="gaussian",data=tmpDatTrain,n.trees=10000,interaction.depth=2,shrinkage = 0.001, cv.fold=3, bag.fraction=.5,train.fraction=.5)
+cor(tmpDatValid$F1_Exec_Comp_Cog_Accuracy, predict(allMod, newdata=tmpDatValid, n.trees=gbm.perf(allMod)))
+
+# Now try with var selection
+rankVals <- returnSelectionCol(selectN)
+colVals <- rankVals[which(as.numeric(rankVals[,2]) > 10),1]
+tmpDatTrainSel <- tmpDatTrain[,c(1,which(colnames(tmpDatTrain) %in% colVals))] 
+allMod <- gbm(formula = F1_Exec_Comp_Cog_Accuracy ~.,distribution="gaussian",data=tmpDatTrainSel,n.trees=4000,interaction.depth=2,shrinkage = 0.001, cv.fold=3, bag.fraction=.5,train.fraction=.5)
+cor(tmpDatValid$F1_Exec_Comp_Cog_Accuracy, predict(allMod, newdata=tmpDatValid, n.trees=gbm.perf(allMod)))
+
+
+
