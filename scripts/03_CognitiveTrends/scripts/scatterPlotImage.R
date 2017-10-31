@@ -58,11 +58,16 @@ tr.modal.data.age.reg$ageBin <- 'Age Regressed'
 # Start with the age regressed data 
 data.names <- c('vol', 'cbf', 'gmd', 'reho', 'alff', 'tr', 'ct', 'cc')
 grepVals <- c('mprage_jlf_vol_', 'pcasl_jlf_cbf_', 'mprage_jlf_gmd_', 'rest_jlf_reho_', 'rest_jlf_alff_', 'dti_jlf_tr_', 'mprage_jlf_ct_', 'mprage_jlf_cortcon_')
+wmAdd <- c(1,1,0,0,0,1)
+cerebellumValues <- c('TRUE', 'FALSE', 'TRUE', 'TRUE', 'TRUE', 'TRUE')
 pdf('ageRegressed.pdf')
 for(q in 1:6){
   print(data.names[q])
   dfName <- paste(data.names[q], ".modal.data.age.reg", sep='')
-  data <- doEverythingEver(get(dfName), grepVals[q], 0, 999, 'Age Regressed', cerebellum=F, optionalRace=NULL)
+  data <- doEverythingEver(get(dfName), grepVals[q], 0, 999, 'Age Regressed', cerebellumIn=cerebellumValues[q], optionalRace=NULL)
+  if(wmAdd[q]==1){
+  data <- rbind(data, doEverythingEverWM(get(dfName), grepVals[q], 0, 999, 'Age Regressed', cerebellumIn=cerebellumValues[q], optionalRace=NULL)) 
+  }
   outPlot <- scatMan(data, data.names[q])
   print(outPlot)
 }
@@ -82,7 +87,10 @@ pdf('Childhood.pdf')
 for(q in 1:6){
   print(data.names[q])
   dfName <- paste(data.names[q], ".modal.data", sep='')
-  data <- doEverythingEver(get(dfName), grepVals[q], 0, 167, 'Childhood', cerebellum=F, optionalRace=NULL)
+  data <- doEverythingEver(get(dfName), grepVals[q], 0, 167, 'Childhood', cerebellum=cerebellumValues[q], optionalRace=NULL)
+  if(wmAdd[q]==1){
+  data <- rbind(data, doEverythingEverWM(get(dfName), grepVals[q], 0, 167, 'Childhood', cerebellumIn=cerebellumValues[q], optionalRace=NULL)) 
+  }
   outPlot <- scatMan(data, data.names[q])
   print(outPlot)
 }
@@ -101,7 +109,10 @@ pdf('Adolescence.pdf')
 for(q in 1:6){
   print(data.names[q])
   dfName <- paste(data.names[q], ".modal.data", sep='')
-  data <- doEverythingEver(get(dfName), grepVals[q], 168, 215, 'Adolescence', cerebellum=F, optionalRace=NULL)
+  data <- doEverythingEver(get(dfName), grepVals[q], 168, 215, 'Adolescence', cerebellum=cerebellumValues[q], optionalRace=NULL)
+  if(wmAdd[q]==1){
+  data <- rbind(data, doEverythingEverWM(get(dfName), grepVals[q], 168, 215, 'Adolescence', cerebellumIn=cerebellumValues[q], optionalRace=NULL)) 
+  }
   outPlot <- scatMan(data, data.names[q])
   print(outPlot)
 }
@@ -120,7 +131,10 @@ pdf('EarlyAdulthood.pdf')
 for(q in 1:6){
   print(data.names[q])
   dfName <- paste(data.names[q], ".modal.data", sep='')
-  data <- doEverythingEver(get(dfName), grepVals[q], 216, 999, 'Early Adulthood', cerebellum=F, optionalRace=NULL)
+  data <- doEverythingEver(get(dfName), grepVals[q], 216, 999, 'Early Adulthood', cerebellum=cerebellumValues[q], optionalRace=NULL)
+  if(wmAdd[q]==1){
+  data <- rbind(data, doEverythingEverWM(get(dfName), grepVals[q], 216, 999, 'Early Adulthood', cerebellumIn=cerebellumValues[q], optionalRace=NULL)) 
+  }
   outPlot <- scatMan(data, data.names[q])
   print(outPlot)
 }

@@ -1,7 +1,7 @@
 reorganizeWM2LobeOrder <- function(dataFrame, lobeOfInterest){
   if(lobeOfInterest == "WM"){
-    inputRois <- c("FRO_WM","TEM_WM","PAR_WM","OCC_WM","corpus_callosum","Cer_WM")
-    outputRois <- c("Cer_WM","FRO_WM","TEM_WM","PAR_WM","OCC_WM","corpus_callosum")
+    inputRois <- c("Frontal_Lobe_WM","Temporal_Lobe_WM","Parietal_Lobe_WM","Occipital_Lobe_WM","Limbic_Lobe_WM", "Insular_Lobe_WM")
+    outputRois <- c("Frontal_Lobe_WM","Temporal_Lobe_WM","Parietal_Lobe_WM","Occipital_Lobe_WM","Limbic_Lobe_WM", "Insular_Lobe_WM")
     tmpDF <- which(dataFrame$lobe==lobeOfInterest)
     tmpDF <- dataFrame[tmpDF,]
     }
@@ -31,7 +31,7 @@ reorganizeWM2LobeOrder <- function(dataFrame, lobeOfInterest){
 
 
 organizeWM2ROINames <- function(dataFrame){
-  rois_wm2_full<-c("FRO_WM","TEM_WM","PAR_WM","OCC_WM","corpus_callosum","Cer_WM")
+  rois_wm2_full<-c("Frontal_Lobe_WM","Temporal_Lobe_WM","Parietal_Lobe_WM","Occipital_Lobe_WM","Limbic_Lobe_WM", "Insular_Lobe_WM")
   # Now prime a output data frame
   outputDataFrame <- dataFrame
   na.column <- rep(NA,length(outputDataFrame$ROI))
@@ -54,9 +54,9 @@ organizeWM2ROINames <- function(dataFrame){
   # Now resort the roi's
   tempDF <- reorganizeWM2LobeOrder(outputDataFrame, "WM")
   tempDF$ROI <- revalue(tempDF$ROI, 
-                       c("corpus_callosum"="CC","FRO_WM"="FRO","TEM_WM"="TEM","PAR_WM"="PAR","OCC_WM"="OCC","Cer_WM"="Cer"))
-  tempDF$ROI <- factor(tempDF$ROI, levels=c("Cer" ,"FRO", "TEM", "PAR", "OCC", "CC"))
-  tempDF$lobe <- factor(tempDF$lobe, levels=c("WM"))
+                       c("Frontal_Lobe_WM"="FRO WM","Temporal_Lobe_WM"="TEM WM","Parietal_Lobe_WM"="PAR WM","Occipital_Lobe_WM"="OCC WM","Insular_Lobe_WM"="Insular WM", "Limbic_Lobe_WM"="Limbic WM"))
+  #tempDF$ROI <- factor(tempDF$ROI, levels=c("Cer" ,"FRO", "TEM", "PAR", "OCC", "CC"))
+  #tempDF$lobe <- factor(tempDF$lobe, levels=c("WM"))
   outputDataFrame <- tempDF
 
   return(outputDataFrame)

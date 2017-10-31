@@ -32,26 +32,6 @@ returnPercentileGroup <- function(groupLevel,df_row, tmp_df){
   return(df_to_return)
 }
 
-#returnPercentileGroup <- function(groupLevel,df_row, tmp_df){
-#  quantileTmp <- quantile(df_row, na.rm=TRUE)
-#  if(groupLevel == "lo"){
-#    quantileTmplow <- getElement(quantileTmp,"0%")
-#    quantileTmphigh <- getElement(quantileTmp,"25%")
-#  }
-#  if(groupLevel == "me"){
-#    quantileTmplow <- getElement(quantileTmp,"25%")
-#    quantileTmphigh  <- getElement(quantileTmp,"75%")
-#  }
-#  if(groupLevel =="hi"){
-#   quantileTmplow <- getElement(quantileTmp,"75%")
-#   quantileTmphigh <- getElement(quantileTmp,"100%") + 1
-#  }
-#  df_to_return <- which(df_row >= quantileTmplow & df_row < quantileTmphigh)
-#  df_to_return  <- tmp_df[df_to_return,]
-#  df_to_return$groupFactorLevel <- groupLevel
-#  return(df_to_return)
-#}
-
 # Create a function which will give me the standard error 
 stand_err <- function(input_vector){
   tmp <- sd(input_vector,na.rm=T)/sqrt(sum(!is.na(input_vector)))
@@ -353,6 +333,7 @@ organizeROINames <- function(dataFrame, cerebellum=F){
   tempDF <- rbind(tempDF, reorganizeLobeOrder(outputDataFrame,"Occipital"))
   if(cerebellum == 'TRUE'){
     tempDF <- rbind(tempDF, reorganizeLobeOrder(outputDataFrame,"Cerebellum"))
+    tempDF$ROI <- revalue(tempDF$ROI,c("Cerebellum_Exterior"="Cer Ext", "Cerebellar_Vermal_Lobules_I.V"="Vermis 1-5", "Cerebellar_Vermal_Lobules_VI.VII"="Vermis 6-7", "Cerebellar_Vermal_Lobules_VIII.X"="Vermis 8-10"))
   }
   tempDF$ROI <- factor(tempDF$ROI, levels=rev(unique(as.character(tempDF$ROI))))
   tempDF$lobe <- factor(tempDF$lobe, levels=c("Basal Ganglia","Limbic", "Frontal Orbital", "Frontal Dorsal", "Temporal", "Parietal","Occipital", "Cerebellum"))
@@ -430,12 +411,27 @@ addAgeBin <- function(df, ageColumn, youngUpper, middleUpper, olderLower){
 }
 
 # Do everything Ever function
-doEverythingEver <- function(df, modalityGrepPattern, lowerAge.e, upperAge.e, ageBinName.e, cerebellum=F, optionalRace=NULL){
+doEverythingEver <- function(df, modalityGrepPattern, lowerAge.e, upperAge.e, ageBinName.e, cerebellumIn=F, optionalRace=NULL){
   if(!identical(optionalRace, NULL)){
     df <- df[which(df$race2==optionalRace),]
   }
   tmp <- standardizePerfGroups(df, modalityGrepPattern, ageBinName.e)
-  tmp <- organizeROINames(tmp, cerebellum=cerebellum)
+  tmp <- organizeROINames(tmp, cerebellum=cerebellumIn)
+  tmp <- subtractHiFromLo(tmp)
+  tmp$gender <- revalue(tmp$gender, c('1'='Male', '2'='Female'))
+  tmp$meanValue <- as.numeric(as.character(tmp$meanValue))
+  colnames(tmp)[6] <- 'Gender'
+  tmp$ageBin <- factor(tmp$ageBin, levels=c('Early Adulthood','Adolescence','Childhood'))
+  return(tmp)
+}
+
+# Now do WM as well
+doEverythingEverWM <- function(df, modalityGrepPattern, lowerAge.e, upperAge.e, ageBinName.e, cerebellumIn=F, optionalRace=NULL){
+  if(!identical(optionalRace, NULL)){
+    df <- df[which(df$race2==optionalRace),]
+  }
+  tmp <- standardizePerfGroups(df, modalityGrepPattern, ageBinName.e)
+  tmp <- organizeWM2ROINames(tmp)
   tmp <- subtractHiFromLo(tmp)
   tmp$gender <- revalue(tmp$gender, c('1'='Male', '2'='Female'))
   tmp$meanValue <- as.numeric(as.character(tmp$meanValue))
