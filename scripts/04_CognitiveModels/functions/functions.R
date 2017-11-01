@@ -755,7 +755,7 @@ runRidgeOnAll <- function(x, y, nFold=10, lambdaSeq=10^seq(3, -2, by = -.1), rmL
 buildAustinModel <- function(austinValues, predVals, outVals, addSummary=TRUE, breakValue=.1, returnStepVals=FALSE, nIters=100, stepSize=1){
   # First organize the austin values
   selectionN <- returnSelectionCol(austinValues)
-  selectionN[,1] <- rownames(selectionN)
+  #selectionN[,1] <- rownames(selectionN)
   selectionN <- selectionN[order(as.numeric(selectionN[,2]), decreasing=T),]
 
   # Now get the model order
@@ -844,7 +844,7 @@ runTpotModel <- function(inputData, inputGender){
   dataTest <- dataTest[complete.cases(dataTest),]
 
   # Now run Austin
-  selectVals <- returnSelectionN(inputData[index,], grepID='_jlf_', genderID=inputGender, nCor=4, iterationCount=100)
+  selectVals <- returnSelectionN(inputData[index,], grepID='_jlf_', genderID=inputGender, nCor=3, iterationCount=100)
   valsToUse <- which(as.numeric(returnSelectionCol(selectVals)[,2]) > 24)
   nameVals <- rownames(selectVals)[valsToUse]
   colVals <- which(colnames(dataI) %in% nameVals)

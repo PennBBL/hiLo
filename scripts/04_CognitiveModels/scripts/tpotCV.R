@@ -83,14 +83,16 @@ runTpotOnAll <- function(x, y, nFold=10){
 
 allR <- NULL
 for(z in seq(1,10)){
-for(i in c('vol.data','cbf.data','gmd.data','tr.data','all.data')){
+for(i in c('vol.data','cbf.data','gmd.data','tr.data')){
   tmpDat <- get(i)
   tmpDat <- tmpDat[which(tmpDat$sex==1),]
   tmpDatX <- tmpDat[,grep('_jlf_', names(tmpDat))]
   tmpDatY <- tmpDat$F1_Exec_Comp_Cog_Accuracy
-  predVals <- runTpotOnAll(tmpDatX, tmpDatY, 10)
-  corVal <- cor(predVals[[1]], tmpDatY)
-  outRow <- c(i, z, corVal)
+  predVals <- runTpotOnAll(tmpDatX, tmpDatY, 5)
+  corVal <- cor(predVals[[1]], tmpDatY)^2
+  cvICC <- ICC(cbind(predVals[[1]], tmpDatY))$results[4,2]
+  cvRMSE <- sqrt(mean((tmpDatY-predVals[[1]])^2))
+  outRow <- c(i, z, corVal, cvICC, cvRMSE)
   allR <- rbind(allR, outRow)
   write.csv(allR, 'tmpAllRValsFMale.csv', quote=F, row.names=F)
   # Now write a csv for selected Values
@@ -103,14 +105,16 @@ write.csv(allR, 'tmpAllRValsMale.csv', quote=F, row.names=F)
 # Now do this for females
 allR <- NULL
 for(z in seq(1,10)){
-for(i in c('vol.data','cbf.data','gmd.data','tr.data','all.data')){
+for(i in c('vol.data','cbf.data','gmd.data','tr.data')){
   tmpDat <- get(i)
-  tmpDat <- tmpDat[which(tmpDat$sex==2),]
+  tmpDat <- tmpDat[which(tmpDat$sex==1),]
   tmpDatX <- tmpDat[,grep('_jlf_', names(tmpDat))]
   tmpDatY <- tmpDat$F1_Exec_Comp_Cog_Accuracy
-  predVals <- runTpotOnAll(tmpDatX, tmpDatY, 10)
-  corVal <- cor(predVals[[1]], tmpDatY)
-  outRow <- c(i, z, corVal)
+  predVals <- runTpotOnAll(tmpDatX, tmpDatY, 5)
+  corVal <- cor(predVals[[1]], tmpDatY)^2
+  cvICC <- ICC(cbind(predVals[[1]], tmpDatY))$results[4,2]
+  cvRMSE <- sqrt(mean((tmpDatY-predVals[[1]])^2))
+  outRow <- c(i, z, corVal, cvICC, cvRMSE)
   allR <- rbind(allR, outRow)
   write.csv(allR, 'tmpAllRValsFFemale.csv', quote=F, row.names=F)
   # Now write a csv for selected Values
