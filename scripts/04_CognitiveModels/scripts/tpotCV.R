@@ -15,9 +15,9 @@ rd.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeReg/j
 tr.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeReg/jlfTRData.csv')
 tr.data$dti_jlf_tr_MeanTR <- apply(tr.data[,grep('dti_jlf_tr_', names(tr.data))], 1, mean)
 
-all.data <- merge(vol.data, cbf.data, by=intersect(names(vol.data), names(cbf.data)))
-all.data <- merge(all.data, gmd.data, by=intersect(names(all.data), names(gmd.data)))
-all.data <- merge(all.data, tr.data, by=intersect(names(all.data), names(tr.data)))
+all.data <- merge(vol.data, tr.data, by=intersect(names(vol.data), names(cbf.data)))
+#all.data <- merge(all.data, gmd.data, by=intersect(names(all.data), names(gmd.data)))
+#all.data <- merge(all.data, tr.data, by=intersect(names(all.data), names(tr.data)))
 
 runTpotOnAll <- function(x, y, nFold=10){
   # The first thing we have to do is split our data into 10 folds
@@ -44,6 +44,8 @@ runTpotOnAll <- function(x, y, nFold=10){
     varSelectDF$sex <- 1
     colnames(varSelectDF)[1] <- 'F1_Exec_Comp_Cog_Accuracy'
     selectSums <- returnSelectionN(dataFrame=varSelectDF, grepID='_jlf_', genderID=1, iterationCount=100, nCor=31)
+    
+    # Now explore different cut off values
     valsToUse <- which(as.numeric(returnSelectionCol(selectSums)[,2]) > 24)
     nameVals <- rownames(selectSums)[valsToUse]
     colVals <- which(colnames(trainX) %in% nameVals)
@@ -83,7 +85,7 @@ runTpotOnAll <- function(x, y, nFold=10){
 
 allR <- NULL
 for(z in seq(1,10)){
-for(i in c('vol.data','cbf.data','gmd.data','tr.data')){
+for(i in c('all.data')){
   tmpDat <- get(i)
   tmpDat <- tmpDat[which(tmpDat$sex==1),]
   tmpDatX <- tmpDat[,grep('_jlf_', names(tmpDat))]
@@ -96,7 +98,7 @@ for(i in c('vol.data','cbf.data','gmd.data','tr.data')){
   allR <- rbind(allR, outRow)
   write.csv(allR, 'tmpAllRValsFMale.csv', quote=F, row.names=F)
   # Now write a csv for selected Values
-  write.csv(predVals[[2]], paste(z, i, 'SelectVals.csv', sep=''), quote=F)
+  #write.csv(predVals[[2]], paste(z, i, 'SelectVals.csv', sep=''), quote=F)
 }
 }
 
@@ -105,7 +107,7 @@ write.csv(allR, 'tmpAllRValsMale.csv', quote=F, row.names=F)
 # Now do this for females
 allR <- NULL
 for(z in seq(1,10)){
-for(i in c('vol.data','cbf.data','gmd.data','tr.data')){
+for(i in c('all.data')){
   tmpDat <- get(i)
   tmpDat <- tmpDat[which(tmpDat$sex==1),]
   tmpDatX <- tmpDat[,grep('_jlf_', names(tmpDat))]
@@ -122,4 +124,4 @@ for(i in c('vol.data','cbf.data','gmd.data','tr.data')){
 }
 }
 
-write.csv(allR, 'tmpAllRValsMale.csv', quote=F, row.names=F)
+write.csv(allR, 'tmpAllRValsFemale.csv', quote=F, row.names=F)
