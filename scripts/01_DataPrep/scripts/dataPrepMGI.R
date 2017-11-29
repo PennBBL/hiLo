@@ -22,7 +22,7 @@ modal.scores$Diagnosis <- gsub(x=modal.scores$Diagnosis, pattern=',', replacemen
 
 # Now find subjects that we should not use
 bblid.index <- modal.scores$bblid
-bblid.index <- modal.scores$bblid[modal.scores$bblid %in% data.values$bblid[which(data.values$Affected.Unaffected=='Unaffected')]]
+bblid.index <- modal.scores$bblid[modal.scores$bblid %in% data.values$bblid[which(data.values$MGI.Group=='NC')]]
 
 # Now create a for loop to do everything for our GM values
 dataVals <- c('gmd.data', 'ct.data', 'cc.data', 'volume.data')
