@@ -4,7 +4,7 @@
 
 # Declare any statics here
 baseDataDir="/home/arosen/hiLo/data/05_BrainRankFigure/factorLabels/"
-vals=(gmd ct reho) 
+vals=(volume ct reho alff cbf) 
 scriptVal="/data/joy/BBL/applications/xcpEngine/utils/val2mask.R"
 parcMask="/data/joy/BBL/studies/pnc/template/parc1625_EDG_PNC.nii.gz"
 
@@ -17,6 +17,7 @@ for tmp in "${vals[@]}" ; do
     # First isolate all of the values of interest
     ${scriptVal} -i ${parcMask} -v `cat ${tmp2}` -o ${tmp}${initValue}.nii.gz 
     fslmaths ${baseDatDir}${tmp}${initValue}.nii.gz -mul ${initValue} ${tmp}${initValue}.nii.gz
+    fslmaths ${parcMask} -bin -add ${tmp}${initValue}.nii.gz ${tmp}${initValue}Isol.nii.gz
     initValue=$((initValue+1))
     echo ${initValue}
   done
