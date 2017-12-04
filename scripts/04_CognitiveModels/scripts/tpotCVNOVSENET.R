@@ -13,6 +13,7 @@ ad.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeReg/j
 fa.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeReg/jlfFAData.csv')
 rd.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeReg/jlfRDData.csv')
 tr.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeReg/jlfTRData.csv')
+fa.data.wm <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeReg/jhuFATractsData.csv')
 tr.data$dti_jlf_tr_MeanTR <- apply(tr.data[,grep('dti_jlf_tr_', names(tr.data))], 1, mean)
 factorScores <- read.csv('/home/adrose/Brain_Factor_Scores_Volume_GMD_Cortical-Thickness.csv')
 fac.scores <- merge(factorScores, vol.data)
@@ -26,6 +27,8 @@ all.data <- merge(all.data, gmd.data, by=intersect(names(all.data), names(gmd.da
 all.data <- merge(all.data, tr.data, by=intersect(names(all.data), names(tr.data)))
 all.fact <- merge(fac.scores, fac.scores.func)
 all.fact <- merge(all.fact, fac.scores.perf)
+all.fact <- all.fact[,-seq(8,16)]
+all.fact <- all.fact[,-(grep('mprage_jlf_vol_', names(all.fact)))]
 
 runTpotOnAll <- function(x, y, nFold=10){
   # The first thing we have to do is split our data into 10 folds
@@ -33,6 +36,7 @@ runTpotOnAll <- function(x, y, nFold=10){
   
   # Now declare the output variables
   outputCvValsR <- rep(NA, length(y))
+  outputCvValsL <- rep(NA, length(y))
   trainSeq <- seq(1, length(y))
   # Now we need to loop thorugh each fold and get our output fit stats
   #cl <- makeCluster(20)
@@ -62,38 +66,47 @@ runTpotOnAll <- function(x, y, nFold=10){
     #tc <- trainControl("cv", number=4)
     #Grid <- expand.grid(mtry = seq(4,16,4))
     colNamesFreeze <- colnames(varSelectDF)[-1]
-    tree1 <- rpart(F1_Exec_Comp_Cog_Accuracy~.,data=varSelectDF, method='anova',control=rpart.control(minsplit=10,maxdepth=1))
+    tree1 <- rpart(F1_Exec_Comp_Cog_Accuracy~.,data=varSelectDF, method='anova',control=rpart.control(minsplit=10,maxdepth=2))
     trainX <- cbind(trainX, predict(tree1))
     newPredVals <- as.data.frame(testX)
     colnames(newPredVals) <- colNamesFreeze
     testX <- cbind(testX, predict(tree1, newdata=newPredVals))
 
     # Now grab our lambda to use 
-    fit.cv <- cv.glmnet(x=trainX, y=trainY, alpha=0,nfolds=10)
+    fit.cv <- cv.glmnet(x=trainX, y=trainY, alpha=.55,nfolds=10)
     lambdaVal <- fit.cv$lambda[which(fit.cv$cvm==min(fit.cv$cvm))]
-    modelFit <- glmnet(x=trainX, y=trainY, alpha=0, lambda=lambdaVal)
+    modelFit <- glmnet(x=trainX, y=trainY, alpha=.55, lambda=lambdaVal)
+
+    # Now build a LM model
+    tmpDataFrame <- as.data.frame(cbind(trainY, trainX))
+    modelLMFit <- lm(trainY~., data=tmpDataFrame)
+    lmPredVals <- as.data.frame(testX)
+    colnames(lmPredVals) <- colnames(tmpDataFrame)[-1]
 
     # Now get our prediction values in the test values
     outputCvValsR[trainSeq[-index]] <- predict(modelFit, testX)
+    outputCvValsL[trainSeq[-index]] <- predict(modelLMFit, lmPredVals)
   }
   #stopCluster(cl)
   # Now return the output CvVals
-  output <- outputCvValsR
+  output <- list()
+  output[[1]] <- outputCvValsR
+  output[[2]] <- outputCvValsL
   return(output)
 }
 
-dataNames <- c('vol.data','cbf.data','gmd.data','tr.data','fac.scores', 'fac.scores', 'fac.scores.func', 'fac.scores.func','all.data', 'all.fact', 'reho.data', 'alff.data', 'ct.data', 'cc.data', 'fac.scores.perf', 'fac.scores')
-outName <- c('vol', 'cbf', 'gmd', 'tr', 'facvol', 'facct', 'facreho', 'facalff', 'all.dat', 'all.fac', 'reho', 'alff', 'ct', 'cc', 'faccbf', 'facgmd')
-grepValue <- c(rep('_jlf_', 4), 'Volume_', 'Cortical_Thickness', 'ReHo_', 'ALFF_', '_jlf_', '_F', '_jlf_', '_jlf_', '_jlf_', '_jlf_', 'CBF_', 'GMD_')
+dataNames <- c('vol.data','cbf.data','gmd.data','tr.data','fac.scores', 'fac.scores', 'fac.scores.func', 'fac.scores.func','all.data', 'all.fact', 'reho.data', 'alff.data', 'ct.data', 'cc.data', 'fac.scores.perf', 'fac.scores', 'fa.data.wm')
+outName <- c('vol', 'cbf', 'gmd', 'tr', 'facvol', 'facct', 'facreho', 'facalff', 'all.dat', 'all.fac', 'reho', 'alff', 'ct', 'cc', 'faccbf', 'facgmd', 'fa.tract')
+grepValue <- c(rep('_jlf_', 4), 'Volume_', 'Cortical_Thickness', 'ReHo_', 'ALFF_', '_jlf_', '_F', '_jlf_', '_jlf_', '_jlf_', '_jlf_', 'CBF_', 'GMD_', 'dti_dtitk_jhutract_fa')
 allR <- NULL
-for(q in seq(1,100)){
+for(q in seq(1,3)){
   for(i in 1:length(dataNames)){
     tmpDat <- get(dataNames[i])
     tmpDat <- tmpDat[which(tmpDat$sex==1),]
     tmpDatX <- tmpDat[,grep(grepValue[i], names(tmpDat))]
     tmpDatY <- tmpDat$F1_Exec_Comp_Cog_Accuracy
-    predVals <- runTpotOnAll(tmpDatX, tmpDatY, 5)
-    corVal <- cor(predVals, tmpDatY)
+    predVals <- runTpotOnAll(tmpDatX, tmpDatY, 10)
+    corVal <- cor(predVals[[1]], tmpDatY)
     outRow <- c(outName[i], q, corVal)
     allR <- rbind(allR, outRow)
     #write.csv(allR, 'tmpAllRValsNOVS2.csv', quote=F, row.names=F)
@@ -109,3 +122,7 @@ allRVals$V1 <- factor(allRVals$V1, levels=foo$V1)
 outPlot <- ggplot(allRVals, aes(x=V1, y=as.numeric(as.character(V3))^2)) + 
   geom_violin() + stat_summary(fun.y=mean, geom="point", shape=23, size=2) + 
   labs(title='CV Prediction by modality', y='CV R-squared', x='Modality')
+
+pdf('image.pdf')
+outPlot
+dev.off()
