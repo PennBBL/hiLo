@@ -69,7 +69,7 @@ standardizePerfGroups <- function(dataFrame, modalityName, ageGroup){
         tmp.me.group.sd <- sd(me.vals.tmp[,temp.roi.col], na.rm=TRUE)
         tmp.me.group.standerr <- stand_err(me.vals[,temp.roi.col])
         tmp.me.group.z.score.mean <- mean(unlist((me.vals.tmp[temp.roi.col] - tmp.me.group.mean) / tmp.me.group.sd), na.rm=TRUE)
-        tmp.me.group.z.score.sd <- sd(unlist((me.vals.tmp[temp.roi.col] - tmp.me.group.mean) / tmp.me.group.sd), na.rm=TRUE)
+        tmp.me.group.z.score.sd <- stand_err(unlist((me.vals.tmp[temp.roi.col] - tmp.me.group.mean) / tmp.me.group.sd))
 
         # Create me output df row
         tmp.me.output.row <- cbind(nuclei.name, 'me', tmp.me.group.z.score.mean, 
@@ -78,7 +78,7 @@ standardizePerfGroups <- function(dataFrame, modalityName, ageGroup){
 
         # Find hi group mean values
         tmp.hi.group.z.score.mean <- mean(unlist((hi.vals.tmp[,temp.roi.col] - tmp.me.group.mean) / tmp.me.group.sd), na.rm=TRUE)
-        tmp.hi.group.standerr <- stand_err(hi.vals.tmp[,temp.roi.col])
+        tmp.hi.group.standerr <- stand_err(unlist((hi.vals.tmp[,temp.roi.col] - tmp.me.group.mean) / tmp.me.group.sd))
         tmp.hi.group.z.score.sd <- sd(unlist((hi.vals.tmp[,temp.roi.col] - tmp.me.group.mean) / tmp.me.group.sd), na.rm=TRUE)
 
         # create hi output df row 
@@ -88,7 +88,7 @@ standardizePerfGroups <- function(dataFrame, modalityName, ageGroup){
 
         # Find lo group mean values
         tmp.lo.group.z.score.mean <-  mean(unlist((lo.vals.tmp[,temp.roi.col] - tmp.me.group.mean) / tmp.me.group.sd), na.rm=TRUE)
-        tmp.lo.group.standerr <- stand_err(lo.vals.tmp[,temp.roi.col])
+        tmp.lo.group.standerr <- stand_err(unlist((lo.vals.tmp[,temp.roi.col] - tmp.me.group.mean) / tmp.me.group.sd))
         tmp.lo.group.z.score.sd <- sd(unlist((lo.vals.tmp[,temp.roi.col] - tmp.me.group.mean) / tmp.me.group.sd), na.rm=TRUE)
 
         # create lo output df row
@@ -599,4 +599,20 @@ scatMan <- function(outputFromDo, plotMain){
     plotOut <- plotOut + geom_abline(intercept=0, slope=-1)
   }
   return(plotOut)
+}
+
+doEverythingEverZ <- function(df, modalityGrepPattern, lowerAge.e, upperAge.e, ageBinName.e, cerebellumIn=F, optionalRace=NULL){
+  if(!identical(optionalRace, NULL)){
+    df <- df[which(df$race2==optionalRace),]
+  }
+  tmp <- standardizePerfGroups(df, modalityGrepPattern, ageBinName.e)
+  tmp <- organizeROINames(tmp, cerebellum=cerebellumIn)
+  #tmp <- subtractHiFromLo(tmp)
+  # Now remove the me rows
+  tmp <- tmp[-which(tmp$groupLevel=='me'),]
+  tmp$gender <- revalue(tmp$gender, c('1'='Male', '2'='Female'))
+  tmp$meanValue <- as.numeric(as.character(tmp$meanValue))
+  colnames(tmp)[6] <- 'Gender'
+  tmp$ageBin <- factor(tmp$ageBin, levels=c('Early Adulthood','Adolescence','Childhood'))
+  return(tmp)
 }
