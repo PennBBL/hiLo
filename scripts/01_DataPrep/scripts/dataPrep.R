@@ -126,8 +126,10 @@ volume.data2 <- volume.data
 volAVG <- averageLeftAndRight(volume.data)
 volume.data2[,33:volIndex] <- apply(volume.data2[,33:volIndex], 2, function(x) regressOutAgeNoQA(x, volume.data2$ageAtGo1Scan, volume.data2$envSES))
 write.csv(volume.data2, "/home/adrose/dataPrepForHiLoPaper/data/ageReg/volumeData.csv", quote=F, row.names=F)
+volume.data.2 <- averageLeftAndRight(volume.data2)
 volume.data2 <- averageLeftAndRight(volume.data2)
-volume.data.MR <- regressWithinModality(volume.data2, 'mprage_jlf_vol')
+volume.data.2 <- volume.data.2[,-c(40, 33, 34, 35)]
+volume.data.MR <- regressWithinModality(volume.data.2, 'mprage_jlf_vol')
 write.csv(volAVG, "/home/adrose/dataPrepForHiLoPaper/data/meanLR/volumeData.csv", quote=F, row.names=F)
 write.csv(volume.data2, "/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeReg/volumeData.csv", quote=F, row.names=F)
 write.csv(volume.data.MR, "/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeRegModalReg/volumeData.csv", quote=F, row.names=F)
