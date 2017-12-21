@@ -46,6 +46,8 @@ ad.data <- ad.data[complete.cases(ad.data[,grep('dti_jlf_ad', names(ad.data))]),
 rd.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/rawData/n1601_jlfRD.csv')
 rd.data$include_wT1ex_64 <- 1 - rd.data$include_wT1ex_64
 rd.data <- rd.data[complete.cases(rd.data[,grep('dti_jlf_rd', names(rd.data))]),]
+fa.label <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/rawData/n1601_jhuFALabels.csv')
+fa.label$include_wT1ex_64 <- 1 - fa.label$include_wT1ex_64
 
 # Find the subjects that had their cnb within one year of their imaging session
 scan.Value <- data.values$ageAtGo1Scan
@@ -60,10 +62,10 @@ bblid.index <- bblid.index[bblid.index %in% health.values$bblid[which(health.val
 bblid.index <- bblid.index[bblid.index %in% volume.data$bblid[which(volume.data$t1Exclude==0)]]
 
 # Now create a for loop to do everything for our GM values
-dataVals <- c('cbf.data', 'gmd.data', 'ct.data', 'reho.data', 'alff.data', 'md.data', 'cc.data', 'fa.data', 'ad.data', 'rd.data')
-outNames <- c('cbfData.csv', 'gmdData.csv', 'ctData.csv', 'rehoData.csv', 'alffData.csv', 'jlfTRData.csv', 'ccData.csv', 'jlfFAData.csv', 'jlfADData.csv', 'jlfRDData.csv')
-modalNames <- c('pcasl_jlf_cbf', 'mprage_jlf_gmd', 'mprage_jlf_ct', 'rest_jlf_reho', 'rest_jlf_alff', 'dti_jlf_tr', 'mprage_jlf_cortcon', 'dti_jlf_fa', 'dti_jlf_ad', 'dti_jlf_rd')
-excludeVals <- c('pcaslExclude', 't1Exclude', 't1Exclude', 'restExclude', 'restExclude', 'include_wT1ex_64', 't1Exclude','include_wT1ex_64', 'include_wT1ex_64', 'include_wT1ex_64')
+dataVals <- c('cbf.data', 'gmd.data', 'ct.data', 'reho.data', 'alff.data', 'md.data', 'cc.data', 'fa.data', 'ad.data', 'rd.data', 'fa.label')
+outNames <- c('cbfData.csv', 'gmdData.csv', 'ctData.csv', 'rehoData.csv', 'alffData.csv', 'jlfTRData.csv', 'ccData.csv', 'jlfFAData.csv', 'jlfADData.csv', 'jlfRDData.csv', 'jhuFALabel.csv')
+modalNames <- c('pcasl_jlf_cbf', 'mprage_jlf_gmd', 'mprage_jlf_ct', 'rest_jlf_reho', 'rest_jlf_alff', 'dti_jlf_tr', 'mprage_jlf_cortcon', 'dti_jlf_fa', 'dti_jlf_ad', 'dti_jlf_rd', 'dti_dtitk_jhulabel')
+excludeVals <- c('pcaslExclude', 't1Exclude', 't1Exclude', 'restExclude', 'restExclude', 'include_wT1ex_64', 't1Exclude','include_wT1ex_64', 'include_wT1ex_64', 'include_wT1ex_64', 'include_wT1ex_64')
 outputMeanLR <- "/home/adrose/dataPrepForHiLoPaper/data/meanLR/"
 outputAgeReg <- "/home/adrose/dataPrepForHiLoPaper/data/ageReg/"
 outputMeanLRAgeReg <- "/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeReg/"
@@ -88,13 +90,23 @@ for(i in 1:length(dataVals)){
   tmpData$ageAtGo1Scan <- data.values$ageAtGo1Scan[match(tmpData$bblid, data.values$bblid)]
 
   # produce our avgLR
-  tmpLR <- averageLeftAndRight(tmpData)
-  
+  if(i < 11){
+    tmpLR <- averageLeftAndRight(tmpData)
+  }  
+  if(i > 10){
+    tmpLR <- averageLeftAndRight1(tmpData)
+  }
+
   # Now produce our ageReg vals 
   tmpAR <- tmpData
   tmpAR[,grep(modalNames[i], names(tmpAR))] <- apply(tmpAR[,grep(modalNames[i], names(tmpAR))], 2, function(x) regressOutAgeNoQA(x, tmpAR$ageAtGo1Scan, tmpAR$envSES))
   write.csv(tmpAR, outAgeNM, quote=F, row.names=F)
-  tmpAR <- averageLeftAndRight(tmpAR)
+  if(i < 11){
+    tmpAR <- averageLeftAndRight(tmpAR)
+  }  
+  if(i > 10){
+    tmpAR <- averageLeftAndRight1(tmpAR)
+  }
 
   # Now produce a modality regressed data frame
   tmpMR <- regressWithinModality(tmpAR, modalNames[i])
@@ -114,8 +126,10 @@ volume.data2 <- volume.data
 volAVG <- averageLeftAndRight(volume.data)
 volume.data2[,33:volIndex] <- apply(volume.data2[,33:volIndex], 2, function(x) regressOutAgeNoQA(x, volume.data2$ageAtGo1Scan, volume.data2$envSES))
 write.csv(volume.data2, "/home/adrose/dataPrepForHiLoPaper/data/ageReg/volumeData.csv", quote=F, row.names=F)
+volume.data.2 <- averageLeftAndRight(volume.data2)
 volume.data2 <- averageLeftAndRight(volume.data2)
-volume.data.MR <- regressWithinModality(volume.data2, 'mprage_jlf_vol')
+volume.data.2 <- volume.data.2[,-c(40, 33, 34, 35)]
+volume.data.MR <- regressWithinModality(volume.data.2, 'mprage_jlf_vol')
 write.csv(volAVG, "/home/adrose/dataPrepForHiLoPaper/data/meanLR/volumeData.csv", quote=F, row.names=F)
 write.csv(volume.data2, "/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeReg/volumeData.csv", quote=F, row.names=F)
 write.csv(volume.data.MR, "/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeRegModalReg/volumeData.csv", quote=F, row.names=F)
