@@ -12,7 +12,7 @@ vol.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/ageReg/volumeData.c
 hand.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/preRaw2017/n1601_demographics_go1_20161212.csv')
 
 all.dat <- merge(vol.data, hand.data)
-
+allOut <- NULL
 # Now I need to grab all of the right hemisphere ROI's from the right handed people
 right.hemi <- all.dat[which(all.dat$handednessv2==1 & all.dat$sex==1),grep('_R_', names(all.dat))]
 left.hemi <- all.dat[which(all.dat$handednessv2==1 & all.dat$sex==1),grep('_L_', names(all.dat))]
@@ -21,11 +21,15 @@ left.hemi <- all.dat[which(all.dat$handednessv2==1 & all.dat$sex==1),grep('_L_',
 output <- NULL
 for(i in 1:dim(right.hemi)[2]){
   tmp <- t.test(x=right.hemi[,i], y=left.hemi[,i], paired=T)
-  outRow <- c(names(right.hemi)[i], tmp$statistic, tmp$p.value)
+  if(tmp$statistic < 0 ){
+    colnames(right.hemi)[i] <- colnames(left.hemi)[i]
+  }
+  outRow <- c(names(right.hemi)[i], tmp$statistic, tmp$p.value, 'rightMale')
   #print(outRow)
   output <- rbind(output, outRow)
 }
 output <- cbind(output, p.adjust(as.numeric(output[,3]), method='fdr'))
+allOut <- rbind(allOut, output)
 # Now write a itk snap image for these guys
 writeColorTableandKey(inputData=output, inputColumn=2, outName='rightMale')
 
@@ -38,11 +42,15 @@ left.hemi <- all.dat[which(all.dat$handednessv2==1 & all.dat$sex==2),grep('_L_',
 output <- NULL
 for(i in 1:dim(right.hemi)[2]){
   tmp <- t.test(x=right.hemi[,i], y=left.hemi[,i], paired=T)
-  outRow <- c(names(right.hemi)[i], tmp$statistic, tmp$p.value)
+  if(tmp$statistic < 0 ){
+    colnames(right.hemi)[i] <- colnames(left.hemi)[i]
+  }
+  outRow <- c(names(right.hemi)[i], tmp$statistic, tmp$p.value, 'rightFemale')
   #print(outRow)
   output <- rbind(output, outRow)
 }
 output <- cbind(output, p.adjust(as.numeric(output[,3]), method='fdr'))
+allOut <- rbind(allOut, output)
 # Now write a itk snap image for these guys
 writeColorTableandKey(inputData=output, inputColumn=2, outName='rightFemale')
 
@@ -54,11 +62,15 @@ left.hemi <- all.dat[which(all.dat$handednessv2>1 & all.dat$sex==1),grep('_L_', 
 output <- NULL
 for(i in 1:dim(right.hemi)[2]){
   tmp <- t.test(x=right.hemi[,i], y=left.hemi[,i], paired=T)
-  outRow <- c(names(right.hemi)[i], tmp$statistic, tmp$p.value)
+  if(tmp$statistic < 0 ){
+    colnames(right.hemi)[i] <- colnames(left.hemi)[i]
+  }
+  outRow <- c(names(right.hemi)[i], tmp$statistic, tmp$p.value, 'leftMale')
   #print(outRow)
   output <- rbind(output, outRow)
 }
 output <- cbind(output, p.adjust(as.numeric(output[,3]), method='fdr'))
+allOut <- rbind(allOut, output)
 # Now write a itk snap image for these guys
 writeColorTableandKey(inputData=output, inputColumn=2, outName='leftMale')
 
@@ -70,10 +82,15 @@ left.hemi <- all.dat[which(all.dat$handednessv2>1 & all.dat$sex==2),grep('_L_', 
 output <- NULL
 for(i in 1:dim(right.hemi)[2]){
   tmp <- t.test(x=right.hemi[,i], y=left.hemi[,i], paired=T)
-  outRow <- c(names(right.hemi)[i], tmp$statistic, tmp$p.value)
+  if(tmp$statistic < 0 ){
+    colnames(right.hemi)[i] <- colnames(left.hemi)[i]
+  }
+  outRow <- c(names(right.hemi)[i], tmp$statistic, tmp$p.value, 'leftFemale')
   #print(outRow)
   output <- rbind(output, outRow)
 }
 output <- cbind(output, p.adjust(as.numeric(output[,3]), method='fdr'))
+allOut <- rbind(allOut, output)
 # Now write a itk snap image for these guys
 writeColorTableandKey(inputData=output, inputColumn=2, outName='leftFemale')
+write.csv(allOut, 'allValues.csv', quote=F, row.names=F)
