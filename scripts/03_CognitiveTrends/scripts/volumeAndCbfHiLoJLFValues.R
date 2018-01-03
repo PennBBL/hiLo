@@ -33,6 +33,28 @@ fa.modal.data.age.reg <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLR
 rd.modal.data.age.reg <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeReg/jlfRDData.csv')
 tr.modal.data.age.reg <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeReg/jlfTRData.csv')
 
+# Now create avergae reho and alff
+# Create a reho volume weighted variable
+rehoVals <- reho.modal.data[,grep('_jlf_', names(reho.modal.data))]
+volVals <- merge(vol.modal.data, reho.modal.data)
+volVals <- volVals[,grep('mprage_jlf_vol_', names(volVals))] 
+tmpNamesReho <- gsub(names(rehoVals), pattern='rest_jlf_reho_', replacement= '')
+tmpNamesVol <- gsub(names(volVals), pattern='mprage_jlf_vol_', replacement= '')
+volVals <- volVals[,tmpNamesVol %in% tmpNamesReho]
+rehoOutVals <- NULL
+for(q in 1:905){
+  weightedVal <- weighted.mean(rehoVals[q,], volVals[q,])
+  rehoOutVals <- append(rehoOutVals, weightedVal)
+}
+alffVals <- alff.modal.data[,grep('_jlf_', names(alff.modal.data))]
+alffOutVals <- NULL
+for(q in 1:905){
+  weightedVal <- weighted.mean(alffVals[q,], volVals[q,])
+  alffOutVals <- append(alffOutVals, weightedVal)
+}
+allOut <- cbind(reho.modal.data[,c(1, 21)], rehoOutVals, alffOutVals)
+
+
 # Now add age bins
 vol.modal.data <- addAgeBin(vol.modal.data, vol.modal.data$ageAtGo1Scan, 167, 215, 216)
 cbf.modal.data <- addAgeBin(cbf.modal.data, cbf.modal.data$ageAtGo1Scan, 167, 215, 216)
