@@ -57,3 +57,7 @@ for(i in colVals){
     
 }
 dev.off()
+
+# Now create cor matrices of the factor scores
+#tmp <- melt(cor(fac.vals.male))
+
