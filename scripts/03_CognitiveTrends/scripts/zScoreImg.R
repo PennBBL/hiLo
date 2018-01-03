@@ -19,6 +19,29 @@ gmd.modal.data.age.reg$ageBin <- 'Age Regressed'
 cbf.modal.data.age.reg$ageBin <- 'Age Regressed'
 tr.modal.data.age.reg$ageBin <- 'Age Regressed'
 
+## Declare any functions
+returnPerfBin <- function(data) {
+  
+  data$F1_Exec_Comp_Cog_Accuracy
+  quantiles <- quantile(data$F1_Exec_Comp_Cog_Accuracy, c(0,.33,.67,1))
+  
+  data$perfBin <- 0
+  data$perfBin[which(data$F1_Exec_Comp_Cog_Accuracy < quantiles[2])] <- 'lo'
+  data$perfBin[which(data$F1_Exec_Comp_Cog_Accuracy >= quantiles[2] &
+                          data$F1_Exec_Comp_Cog_Accuracy <= quantiles[3])] <- 'me'
+  data$perfBin[which(data$F1_Exec_Comp_Cog_Accuracy > quantiles[3])] <- 'hi'
+  return(data)
+}
+
+## Create our static perf bin
+tmpDF <- vol.modal.data.age.reg
+tmpDF <- returnPerfBin(tmpDF)
+outCol <- tmpDF[,c('bblid','scanid','perfBin')]
+colnames(outCol)[3] <- paste('perfCol', 1, sep='')
+static.perf.bin <- outCol
+colnames(static.perf.bin) <- c('bblid', 'scanid', 'groupFactorLevel')
+rm(tmpDF)
+
 ## Now prep the data 
 age.reg.vol <- doEverythingEverZ(vol.modal.data.age.reg, 'mprage_jlf_vol', 0, 999, 'Age Regressed', cerebellum=F,optionalRace=NULL)
 age.reg.vol$modal <- 'Volume'

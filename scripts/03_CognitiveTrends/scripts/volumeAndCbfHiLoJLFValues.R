@@ -9,6 +9,19 @@ source("/home/adrose/hiLo/scripts/03_CognitiveTrends/functions/functions-forJLF.
 install_load('plyr', 'ggplot2', 'reshape2', 'grid', 'gridExtra', 'labeling', 'data.table')
 
 # Declare any functions
+returnPerfBin <- function(data) {
+  
+  data$F1_Exec_Comp_Cog_Accuracy
+  quantiles <- quantile(data$F1_Exec_Comp_Cog_Accuracy, c(0,.33,.67,1))
+  
+  data$perfBin <- 0
+  data$perfBin[which(data$F1_Exec_Comp_Cog_Accuracy < quantiles[2])] <- 'lo'
+  data$perfBin[which(data$F1_Exec_Comp_Cog_Accuracy >= quantiles[2] &
+                          data$F1_Exec_Comp_Cog_Accuracy <= quantiles[3])] <- 'me'
+  data$perfBin[which(data$F1_Exec_Comp_Cog_Accuracy > quantiles[3])] <- 'hi'
+  return(data)
+}
+
 # Now load the data
 vol.modal.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLR/volumeData.csv')
 cbf.modal.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLR/cbfData.csv')
@@ -54,7 +67,6 @@ for(q in 1:905){
 }
 allOut <- cbind(reho.modal.data[,c(1, 21)], rehoOutVals, alffOutVals)
 
-
 # Now add age bins
 vol.modal.data <- addAgeBin(vol.modal.data, vol.modal.data$ageAtGo1Scan, 167, 215, 216)
 cbf.modal.data <- addAgeBin(cbf.modal.data, cbf.modal.data$ageAtGo1Scan, 167, 215, 216)
@@ -79,6 +91,15 @@ ad.modal.data.age.reg$ageBin <- 'Age Regressed'
 fa.modal.data.age.reg$ageBin <- 'Age Regressed'
 rd.modal.data.age.reg$ageBin <- 'Age Regressed'
 tr.modal.data.age.reg$ageBin <- 'Age Regressed'
+
+# Now create a static perf bin variable
+tmpDF <- vol.modal.data
+tmpDF <- returnPerfBin(tmpDF)
+outCol <- tmpDF[,c('bblid','scanid','perfBin')]
+colnames(outCol)[3] <- paste('perfCol', 1, sep='')
+static.perf.bin <- outCol
+colnames(static.perf.bin) <- c('bblid', 'scanid', 'groupFactorLevel')
+rm(tmpDF)
 
 ## Now prep the data 
 # Start with volume
