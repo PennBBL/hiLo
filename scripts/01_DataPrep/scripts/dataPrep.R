@@ -35,19 +35,14 @@ cc.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/rawData/n1601_jlfCc.
 reho.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/rawData/n1601_jlfReho.csv')
 alff.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/rawData/n1601_jlfAlff.csv')
 md.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/rawData/n1601_jlfTR.csv')
-md.data$include_wT1ex_64 <- 1 - md.data$include_wT1ex_64
 md.data <- md.data[complete.cases(md.data[,grep('dti_jlf_tr', names(md.data))]),]
 fa.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/rawData/n1601_jlfFA.csv')
-fa.data$include_wT1ex_64 <- 1 - fa.data$include_wT1ex_64
 fa.data <- fa.data[complete.cases(fa.data[,grep('dti_jlf_fa', names(fa.data))]),]
 ad.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/rawData/n1601_jlfAD.csv')
-ad.data$include_wT1ex_64 <- 1 - ad.data$include_wT1ex_64
 ad.data <- ad.data[complete.cases(ad.data[,grep('dti_jlf_ad', names(ad.data))]),]
 rd.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/rawData/n1601_jlfRD.csv')
-rd.data$include_wT1ex_64 <- 1 - rd.data$include_wT1ex_64
 rd.data <- rd.data[complete.cases(rd.data[,grep('dti_jlf_rd', names(rd.data))]),]
 fa.label <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/rawData/n1601_jhuFALabels.csv')
-fa.label$include_wT1ex_64 <- 1 - fa.label$include_wT1ex_64
 
 # Find the subjects that had their cnb within one year of their imaging session
 scan.Value <- data.values$ageAtGo1Scan
@@ -59,13 +54,14 @@ scanid.index <- data.values$scanid[acceptable.subjs]
 
 # Now limit this bblid index to those that also pass the health exclusions 
 bblid.index <- bblid.index[bblid.index %in% health.values$bblid[which(health.values$incidentalExclude==0)]]
+bblid.index.fa <- bblid.index
 bblid.index <- bblid.index[bblid.index %in% volume.data$bblid[which(volume.data$t1Exclude==0)]]
 
 # Now create a for loop to do everything for our GM values
 dataVals <- c('cbf.data', 'gmd.data', 'ct.data', 'reho.data', 'alff.data', 'md.data', 'cc.data', 'fa.data', 'ad.data', 'rd.data', 'fa.label')
 outNames <- c('cbfData.csv', 'gmdData.csv', 'ctData.csv', 'rehoData.csv', 'alffData.csv', 'jlfTRData.csv', 'ccData.csv', 'jlfFAData.csv', 'jlfADData.csv', 'jlfRDData.csv', 'jhuFALabel.csv')
 modalNames <- c('pcasl_jlf_cbf', 'mprage_jlf_gmd', 'mprage_jlf_ct', 'rest_jlf_reho', 'rest_jlf_alff', 'dti_jlf_tr', 'mprage_jlf_cortcon', 'dti_jlf_fa', 'dti_jlf_ad', 'dti_jlf_rd', 'dti_dtitk_jhulabel')
-excludeVals <- c('pcaslExclude', 't1Exclude', 't1Exclude', 'restExclude', 'restExclude', 'include_wT1ex_64', 't1Exclude','include_wT1ex_64', 'include_wT1ex_64', 'include_wT1ex_64', 'include_wT1ex_64')
+excludeVals <- c('pcaslExclude', 't1Exclude', 't1Exclude', 'restExclude', 'restExclude', 'dti64Exclude', 't1Exclude','dti64Exclude', 'dti64Exclude', 'dti64Exclude', 'dti64Exclude')
 outputMeanLR <- "/home/adrose/dataPrepForHiLoPaper/data/meanLR/"
 outputAgeReg <- "/home/adrose/dataPrepForHiLoPaper/data/ageReg/"
 outputMeanLRAgeReg <- "/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeReg/"
@@ -81,7 +77,12 @@ for(i in 1:length(dataVals)){
   outMod <- paste(outputMeanLRAgeRegModReg, outNames[i], sep='')
 
   # Now apply our immediete restrictions
-  tmpData <- tmpData[tmpData$bblid %in% bblid.index,]
+  if(i < 11){
+    tmpData <- tmpData[tmpData$bblid %in% bblid.index,]
+  }
+  if(i > 10){
+    tmpData <- tmpData[tmpData$bblid %in% bblid.index.fa,]
+  }
   tmpData <- tmpData[which(tmpData[excludeVals[i]]!=1), ]
   tmpData <- merge(modal.scores, tmpData, by='bblid')
 
@@ -108,8 +109,18 @@ for(i in 1:length(dataVals)){
     tmpAR <- averageLeftAndRight1(tmpAR)
   }
 
+  # Now for modality regression make sure we don't inuclude any global summary metrics
+  colsToRM <- NULL
+  colsToRM <- grep('_jlf_ICV', names(tmpAR))
+  colsToRM <- append(colsToRM, grep('_Mean', names(tmpAR)))
+  if(!identical(integer(0), colsToRM)){
+    tmpMR <- tmpAR[, -colsToRM]
+  } else if(identical(integer(0), colsToRM)){
+    tmpMR <- tmpAR
+  }
+
   # Now produce a modality regressed data frame
-  tmpMR <- regressWithinModality(tmpAR, modalNames[i])
+  tmpMR <- regressWithinModality(tmpMR, modalNames[i])
 
   # Now write the csvs
   write.csv(tmpLR, outMean, quote=F, row.names=F)
