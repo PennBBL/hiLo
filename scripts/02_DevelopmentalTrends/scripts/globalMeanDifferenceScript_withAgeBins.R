@@ -21,6 +21,7 @@ ad.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLR/jlfADData.csv
 fa.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLR/jlfFAData.csv')
 rd.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLR/jlfRDData.csv')
 tr.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLR/jlfTRData.csv')
+tr.data$dti_jlf_tr_MeanTR <- apply(tr.data[,grep('dti_jlf_tr_', names(tr.data))], 1, mean)
 
 ## Now attach age bin to all of our data 
 vol.data <- addAgeBin(vol.data, vol.data$ageAtGo1Scan, 167, 215, 216)
@@ -131,25 +132,27 @@ dev.off()
 
 ## Now do the WM labels down here 
 ## Load the data
-ad.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLR/jhuADLabelsData.csv')
-fa.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLR/jhuFALabelsData.csv')
-rd.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLR/jhuRDLabelsData.csv')
-tr.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLR/jhuTRLabelsData.csv')
+#ad.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLR/jhuADLabelsData.csv')
+fa.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLR/jhuFALabel.csv')
+#rd.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLR/jhuRDLabelsData.csv')
+tr.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLR/jhuTRLabel.csv')
+#fa.data$dti_dtitk_jhulabel_fa_MeanFA <- apply(fa.data[,grep('dti_dtitk_jhulabel_fa_', names(fa.data))], 1, mean)
+
 
 ## Now attach age bin to all of our data 
-ad.data <- addAgeBin(ad.data, ad.data$ageAtGo1Scan, 167, 215, 216)
+#ad.data <- addAgeBin(ad.data, ad.data$ageAtGo1Scan, 167, 215, 216)
 fa.data <- addAgeBin(fa.data, fa.data$ageAtGo1Scan, 167, 215, 216)
-rd.data <- addAgeBin(rd.data, rd.data$ageAtGo1Scan, 167, 215, 216)
+#rd.data <- addAgeBin(rd.data, rd.data$ageAtGo1Scan, 167, 215, 216)
 tr.data <- addAgeBin(tr.data, tr.data$ageAtGo1Scan, 167, 215, 216)
 
 # Now process all of the data
 # STart with AD
-colnames(ad.data)[69] <- 'dti_dtitk_jhulabel_ad_rlic'
-ad.data.1 <- returnStandardizedWM1GenderMeans(ad.data, "Childhood")
-ad.data.1 <- rbind(ad.data.1, returnStandardizedWM1GenderMeans(ad.data, "Adolescence"))
-ad.data.1 <- rbind(ad.data.1, returnStandardizedWM1GenderMeans(ad.data, "Early Adulthood"))
-ad.data.1$ageBin <- factor(ad.data.1$ageBin, levels=c("Early Adulthood","Adolescence", "Childhood"))
-ad.data.1<- ad.data.1[-which(ad.data.1$ROI=='tap'),]
+#colnames(ad.data)[69] <- 'dti_dtitk_jhulabel_ad_rlic'
+#ad.data.1 <- returnStandardizedWM1GenderMeans(ad.data, "Childhood")
+#ad.data.1 <- rbind(ad.data.1, returnStandardizedWM1GenderMeans(ad.data, "Adolescence"))
+#ad.data.1 <- rbind(ad.data.1, returnStandardizedWM1GenderMeans(ad.data, "Early Adulthood"))
+#ad.data.1$ageBin <- factor(ad.data.1$ageBin, levels=c("Early Adulthood","Adolescence", "Childhood"))
+#ad.data.1<- ad.data.1[-which(ad.data.1$ROI=='tap'),]
 
 # Now do FA
 colnames(fa.data)[69] <- 'dti_dtitk_jhulabel_fa_rlic'
@@ -161,11 +164,11 @@ fa.data.1<- fa.data.1[-which(fa.data.1$ROI=='tap'),]
 
 # Now onto RD 
 # RD is curretnly broken atm because of my average across hemishpere function
-rd.data.1 <- returnStandardizedWM1GenderMeans(rd.data, "Childhood")
-rd.data.1 <- rbind(rd.data.1, returnStandardizedWM1GenderMeans(rd.data, "Adolescence"))
-rd.data.1 <- rbind(rd.data.1, returnStandardizedWM1GenderMeans(rd.data, "Early Adulthood"))
-rd.data.1$ageBin <- factor(rd.data.1$ageBin, levels=c("Early Adulthood","Adolescence", "Childhood"))
-rd.data.1<- rd.data.1[-which(rd.data.1$ROI=='tap'),]
+#rd.data.1 <- returnStandardizedWM1GenderMeans(rd.data, "Childhood")
+#rd.data.1 <- rbind(rd.data.1, returnStandardizedWM1GenderMeans(rd.data, "Adolescence"))
+#rd.data.1 <- rbind(rd.data.1, returnStandardizedWM1GenderMeans(rd.data, "Early Adulthood"))
+#rd.data.1$ageBin <- factor(rd.data.1$ageBin, levels=c("Early Adulthood","Adolescence", "Childhood"))
+#rd.data.1<- rd.data.1[-which(rd.data.1$ROI=='tap'),]
 
 # Now do TR
 colnames(tr.data)[69] <- "dti_dtitk_jhulabel_tr_rlic"
@@ -176,15 +179,15 @@ tr.data.1$ageBin <- factor(tr.data.1$ageBin, levels=c("Early Adulthood","Adolesc
 tr.data.1<- tr.data.1[-which(tr.data.1$ROI=='tap'),]
 
 # Now plot these suckers 
-adPlot <- createGGPlotImage(ad.data.1, 'WM Labels Axial Diffusitivity', -1, 1, .2)
+#adPlot <- createGGPlotImage(ad.data.1, 'WM Labels Axial Diffusitivity', -1, 1, .2)
 faPlot <- createGGPlotImage(fa.data.1, 'WM Labels Fractional Anisotropy', -1, 1, .2)
-rdPlot <- createGGPlotImage(rd.data.1, 'WM Labels Radial Diffusitivity', -1.2, 1, .2)
+#rdPlot <- createGGPlotImage(rd.data.1, 'WM Labels Radial Diffusitivity', -1.2, 1, .2)
 trPlot <- createGGPlotImage(tr.data.1, 'WM Labels Trace', -1, 1, .2)
 
 # Now plot them all
 pdf('developmentalFiguresWMLabels.pdf' ,height=20, width=20)
-adPlot
+#adPlot
 faPlot
-rdPlot
+#rdPlot
 trPlot
 dev.off()
