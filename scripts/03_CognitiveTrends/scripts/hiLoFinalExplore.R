@@ -7,9 +7,9 @@ install_load('plyr', 'ggplot2', 'reshape2', 'grid', 'gridExtra', 'labeling', 'da
 
 ## Load data
 vol.modal.data.age.reg <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeReg/volumeData.csv')
-cbf.modal.data.age.reg <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeReg/cbfData.csv')
+cbf.modal.data.age.reg <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeRegQA/cbfData.csv')
 gmd.modal.data.age.reg <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeReg/gmdData.csv')
-tr.modal.data.age.reg <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeReg/jlfTRData.csv')
+tr.modal.data.age.reg <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeRegQA/jlfTRData.csv')
 
 ## Prep data
 cbf.modal.data.age.reg$ageBin <- 'Age Regressed'
@@ -40,7 +40,6 @@ static.perf.bin <- outCol
 colnames(static.perf.bin) <- c('bblid', 'scanid', 'groupFactorLevel')
 rm(tmpDF)
 
-
 # Now I need to grab the effect sizes
 ## Now prep the data 
 age.reg.vol <- doEverythingEver(vol.modal.data.age.reg, 'mprage_jlf_vol', 0, 999, 'Age Regressed', cerebellum=F,optionalRace=NULL)
@@ -55,11 +54,11 @@ age.reg.tr$modal <- 'TR'
 # Now I need to prepare the values for one graph
 toPlot <- rbind(age.reg.vol, age.reg.cbf, age.reg.gmd, age.reg.tr)
 toPlot$modal <- factor(toPlot$modal, levels=c('Volume', 'GMD', 'CBF', 'TR'))
-plotToReturn <- ggplot(toPlot, aes(y=meanValue, x=ROI, group=sex, color=sex)) +
+plotToReturn <- ggplot(toPlot, aes(y=zScoreDifference, x=ROI, group=sex, color=sex)) +
       geom_line( size=5) +
       geom_point(size=1.5) +
       xlab("ROI") +
-      ylab("z-score") +
+      ylab("Effect Size") +
       geom_hline(aes(yintercept=0), linetype="longdash", colour="black", size=0.5) +
       scale_colour_manual(name = "sex",
                           values=c("M"="blue1","F"="red1")) +
@@ -69,9 +68,10 @@ plotToReturn <- ggplot(toPlot, aes(y=meanValue, x=ROI, group=sex, color=sex)) +
       axis.text.y = element_text(face="bold", size=24), axis.title.x = element_text(face="bold", size=28),
       axis.title.y = element_text(face="bold", size=28),
       plot.title = element_text(face="bold", size=28), strip.text.x = element_text(size=15)) +
-      coord_cartesian(ylim = c(-.6, .6)) + 
-      facet_grid(modal ~ lobe, scales="free", space="free_x")
-
+      coord_cartesian(ylim = c(-1, 1)) + 
+      facet_grid(modal ~ lobe, scales="free", space="free_x") +
+      scale_y_continuous(limits=c(-1, 1), 
+                           breaks=round(seq(-1,1,.25), digits=2))
 
 pdf('testingHiLoEffectSize.pdf', height=20, width=20)
 plotToReturn
@@ -79,7 +79,7 @@ dev.off()
 
 # Now do Reho
 # Load the data 
-reho.modal.data.age.reg <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeReg/rehoData.csv')
+reho.modal.data.age.reg <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeRegQA/rehoData.csv')
 
 # Add the age bin 
 reho.modal.data.age.reg$ageBin <- 'Age Regressed'
@@ -88,11 +88,11 @@ reho.modal.data.age.reg$ageBin <- 'Age Regressed'
 age.reg.reho <- doEverythingEver(reho.modal.data.age.reg, 'rest_jlf_reho', 0, 999, 'Age Regressed', cerebellum=F,optionalRace=NULL)
 age.reg.reho$modal <- 'ReHo'
 toPlot <- age.reg.reho
-plotToReturn <- ggplot(toPlot, aes(y=meanValue, x=ROI, group=sex, color=sex)) +
+plotToReturn <- ggplot(toPlot, aes(y=zScoreDifference, x=ROI, group=sex, color=sex)) +
       geom_line( size=5) +
       geom_point(size=1.5) +
       xlab("ROI") +
-      ylab("z-score") +
+      ylab("Effect Size") +
       geom_hline(aes(yintercept=0), linetype="longdash", colour="black", size=0.5) +
       scale_colour_manual(name = "group",
                           values=c("M"="blue1","F"="red1")) +
@@ -102,8 +102,10 @@ plotToReturn <- ggplot(toPlot, aes(y=meanValue, x=ROI, group=sex, color=sex)) +
       axis.text.y = element_text(face="bold", size=24), axis.title.x = element_text(face="bold", size=28),
       axis.title.y = element_text(face="bold", size=28),
       plot.title = element_text(face="bold", size=28), strip.text.x = element_text(size=15)) +
-      coord_cartesian(ylim = c(-.6, .6)) + 
-      facet_grid(modal ~ lobe, scales="free", space="free_x")
+      coord_cartesian(ylim = c(-1, 1)) + 
+      facet_grid(modal ~ lobe, scales="free", space="free_x") +
+      scale_y_continuous(limits=c(-1, 1), 
+                           breaks=round(seq(-1,1,.25), digits=2))
 
 pdf('testingHiLoEffectSizeReho.pdf', height=6, width=20)
 plotToReturn
@@ -123,24 +125,24 @@ doEverythingEver <- function(df, modalityGrepPattern, lowerAge.e, upperAge.e, ag
   return(tmp)
 }
 
-fa.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeReg/jhuFALabelsData.csv')
-tr.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeReg/jhuTRLabelsData.csv')
+fa.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeRegQA/jhuFALabel.csv')
+tr.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeRegQA/jhuTRLabel.csv')
 fa.data$ageBin <- 'Age Regressed'
 tr.data$ageBin <- 'Age Regressed'
-fa.data.age.reg <- doEverythingEver(fa.data, 'dti_dtitk_jhulabel_fa', 0, 167, 'Age Regressed')
+fa.data.age.reg <- doEverythingEver(fa.data, 'dti_dtitk_jhulabel_fa', 0, 999, 'Age Regressed')
 fa.data.age.reg$modal <- 'FA'
-tr.data.age.reg <- doEverythingEver(tr.data, 'dti_dtitk_jhulabel_tr', 0, 167, 'Age Regressed')
+tr.data.age.reg <- doEverythingEver(tr.data, 'dti_dtitk_jhulabel_tr', 0, 999, 'Age Regressed')
 tr.data.age.reg$modal <- 'TR'
 
 # Now plot em
 # Now I need to prepare the values for one graph
 toPlot <- rbind(fa.data.age.reg, tr.data.age.reg)
 toPlot$modal <- factor(toPlot$modal, levels=c('FA', 'TR'))
-plotToReturn <- ggplot(toPlot, aes(y=meanValue, x=ROI, group=sex, color=sex)) +
+plotToReturn <- ggplot(toPlot, aes(y=zScoreDifference, x=ROI, group=sex, color=sex)) +
       geom_line( size=5) +
       geom_point(size=1.5) +
       xlab("ROI") +
-      ylab("z-score") +
+      ylab("Effect Size") +
       geom_hline(aes(yintercept=0), linetype="longdash", colour="black", size=0.5) +
       scale_colour_manual(name = "sex",
                           values=c("M"="blue1","F"="red1")) +
@@ -150,8 +152,10 @@ plotToReturn <- ggplot(toPlot, aes(y=meanValue, x=ROI, group=sex, color=sex)) +
       axis.text.y = element_text(face="bold", size=24), axis.title.x = element_text(face="bold", size=28),
       axis.title.y = element_text(face="bold", size=28),
       plot.title = element_text(face="bold", size=28), strip.text.x = element_text(size=15)) +
-      coord_cartesian(ylim = c(-.6, .6)) + 
-      facet_grid(modal ~ lobe, scales="free", space="free_x")
+      coord_cartesian(ylim = c(-1, 1)) + 
+      facet_grid(modal ~ lobe, scales="free", space="free_x") +
+      scale_y_continuous(limits=c(-1, 1), 
+                           breaks=round(seq(-1,1,.25), digits=2))
 
 
 pdf('testingHiLoEffectSizeWMLabels.pdf', height=10, width=12)
