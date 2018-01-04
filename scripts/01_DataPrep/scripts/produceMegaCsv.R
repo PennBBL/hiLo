@@ -39,7 +39,7 @@ demo.data <- merge(demo.data, race.vals, by=intersect(names(demo.data), names(ra
 demo.data <- merge(demo.data, ses.vals, by=intersect(names(demo.data), names(ses.vals)))
 all.data <- merge(demo.data, allData, by=intersect(names(demo.data), names(allData)), all=T)
 all.data <- all.data[all.data$bblid %in% allData$bblid,]
-write.csv(all.data, '/home/adrose/forRuben/data/n1601_imagingDataDump_20170901.csv', quote=F, row.names=F)
+write.csv(all.data, '/home/adrose/forRuben/data/n1601_imagingDataDump_20180104.csv', quote=F, row.names=F)
 
 # Now limit it to only the subjects who we use in the hi Lo analysis
 data.values <- read.csv('/home/analysis/redcap_data/201511/go1/n1601_go1_datarel_113015.csv')
@@ -57,4 +57,4 @@ scanid.index <- data.values$scanid[acceptable.subjs]
 bblid.index <- bblid.index[bblid.index %in% health.values$bblid[which(health.values$incidentalExclude==0)]]
 bblid.index <- bblid.index[bblid.index %in% volume.data$bblid[which(volume.data$t1Exclude==0)]]
 all.data.hilo <- all.data[all.data$bblid %in% bblid.index,]
-write.csv(all.data.hilo, '/home/adrose/forRuben/data/n1601_hiLoDataDump_20170901.csv', quote=F, row.names=F)
+write.csv(all.data.hilo, '/home/adrose/forRuben/data/n1601_hiLoDataDump_20180104.csv', quote=F, row.names=F)
