@@ -2,18 +2,20 @@ source('/home/adrose/hiLo/scripts/04_CognitiveModels/functions/functions.R')
 install_load('foreach', 'doParallel', 'glmnet','psych','reshape2', 'caret','MASS', 'methods', 'ggplot2', 'rpart')
 
 vol.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeReg/volumeData.csv')
-cbf.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeReg/cbfData.csv')
+cbf.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeRegQA/cbfData.csv')
 cbf.data$pcasl_jlf_cbf_MeanGM <- cbf.data$pcaslMeanGMValue
 gmd.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeReg/gmdData.csv')
 ct.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeReg/ctData.csv')
 cc.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeReg/ccData.csv')
-reho.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeReg/rehoData.csv')
+reho.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeRegQA/rehoData.csv')
 alff.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeReg/alffData.csv')
 ad.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeReg/jlfADData.csv')
 fa.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeReg/jlfFAData.csv')
 rd.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeReg/jlfRDData.csv')
 tr.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeReg/jlfTRData.csv')
-fa.data.wm <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeReg/jhuFATractsData.csv')
+fa.data.wm <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeRegQA/jhuFALabel.csv')
+#fa.data.wm <- fa.data.wm[-863,]
+fa.data.wm$dti_dtitk_jhutract_fa_MeanFA <- apply(fa.data.wm[,grep('dti_dtitk_jhutract_fa_', names(fa.data.wm))], 1, mean)
 tr.data$dti_jlf_tr_MeanTR <- apply(tr.data[,grep('dti_jlf_tr_', names(tr.data))], 1, mean)
 
 # Create a reho volume weighted variable
@@ -114,7 +116,7 @@ dataNames <- c('vol.data','cbf.data','gmd.data','tr.data','all.data')
 outName <- c('vol', 'cbf', 'gmd', 'tr', 'all.dat')
 grepValue <- c(rep('_jlf_', 4), '_jlf_')
 allR <- NULL
-for(q in seq(1,100)){
+for(q in seq(1,10)){
   for(i in 1:length(dataNames)){
     tmpDat <- get(dataNames[i])
     tmpDat <- tmpDat[which(tmpDat$sex==1),]
@@ -124,7 +126,7 @@ for(q in seq(1,100)){
     corVal <- cor(predVals[[1]], tmpDatY)^2
     cvICC <- ICC(cbind(predVals[[1]], tmpDatY))$results[4,2]
     cvRMSE <- sqrt(mean((tmpDatY-predVals[[1]])^2))
-    outRow <- c(i, q, corVal, cvICC, cvRMSE)
+    outRow <- c(i, q, corVal, dim(tmpDatX)[1], dim(tmpDatX)[2])
     allR <- rbind(allR, outRow)
     #write.csv(allR, 'tmpAllRValsNOVS2.csv', quote=F, row.names=F)
   }
@@ -145,12 +147,11 @@ for(q in seq(1,100)){
     corVal <- cor(predVals[[1]], tmpDatY)^2
     cvICC <- ICC(cbind(predVals[[1]], tmpDatY))$results[4,2]
     cvRMSE <- sqrt(mean((tmpDatY-predVals[[1]])^2))
-    outRow <- c(i, q, corVal, cvICC, cvRMSE)
+    outRow <- c(i, q, corVal, dim(tmpDatX)[1], dim(tmpDatX)[2])
     allR <- rbind(allR, outRow)
     #write.csv(allR, 'tmpAllRValsNOVS2.csv', quote=F, row.names=F)
   }
   print(q)
 }
-
 
 write.csv(allR, 'tmpAllRValsFemale.csv', quote=F, row.names=F)
