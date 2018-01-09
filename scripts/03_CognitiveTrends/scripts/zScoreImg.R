@@ -10,14 +10,37 @@ install_load('plyr', 'ggplot2', 'reshape2', 'grid', 'gridExtra', 'labeling', 'da
 # Declare any functions
 # Now load the data
 vol.modal.data.age.reg <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeReg/volumeData.csv')
-cbf.modal.data.age.reg <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeReg/cbfData.csv')
+cbf.modal.data.age.reg <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeRegQA/cbfData.csv')
 gmd.modal.data.age.reg <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeReg/gmdData.csv')
-tr.modal.data.age.reg <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeReg/jlfTRData.csv')
+tr.modal.data.age.reg <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeRegQA/jlfTRData.csv')
 
 vol.modal.data.age.reg$ageBin <- 'Age Regressed'
 gmd.modal.data.age.reg$ageBin <- 'Age Regressed'
 cbf.modal.data.age.reg$ageBin <- 'Age Regressed'
 tr.modal.data.age.reg$ageBin <- 'Age Regressed'
+
+## Declare any functions
+returnPerfBin <- function(data) {
+  
+  data$F1_Exec_Comp_Cog_Accuracy
+  quantiles <- quantile(data$F1_Exec_Comp_Cog_Accuracy, c(0,.33,.67,1))
+  
+  data$perfBin <- 0
+  data$perfBin[which(data$F1_Exec_Comp_Cog_Accuracy < quantiles[2])] <- 'lo'
+  data$perfBin[which(data$F1_Exec_Comp_Cog_Accuracy >= quantiles[2] &
+                          data$F1_Exec_Comp_Cog_Accuracy <= quantiles[3])] <- 'me'
+  data$perfBin[which(data$F1_Exec_Comp_Cog_Accuracy > quantiles[3])] <- 'hi'
+  return(data)
+}
+
+## Create our static perf bin
+tmpDF <- vol.modal.data.age.reg
+tmpDF <- returnPerfBin(tmpDF)
+outCol <- tmpDF[,c('bblid','scanid','perfBin')]
+colnames(outCol)[3] <- paste('perfCol', 1, sep='')
+static.perf.bin <- outCol
+colnames(static.perf.bin) <- c('bblid', 'scanid', 'groupFactorLevel')
+rm(tmpDF)
 
 ## Now prep the data 
 age.reg.vol <- doEverythingEverZ(vol.modal.data.age.reg, 'mprage_jlf_vol', 0, 999, 'Age Regressed', cerebellum=F,optionalRace=NULL)
@@ -48,7 +71,9 @@ plotToReturn <- ggplot(toPlot, aes(y=meanValue, x=ROI, group=group, color=group)
       axis.title.y = element_text(face="bold", size=28),
       plot.title = element_text(face="bold", size=28), strip.text.x = element_text(size=15)) +
       coord_cartesian(ylim = c(-.6, .6)) + 
-      facet_grid(modal ~ lobe, scales="free", space="free_x")
+      facet_grid(modal ~ lobe, scales="free", space="free_x") +
+      scale_y_continuous(limits=c(-1, 1), 
+                           breaks=round(seq(-1,1,.25), digits=2))
 
 pdf('testingHiLo.pdf', height=20, width=20)
 plotToReturn
@@ -56,7 +81,7 @@ dev.off()
 
 # Now do Reho
 # Load the data 
-reho.modal.data.age.reg <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeReg/rehoData.csv')
+reho.modal.data.age.reg <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeRegQA/rehoData.csv')
 
 # Add the age bin 
 reho.modal.data.age.reg$ageBin <- 'Age Regressed'
@@ -81,7 +106,9 @@ plotToReturn <- ggplot(toPlot, aes(y=meanValue, x=ROI, group=group, color=group)
       axis.title.y = element_text(face="bold", size=28),
       plot.title = element_text(face="bold", size=28), strip.text.x = element_text(size=15)) +
       coord_cartesian(ylim = c(-.6, .6)) + 
-      facet_grid(modal ~ lobe, scales="free", space="free_x")
+      facet_grid(modal ~ lobe, scales="free", space="free_x") +
+      scale_y_continuous(limits=c(-1, 1), 
+                           breaks=round(seq(-1,1,.25), digits=2))
 
 pdf('testingHiLoReho.pdf', height=6, width=20)
 plotToReturn
@@ -103,8 +130,8 @@ doEverythingEver <- function(df, modalityGrepPattern, lowerAge.e, upperAge.e, ag
 }
 
 # Now load the data
-fa.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeReg/jhuFALabelsData.csv')
-tr.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeReg/jhuTRLabelsData.csv')
+fa.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeRegQA/jhuFALabel.csv')
+tr.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeRegQA/jhuTRLabel.csv')
 fa.data$ageBin <- 'Age Regressed'
 tr.data$ageBin <- 'Age Regressed'
 fa.data.age.reg <- doEverythingEver(fa.data, 'dti_dtitk_jhulabel_fa', 0, 167, 'Age Regressed')
@@ -130,8 +157,10 @@ plotToReturn <- ggplot(toPlot, aes(y=meanValue, x=ROI, group=group, color=group)
       axis.text.y = element_text(face="bold", size=24), axis.title.x = element_text(face="bold", size=28),
       axis.title.y = element_text(face="bold", size=28),
       plot.title = element_text(face="bold", size=28), strip.text.x = element_text(size=15)) +
-      coord_cartesian(ylim = c(-.6, .6)) + 
-      facet_grid(modal ~ lobe, scales="free", space="free_x")
+      coord_cartesian(ylim = c(-.8, .8)) + 
+      facet_grid(modal ~ lobe, scales="free", space="free_x") +
+      scale_y_continuous(limits=c(-1, 1), 
+                           breaks=round(seq(-1,1,.25), digits=2))
 
 
 pdf('testingHiLoLabels.pdf', height=10, width=12)

@@ -95,7 +95,7 @@ adLabels <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/preRaw2017/n1601_JH
 rdLabels <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/preRaw2017/n1601_JHULabelsRD_20170321.csv')
 trLabels <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/preRaw2017/n1601_JHULabelsTR_20170321.csv')
 faLabels <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/preRaw2017/n1601_JHULabelsFA_20170321.csv')
-dtiQA <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/preRaw/dti/n1601_dti_QA_09_27_2016.csv')
+dtiQA <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/preRaw2017/n1601_dti_qa_20170301.csv')
 dtiQA$bblid <- strSplitMatrixReturn(dtiQA$bblid, '_')[,1]
 
 # Now merge our data and QA values

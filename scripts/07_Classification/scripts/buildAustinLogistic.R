@@ -31,7 +31,7 @@ cvAUCVals <- NULL
 returnPerfBin <- function(data) {
   
   data$F1_Exec_Comp_Cog_Accuracy
-  quantiles <- quantile(data$F1_Exec_Comp_Cog_Accuracy, c(0,.34,.67,1))
+  quantiles <- quantile(data$F1_Exec_Comp_Cog_Accuracy, c(0,.33,.67,1))
   
   data$perfBin <- 0
   data$perfBin[which(data$F1_Exec_Comp_Cog_Accuracy < quantiles[2])] <- 1
@@ -40,6 +40,27 @@ returnPerfBin <- function(data) {
   data$perfBin[which(data$F1_Exec_Comp_Cog_Accuracy > quantiles[3])] <- 3
   return(data)
 }
+
+tmpDF <- get(dataNames[1])
+tmpDF <- returnPerfBin(tmpDF)
+outCol <- tmpDF[,c('bblid','scanid','perfBin')]
+colnames(outCol)[3] <- paste('perfCol', 1, sep='')
+allOut <- outCol
+
+for(z in 2:5){
+  tmpDF <- get(dataNames[z])
+  tmpDF1 <- tmpDF[which(tmpDF$sex==1),]
+  tmpDF2 <- tmpDF[which(tmpDF$sex==2),]
+  tmpDF1 <- returnPerfBin(tmpDF1)
+  tmpDF2 <- returnPerfBin(tmpDF2)
+  outCol1 <- tmpDF1[,c('bblid','scanid','perfBin')]
+  outCol2 <- tmpDF2[,c('bblid','scanid','perfBin')]
+  outCol <- rbind(outCol1, outCol2)
+  colnames(outCol)[3] <- paste('perfCol', z, sep='')
+  allOut <- merge(allOut, outCol, all=T)
+}
+write.csv(allOut, '~/perfBinsForRUben.csv', quote=F, row.names=F)
+
 for(g in 1:2){
   for(z in 1:4){
     tmpDF <- get(dataNames[z])

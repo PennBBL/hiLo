@@ -6,9 +6,9 @@ allData <- allData[,-grep('Cerebral_White_Matter', names(allData))]
 allData[which(allData$t1Exclude==1),grep('mprage_jlf_vol_', names(allData))] <- NA
 
 suffixVals <- c('jlfCt.csv','jlfGMD.csv','jlfCc.csv','jlfCbf-Impute.csv','jlfTR.csv','jlfRD.csv','jlfAD.csv','jlfFA.csv','jlfAlff.csv','jlfReho.csv','jhuTRTracts.csv','jhuRDTracts.csv','jhuADTracts.csv','jhuFATracts.csv')
-exclusionVals <- c('t1Exclude', 't1Exclude', 't1Exclude', 'pcaslExclude', 'include_64', 'include_64', 'include_64', 'include_64','restExclude', 'restExclude','include_64','include_64','include_64','include_64')
+exclusionVals <- c('t1Exclude', 't1Exclude', 't1Exclude', 'pcaslExclude', 'dti64Exclude', 'dti64Exclude', 'dti64Exclude', 'dti64Exclude','restExclude', 'restExclude','dti64Exclude','dti64Exclude','dti64Exclude','dti64Exclude')
 grepVals <- c('mprage_jlf_', 'mprage_jlf_', 'mprage_jlf', 'pcasl_jlf', 'dti_jlf', 'dti_jlf', 'dti_jlf', 'dti_jlf', 'rest_jlf', 'rest_jlf', 'dti_dtitk_', 'dti_dtitk_', 'dti_dtitk_', 'dti_dtitk_')
-binaryVal <- c(0,0,0,0,1,1,1,1,0,0,1,1,1,1)
+binaryVal <- c(0,0,0,0,0,0,0,0,0,0,0,0,0,0)
 for(z in 1:length(suffixVals)){
   # Now apply the exclusion
   i <- suffixVals[z] 
@@ -39,7 +39,7 @@ demo.data <- merge(demo.data, race.vals, by=intersect(names(demo.data), names(ra
 demo.data <- merge(demo.data, ses.vals, by=intersect(names(demo.data), names(ses.vals)))
 all.data <- merge(demo.data, allData, by=intersect(names(demo.data), names(allData)), all=T)
 all.data <- all.data[all.data$bblid %in% allData$bblid,]
-write.csv(all.data, '/home/adrose/forRuben/data/n1601_imagingDataDump_20170901.csv', quote=F, row.names=F)
+write.csv(all.data, '/home/adrose/forRuben/data/n1601_imagingDataDump_20180104.csv', quote=F, row.names=F)
 
 # Now limit it to only the subjects who we use in the hi Lo analysis
 data.values <- read.csv('/home/analysis/redcap_data/201511/go1/n1601_go1_datarel_113015.csv')
@@ -57,4 +57,4 @@ scanid.index <- data.values$scanid[acceptable.subjs]
 bblid.index <- bblid.index[bblid.index %in% health.values$bblid[which(health.values$incidentalExclude==0)]]
 bblid.index <- bblid.index[bblid.index %in% volume.data$bblid[which(volume.data$t1Exclude==0)]]
 all.data.hilo <- all.data[all.data$bblid %in% bblid.index,]
-write.csv(all.data.hilo, '/home/adrose/forRuben/data/n1601_hiLoDataDump_20170901.csv', quote=F, row.names=F)
+write.csv(all.data.hilo, '/home/adrose/forRuben/data/n1601_hiLoDataDump_20180104.csv', quote=F, row.names=F)

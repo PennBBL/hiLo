@@ -12,7 +12,8 @@ addAgeBins <- function(ageValues, dataFrame, lowerAge, upperAge, ageBinName){
 
 
 # Declare a function which will return the performance group 
-returnPercentileGroup <- function(groupLevel,df_row, tmp_df){
+returnPercentileGroup <- function(groupLevel,df_row, tmp_df, staticFlag=FALSE){
+  if(staticFlag=='FALSE'){
   quantileTmp <- quantile(df_row, probs = c(0,.33,.66,1), na.rm=TRUE)
   if(groupLevel == "lo"){
     quantileTmplow <- getElement(quantileTmp,"0%")
@@ -29,6 +30,11 @@ returnPercentileGroup <- function(groupLevel,df_row, tmp_df){
   df_to_return <- which(df_row >= quantileTmplow & df_row < quantileTmphigh)
   df_to_return  <- tmp_df[df_to_return,]
   df_to_return$groupFactorLevel <- groupLevel
+  }
+  if(staticFlag=='TRUE'){
+    df_to_return <- merge(tmp_df, static.perf.bin)
+    df_to_return <- df_to_return[which(df_to_return$groupFactorLevel==groupLevel),]
+  }
   return(df_to_return)
 }
 
@@ -51,11 +57,11 @@ standardizePerfGroups <- function(dataFrame, modalityName, ageGroup){
   dataFrame <- dataFrame[complete.cases(dataFrame[,col.of.interest]),]
   sexCol <- grep("sex",names(dataFrame))
   factor.col <- dataFrame$F1_Exec_Comp_Cog_Accuracy
-  me.vals <- returnPercentileGroup('me', factor.col, dataFrame)
+  me.vals <- returnPercentileGroup('me', factor.col, dataFrame, staticFlag=TRUE)
   me.vals <- me.vals[which(me.vals$ageBin==ageGroup),]
-  hi.vals <- returnPercentileGroup('hi', factor.col, dataFrame)
+  hi.vals <- returnPercentileGroup('hi', factor.col, dataFrame, staticFlag=TRUE)
   hi.vals <- hi.vals[which(hi.vals$ageBin==ageGroup),]
-  lo.vals <- returnPercentileGroup('lo', factor.col, dataFrame)
+  lo.vals <- returnPercentileGroup('lo', factor.col, dataFrame, staticFlag=TRUE)
   lo.vals <- lo.vals[which(lo.vals$ageBin==ageGroup),]
   for(temp.gender in c(1,2)){
     me.vals.tmp <- me.vals[which(me.vals[,sexCol]==temp.gender & me.vals$ageBin == ageGroup),]

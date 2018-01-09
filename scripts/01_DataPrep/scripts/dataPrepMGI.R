@@ -30,6 +30,7 @@ outNames <- c('gmdData.csv', 'ctData.csv','ccData.csv', 'volumeData.csv')
 modalNames <- c('mprage_jlf_gmd', 'mprage_jlf_ct', 'mprage_jlf_cortcon', 'mprage_jlf_vol')
 excludeVals <- c('averageRating', 'averageRating', 'averageRating', 'averageRating')
 outputMeanLR <- "/home/adrose/dataPrepForHiLoPaper/data/meanLRMGI/"
+outputAgeReg <- "/home/adrose/dataPrepForHiLoPaper/data/ageRegMGI/"
 outputMeanLRAgeReg <- "/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeRegMGI/"
 outputMeanLRAgeRegModReg <- "/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeRegModalRegMGI/"
 
@@ -37,7 +38,7 @@ outputMeanLRAgeRegModReg <- "/home/adrose/dataPrepForHiLoPaper/data/meanLRVoland
 for(i in 1:length(dataVals)){
   # First load the data set, and create all of our output names
   tmpData <- get(dataVals[i])
-  
+  outAgeNM <- paste(outputAgeReg, outNames[i], sep='')
   outMean <- paste(outputMeanLR, outNames[i], sep='')
   outAge <- paste(outputMeanLRAgeReg, outNames[i], sep='')
   outMod <- paste(outputMeanLRAgeRegModReg, outNames[i], sep='')
@@ -57,6 +58,7 @@ for(i in 1:length(dataVals)){
   # Now produce our ageReg vals 
   tmpAR <- tmpData
   tmpAR[,grep(modalNames[i], names(tmpAR))] <- apply(tmpAR[,grep(modalNames[i], names(tmpAR))], 2, function(x) regressOutAgeNoQAMGI(x, tmpAR$ageAtGo1Scan))
+  write.csv(tmpAR, outAgeNM, quote=F, row.names=F)
   tmpAR <- averageLeftAndRight(tmpAR)
 
   # Now produce a modality regressed data frame

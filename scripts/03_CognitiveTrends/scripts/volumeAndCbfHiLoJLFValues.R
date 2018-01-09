@@ -9,6 +9,19 @@ source("/home/adrose/hiLo/scripts/03_CognitiveTrends/functions/functions-forJLF.
 install_load('plyr', 'ggplot2', 'reshape2', 'grid', 'gridExtra', 'labeling', 'data.table')
 
 # Declare any functions
+returnPerfBin <- function(data) {
+  
+  data$F1_Exec_Comp_Cog_Accuracy
+  quantiles <- quantile(data$F1_Exec_Comp_Cog_Accuracy, c(0,.33,.67,1))
+  
+  data$perfBin <- 0
+  data$perfBin[which(data$F1_Exec_Comp_Cog_Accuracy < quantiles[2])] <- 'lo'
+  data$perfBin[which(data$F1_Exec_Comp_Cog_Accuracy >= quantiles[2] &
+                          data$F1_Exec_Comp_Cog_Accuracy <= quantiles[3])] <- 'me'
+  data$perfBin[which(data$F1_Exec_Comp_Cog_Accuracy > quantiles[3])] <- 'hi'
+  return(data)
+}
+
 # Now load the data
 vol.modal.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLR/volumeData.csv')
 cbf.modal.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLR/cbfData.csv')
@@ -32,6 +45,27 @@ ad.modal.data.age.reg <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLR
 fa.modal.data.age.reg <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeReg/jlfFAData.csv')
 rd.modal.data.age.reg <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeReg/jlfRDData.csv')
 tr.modal.data.age.reg <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeReg/jlfTRData.csv')
+
+# Now create avergae reho and alff
+# Create a reho volume weighted variable
+rehoVals <- reho.modal.data[,grep('_jlf_', names(reho.modal.data))]
+volVals <- merge(vol.modal.data, reho.modal.data)
+volVals <- volVals[,grep('mprage_jlf_vol_', names(volVals))] 
+tmpNamesReho <- gsub(names(rehoVals), pattern='rest_jlf_reho_', replacement= '')
+tmpNamesVol <- gsub(names(volVals), pattern='mprage_jlf_vol_', replacement= '')
+volVals <- volVals[,tmpNamesVol %in% tmpNamesReho]
+rehoOutVals <- NULL
+for(q in 1:905){
+  weightedVal <- weighted.mean(rehoVals[q,], volVals[q,])
+  rehoOutVals <- append(rehoOutVals, weightedVal)
+}
+alffVals <- alff.modal.data[,grep('_jlf_', names(alff.modal.data))]
+alffOutVals <- NULL
+for(q in 1:905){
+  weightedVal <- weighted.mean(alffVals[q,], volVals[q,])
+  alffOutVals <- append(alffOutVals, weightedVal)
+}
+allOut <- cbind(reho.modal.data[,c(1, 21)], rehoOutVals, alffOutVals)
 
 # Now add age bins
 vol.modal.data <- addAgeBin(vol.modal.data, vol.modal.data$ageAtGo1Scan, 167, 215, 216)
@@ -57,6 +91,15 @@ ad.modal.data.age.reg$ageBin <- 'Age Regressed'
 fa.modal.data.age.reg$ageBin <- 'Age Regressed'
 rd.modal.data.age.reg$ageBin <- 'Age Regressed'
 tr.modal.data.age.reg$ageBin <- 'Age Regressed'
+
+# Now create a static perf bin variable
+tmpDF <- vol.modal.data
+tmpDF <- returnPerfBin(tmpDF)
+outCol <- tmpDF[,c('bblid','scanid','perfBin')]
+colnames(outCol)[3] <- paste('perfCol', 1, sep='')
+static.perf.bin <- outCol
+colnames(static.perf.bin) <- c('bblid', 'scanid', 'groupFactorLevel')
+rm(tmpDF)
 
 ## Now prep the data 
 # Start with volume
