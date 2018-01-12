@@ -1,82 +1,79 @@
-library(psych)
+## Load Library(s)
+source("/home/adrose/adroseHelperScripts/R/afgrHelpFunc.R")
+source("/home/adrose/hiLo/scripts/03_CognitiveTrends/functions/wm2Functions.R")
+source("/home/adrose/hiLo/scripts/03_CognitiveTrends/functions/wm1Functions2.R")
+source("/home/adrose/hiLo/scripts/03_CognitiveTrends/functions/functions-forJLF.R")
+install_load('plyr', 'ggplot2', 'reshape2', 'grid', 'gridExtra', 'labeling', 'data.table')
 
-calculateDeltaHiMeLo <- function(data, suffix) {
+## Load data
+vol.modal.data.age.reg <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeReg/volumeData.csv')
+cbf.modal.data.age.reg <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeRegQA/cbfData.csv')
+gmd.modal.data.age.reg <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeReg/gmdData.csv')
+tr.modal.data.age.reg <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeRegQA/jlfTRData.csv')
+
+## Prep data
+cbf.modal.data.age.reg$ageBin <- 'Age Regressed'
+vol.modal.data.age.reg$ageBin <- 'Age Regressed'
+gmd.modal.data.age.reg$ageBin <- 'Age Regressed'
+tr.modal.data.age.reg$ageBin <- 'Age Regressed'
+
+## Declare any functions
+returnPerfBin <- function(data) {
   
   data$F1_Exec_Comp_Cog_Accuracy
-  quantiles <- quantile(data$F1_Exec_Comp_Cog_Accuracy, c(0,.3333,.6666,1))
+  quantiles <- quantile(data$F1_Exec_Comp_Cog_Accuracy, c(0,.33,.67,1))
   
-  data$PerformanceGroup <- 0
-  data$PerformanceGroup[which(data$F1_Exec_Comp_Cog_Accuracy < quantiles[2])] <- 1
-  data$PerformanceGroup[which(data$F1_Exec_Comp_Cog_Accuracy >= quantiles[2] &
-                          data$F1_Exec_Comp_Cog_Accuracy < quantiles[3])] <- 2
-  data$PerformanceGroup[which(data$F1_Exec_Comp_Cog_Accuracy >= quantiles[3])] <- 3
-  
-  roi.index <- grep(pattern = suffix, x = names(data))
-  
-  
-  output <- as.data.frame(matrix(NA, 
-                                 nrow = length(roi.index), 
-                                 ncol= (4)))
-  
-  j <- 1
-  for (i in roi.index) {
-    temp.matrix <- describeBy(scale(data[,i]), group=data$PerformanceGroup, mat = T)
-    meanvals <- temp.matrix$mean
-    output[j,1] <- names(data)[i]
-    output[j,2] <- meanvals[1] - meanvals[2]
-    output[j,3] <- meanvals[3] - meanvals[2]
-    output[j,4] <- meanvals[3] - meanvals[1]
-    
-    j <- j + 1
-  }
-  
-  names(output) <- c("roi","me-lo","hi-me","hi-lo")
+  data$perfBin <- 0
+  data$perfBin[which(data$F1_Exec_Comp_Cog_Accuracy < quantiles[2])] <- 'lo'
+  data$perfBin[which(data$F1_Exec_Comp_Cog_Accuracy >= quantiles[2] &
+                          data$F1_Exec_Comp_Cog_Accuracy <= quantiles[3])] <- 'me'
+  data$perfBin[which(data$F1_Exec_Comp_Cog_Accuracy > quantiles[3])] <- 'hi'
+  return(data)
+}
+
+## Now modify our do everything ever function
+doEverythingEver <- function(df, modalityGrepPattern, lowerAge.e, upperAge.e, ageBinName.e, cerebellumIn=F){
+  tmp <- standardizePerfGroups(df, modalityGrepPattern, ageBinName.e)
+  tmp <- organizeROINames(tmp, cerebellum=cerebellumIn)
+  tmp <- subtractHiFromLo(tmp)
+  tmp$gender <- revalue(tmp$gender, c('1'='Male', '2'='Female'))
+  tmp$meanValue <- as.numeric(as.character(tmp$meanValue))
+  colnames(tmp)[6] <- 'Gender'
+  tmp$roiFinal <- strSplitMatrixReturn(tmp$ROI_readable, modalityGrepPattern)
+  output <- tmp[,c('roiFinal', 'zScoreDifference', 'Gender')]
   return(output)
 }
 
+## And additionally add a WM lobe effect size do everything ever
+doEverythingEverWM <- function(df, modalityGrepPattern, lowerAge.e, upperAge.e, ageBinName.e, cerebellumIn=F, optionalRace=NULL){
+  if(!identical(optionalRace, NULL)){
+    df <- df[which(df$race2==optionalRace),]
+  }
+  tmp <- standardizePerfGroups(df, modalityGrepPattern, ageBinName.e)
+  tmp <- organizeWM2ROINames(tmp)
+  tmp <- subtractHiFromLo(tmp)
+  tmp$gender <- revalue(tmp$gender, c('1'='Male', '2'='Female'))
+  tmp$meanValue <- as.numeric(as.character(tmp$meanValue))
+  colnames(tmp)[6] <- 'Gender'
+  tmp$ageBin <- factor(tmp$ageBin, levels=c('Early Adulthood','Adolescence','Childhood'))
+  return(tmp)
+}
 
-data.cbf <- read.csv("/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeReg/cbfData.csv")
-suffix.cbf <- "pcasl_jlf_cbf_"
+## Create our static perf bin
+tmpDF <- vol.modal.data.age.reg
+tmpDF <- returnPerfBin(tmpDF)
+outCol <- tmpDF[,c('bblid','scanid','perfBin')]
+colnames(outCol)[3] <- paste('perfCol', 1, sep='')
+static.perf.bin <- outCol
+colnames(static.perf.bin) <- c('bblid', 'scanid', 'groupFactorLevel')
+rm(tmpDF)
 
-data.cbf.male <- data.cbf[which(data.cbf$sex == 1), ]
-output.cbf.male <- calculateDeltaHiMeLo(data.cbf.male, suffix.cbf)
+# Now I need to grab the effect sizes
+## Now prep the data 
+age.reg.vol <- doEverythingEver(vol.modal.data.age.reg, 'mprage_jlf_vol_', 0, 999, 'Age Regressed', cerebellum=T)
+age.reg.vol <- rbind(age.reg.vol, )
+age.reg.cbf <- doEverythingEver(cbf.modal.data.age.reg, 'pcasl_jlf_cbf_', 0, 999, 'Age Regressed', cerebellum=F)
+age.reg.gmd <- doEverythingEver(gmd.modal.data.age.reg, 'mprage_jlf_gmd_', 0, 999, 'Age Regressed', cerebellum=T)
+age.reg.tr <- doEverythingEver(tr.modal.data.age.reg, 'dti_jlf_tr_', 0, 167, 'Age Regressed', cerebellum=T)
 
-data.cbf.female <- data.cbf[which(data.cbf$sex == 2), ]
-output.cbf.female <- calculateDeltaHiMeLo(data.cbf.female, suffix.cbf)
-
-data.vol <- read.csv("/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeReg/volumeData.csv")
-suffix.vol <- "mprage_jlf_vol_"
-
-data.vol.male <- data.vol[which(data.vol$sex == 1), ]
-output.vol.male <- calculateDeltaHiMeLo(data.vol.male, suffix.vol)
-
-data.vol.female <- data.vol[which(data.vol$sex == 2), ]
-output.vol.female <- calculateDeltaHiMeLo(data.vol.female, suffix.vol)
-
-data.gmd <- read.csv("/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeReg/gmdData.csv")
-suffix.gmd <- "mprage_jlf_gmd_"
-
-data.gmd.male <- data.gmd[which(data.gmd$sex == 1), ]
-output.gmd.male <- calculateDeltaHiMeLo(data.gmd.male, suffix.gmd)
-
-data.gmd.female <- data.gmd[which(data.gmd$sex == 2), ]
-output.gmd.female <- calculateDeltaHiMeLo(data.gmd.female, suffix.gmd)
-
-data.tr <- read.csv("/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeReg/jlfTRData.csv")
-suffix.tr <- "dti_jlf_tr_"
-
-data.tr.male <- data.tr[which(data.tr$sex == 1), ]
-output.tr.male <- calculateDeltaHiMeLo(data.tr.male, suffix.tr)
-
-data.tr.female <- data.tr[which(data.tr$sex == 2), ]
-output.tr.female <- calculateDeltaHiMeLo(data.tr.female, suffix.tr)
-
-write.csv(output.vol.male, "output_hi-me-low_vol_male.csv")
-write.csv(output.vol.female, "output_hi-me-low_vol_female.csv")
-write.csv(output.gmd.male, "output_hi-me-low_gmd_male.csv")
-write.csv(output.gmd.female, "output_hi-me-low_gmd_female.csv")
-write.csv(output.cbf.male, "output_hi-me-low_cbf_male.csv")
-write.csv(output.cbf.female, "output_hi-me-low_cbf_female.csv")
-write.csv(output.tr.male, "output_hi-me-low_tr_male.csv")
-write.csv(output.tr.female, "output_hi-me-low_tr_female.csv")
 
