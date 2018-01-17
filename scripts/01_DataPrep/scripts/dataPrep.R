@@ -109,8 +109,8 @@ for(i in 1:length(dataVals)){
 
   # Now produce age and modal reg values
   colsToRM <- NULL
-  colsToRM <- grep('_jlf_ICV', names(tmpAR))
-  colsToRM <- append(colsToRM, grep('_Mean', names(tmpAR)))
+  colsToRM <- grep('ICV', names(tmpAR))
+  colsToRM <- append(colsToRM, grep('Mean', names(tmpAR)))
   if(!identical(integer(0), colsToRM)){
     tmpMR <- tmpAR[, -colsToRM]
   } else if(identical(integer(0), colsToRM)){
@@ -160,6 +160,7 @@ for(i in 1:length(dataVals)){
   tmpData <- tmpData[complete.cases(tmpData[,grep(modalNames[i], names(tmpData))]),]
   outMean <- paste(outputMeanLR, outNames[i], sep='')
   outAgeNM <- paste(outputAgeReg, outNames[i], sep='')
+  outAgeNMMod <- paste(outputAgeRegModReg, outNames[i], sep='')
   outAge <- paste(outputMeanLRAgeReg, outNames[i], sep='')
   outMod <- paste(outputMeanLRAgeRegModReg, outNames[i], sep='')
 
@@ -194,7 +195,7 @@ for(i in 1:length(dataVals)){
 
   # Now produce age and modal reg values
   colsToRM <- NULL
-  colsToRM <- grep('_jlf_ICV', names(tmpAR))
+  colsToRM <- grep('_vol_ICV', names(tmpAR))
   colsToRM <- append(colsToRM, grep('_Mean', names(tmpAR)))
   if(!identical(integer(0), colsToRM)){
     tmpMR <- tmpAR[, -colsToRM]
@@ -213,7 +214,7 @@ for(i in 1:length(dataVals)){
 
   # Now for modality regression make sure we don't inuclude any global summary metrics
   colsToRM <- NULL
-  colsToRM <- grep('_jlf_ICV', names(tmpAR))
+  colsToRM <- grep('_vol_ICV', names(tmpAR))
   colsToRM <- append(colsToRM, grep('_Mean', names(tmpAR)))
   if(!identical(integer(0), colsToRM)){
     tmpMR <- tmpAR[, -colsToRM]
