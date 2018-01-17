@@ -1,19 +1,19 @@
 source('/home/adrose/hiLo/scripts/04_CognitiveModels/functions/functions.R')
 install_load('foreach', 'doParallel', 'glmnet','psych','reshape2', 'caret','MASS', 'methods', 'ggplot2', 'rpart')
 
-vol.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeReg/volumeData.csv')
-cbf.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeRegQA/cbfData.csv')
+vol.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/ageReg/volumeData.csv')
+cbf.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/ageReg/cbfData.csv')
 cbf.data$pcasl_jlf_cbf_MeanGM <- cbf.data$pcaslMeanGMValue
-gmd.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeReg/gmdData.csv')
-ct.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeReg/ctData.csv')
-cc.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeReg/ccData.csv')
-reho.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeRegQA/rehoData.csv')
-alff.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeReg/alffData.csv')
-ad.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeReg/jlfADData.csv')
-fa.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeReg/jlfFAData.csv')
-rd.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeReg/jlfRDData.csv')
-tr.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeReg/jlfTRData.csv')
-fa.data.wm <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeRegQA/jhuFALabel.csv')
+gmd.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/ageReg/gmdData.csv')
+ct.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/ageReg/ctData.csv')
+cc.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/ageReg/ccData.csv')
+reho.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/ageReg/rehoData.csv')
+alff.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/ageReg/alffData.csv')
+ad.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/ageReg/jlfADData.csv')
+fa.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/ageReg/jlfFAData.csv')
+rd.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/ageReg/jlfRDData.csv')
+tr.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/ageReg/jlfTRData.csv')
+fa.data.wm <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/ageReg/jhuFALabel.csv')
 #fa.data.wm <- fa.data.wm[-863,]
 fa.data.wm$dti_dtitk_jhutract_fa_MeanFA <- apply(fa.data.wm[,grep('dti_dtitk_jhutract_fa_', names(fa.data.wm))], 1, mean)
 tr.data$dti_jlf_tr_MeanTR <- apply(tr.data[,grep('dti_jlf_tr_', names(tr.data))], 1, mean)
@@ -122,7 +122,7 @@ for(q in seq(1,10)){
     tmpDat <- tmpDat[which(tmpDat$sex==1),]
     tmpDatX <- tmpDat[,grep(grepValue[i], names(tmpDat))]
     tmpDatY <- tmpDat$F1_Exec_Comp_Cog_Accuracy
-    predVals <- runTpotOnAll(tmpDatX, tmpDatY, 10, grepValue[i])
+    predVals <- runTpotOnAll(tmpDatX, tmpDatY, 40, grepValue[i])
     corVal <- cor(predVals[[1]], tmpDatY)^2
     cvICC <- ICC(cbind(predVals[[1]], tmpDatY))$results[4,2]
     cvRMSE <- sqrt(mean((tmpDatY-predVals[[1]])^2))
@@ -132,18 +132,25 @@ for(q in seq(1,10)){
   }
   print(q)
 }
-
-write.csv(allR, 'tmpAllRValsMale.csv', quote=F, row.names=F)
+orig <- allR
+allR <- as.data.frame(allR)
+allR <- dcast(V2 ~ V1, data=allR, value.var='V3')
+outMean <- round(apply(allR, 2, mean), digits=2)
+outMedian <- apply(allR, 2, median)
+outMin <- apply(allR, 2, min)
+outMax <- apply(allR, 2, max)
+output <- cbind(orig[1:5,4], orig[1:5,5], outMean[2:6], outMedian[2:6], outMin[2:6], outMax[2:6])
+write.csv(output, 'tmpAllRValsMale.csv', quote=F, row.names=F)
 
 # Now do this for females
 allR <- NULL
-for(q in seq(1,100)){
+for(q in seq(1,10)){
   for(i in 1:length(dataNames)){
     tmpDat <- get(dataNames[i])
     tmpDat <- tmpDat[which(tmpDat$sex==2),]
     tmpDatX <- tmpDat[,grep(grepValue[i], names(tmpDat))]
     tmpDatY <- tmpDat$F1_Exec_Comp_Cog_Accuracy
-    predVals <- runTpotOnAll(tmpDatX, tmpDatY, 10, grepValue[i])
+    predVals <- runTpotOnAll(tmpDatX, tmpDatY, 40, grepValue[i])
     corVal <- cor(predVals[[1]], tmpDatY)^2
     cvICC <- ICC(cbind(predVals[[1]], tmpDatY))$results[4,2]
     cvRMSE <- sqrt(mean((tmpDatY-predVals[[1]])^2))
@@ -153,5 +160,12 @@ for(q in seq(1,100)){
   }
   print(q)
 }
-
-write.csv(allR, 'tmpAllRValsFemale.csv', quote=F, row.names=F)
+orig <- allR
+allR <- as.data.frame(allR)
+allR <- dcast(V2 ~ V1, data=allR, value.var='V3')
+outMean <- apply(allR, 2, mean)
+outMedian <- apply(allR, 2, median)
+outMin <- apply(allR, 2, min)
+outMax <- apply(allR, 2, max)
+output <- cbind(orig[1:5,4], orig[1:5,5], outMean[2:6], outMedian[2:6], outMin[2:6], outMax[2:6])
+write.csv(output, 'tmpAllRValsFemale.csv', quote=F, row.names=F)
