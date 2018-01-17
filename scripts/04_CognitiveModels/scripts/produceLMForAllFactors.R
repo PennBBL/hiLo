@@ -10,15 +10,15 @@
 install_load('psych')
 
 ## Load data
-vol.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeRegModalReg/volumeData.csv')
-cbf.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeRegModalRegQA/cbfData.csv')
-gmd.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeRegModalReg/gmdData.csv')
-ct.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeRegModalReg/ctData.csv')
-reho.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeRegModalRegQA/rehoData.csv')
-alff.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeRegModalReg/alffData.csv')
-ad.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeRegModalReg/jlfADData.csv')
-fa.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeRegModalReg/jlfFAData.csv')
-tr.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeRegModalRegQA/jlfTRData.csv')
+vol.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/ageRegModalReg/volumeData.csv')
+cbf.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/ageRegModalRegQA/cbfData.csv')
+gmd.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/ageRegModalReg/gmdData.csv')
+ct.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/ageRegModalReg/ctData.csv')
+reho.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/ageRegModalRegQA/rehoData.csv')
+alff.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/ageRegModalReg/alffData.csv')
+ad.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/ageRegModalReg/jlfADData.csv')
+fa.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/ageRegModalReg/jlfFAData.csv')
+tr.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/ageRegModalRegQA/jlfTRData.csv')
 
 # Now create a series of loops which will go through each DF, and each cog outcome and return beta weights
 data.vals <- c('vol.data', 'cbf.data', 'gmd.data', 'reho.data', 'alff.data', 'tr.data')
@@ -27,8 +27,8 @@ fact.vals <- names(vol.data)[4:16]
 # Now write the loop
 for(w in fact.vals){
   fac.vals <- w
-  output <- matrix(NA, 70, 12)
-  rownames(output) <- c(gsub(x=names(vol.data)[grep('_jlf_', colnames(vol.data))], pattern='mprage_jlf_vol_', replacement=''), 'Brain_Stem')
+  output <- matrix(NA, 138, 12)
+  rownames(output) <- c(gsub(x=names(vol.data)[grep('_jlf_', colnames(vol.data))], pattern='mprage_jlf_vol_', replacement=''))
   colnames(output) <- c(paste(data.vals, 'Male'), paste(data.vals, 'Female'))
   for(g in 1){
     for(dat in 1:length(data.vals)){
