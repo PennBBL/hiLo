@@ -59,14 +59,15 @@ bblid.index.fa <- bblid.index
 bblid.index <- bblid.index[bblid.index %in% volume.data$bblid[which(volume.data$t1Exclude==0)]]
 
 # Now create a for loop to do everything for our GM values
-dataVals <- c('cbf.data', 'gmd.data', 'ct.data', 'reho.data', 'alff.data', 'md.data', 'cc.data', 'fa.data', 'ad.data', 'rd.data', 'fa.label', 'tr.label')
-outNames <- c('cbfData.csv', 'gmdData.csv', 'ctData.csv', 'rehoData.csv', 'alffData.csv', 'jlfTRData.csv', 'ccData.csv', 'jlfFAData.csv', 'jlfADData.csv', 'jlfRDData.csv', 'jhuFALabel.csv', 'jhuTRLabel.csv')
-modalNames <- c('pcasl_jlf_cbf', 'mprage_jlf_gmd', 'mprage_jlf_ct', 'rest_jlf_reho', 'rest_jlf_alff', 'dti_jlf_tr', 'mprage_jlf_cortcon', 'dti_jlf_fa', 'dti_jlf_ad', 'dti_jlf_rd', 'dti_dtitk_jhulabel','dti_dtitk_jhulabel')
-excludeVals <- c('pcaslExclude', 't1Exclude', 't1Exclude', 'restExclude', 'restExclude', 'dti64Exclude', 't1Exclude','dti64Exclude', 'dti64Exclude', 'dti64Exclude', 'dti64Exclude', 'dti64Exclude')
+dataVals <- c('volume.data', 'cbf.data', 'gmd.data', 'ct.data', 'reho.data', 'alff.data', 'md.data', 'cc.data', 'fa.data', 'ad.data', 'rd.data', 'fa.label', 'tr.label')
+outNames <- c('volumeData.csv', 'cbfData.csv', 'gmdData.csv', 'ctData.csv', 'rehoData.csv', 'alffData.csv', 'jlfTRData.csv', 'ccData.csv', 'jlfFAData.csv', 'jlfADData.csv', 'jlfRDData.csv', 'jhuFALabel.csv', 'jhuTRLabel.csv')
+modalNames <- c('mprage_jlf_vol_', 'pcasl_jlf_cbf', 'mprage_jlf_gmd', 'mprage_jlf_ct', 'rest_jlf_reho', 'rest_jlf_alff', 'dti_jlf_tr', 'mprage_jlf_cortcon', 'dti_jlf_fa', 'dti_jlf_ad', 'dti_jlf_rd', 'dti_dtitk_jhulabel','dti_dtitk_jhulabel')
+excludeVals <- c('t1Exclude', 'pcaslExclude', 't1Exclude', 't1Exclude', 'restExclude', 'restExclude', 'dti64Exclude', 't1Exclude','dti64Exclude', 'dti64Exclude', 'dti64Exclude', 'dti64Exclude', 'dti64Exclude')
 outputMeanLR <- "/home/adrose/dataPrepForHiLoPaper/data/meanLR/"
 outputAgeReg <- "/home/adrose/dataPrepForHiLoPaper/data/ageReg/"
 outputMeanLRAgeReg <- "/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeReg/"
 outputMeanLRAgeRegModReg <- "/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeRegModalReg/"
+outputAgeRegModReg <- "/home/adrose/dataPrepForHiLoPaper/data/ageRegModalReg/"
 
 # Now I am going to create a for loop which will output all of the required CSV's 
 for(i in 1:length(dataVals)){
@@ -75,28 +76,29 @@ for(i in 1:length(dataVals)){
   tmpData <- tmpData[complete.cases(tmpData[,grep(modalNames[i], names(tmpData))]),]
   outMean <- paste(outputMeanLR, outNames[i], sep='')
   outAgeNM <- paste(outputAgeReg, outNames[i], sep='')
+  outAgeNMMod <- paste(outputAgeRegModReg, outNames[i], sep='')
   outAge <- paste(outputMeanLRAgeReg, outNames[i], sep='')
   outMod <- paste(outputMeanLRAgeRegModReg, outNames[i], sep='')
 
   # Now apply our immediete restrictions
-  if(i < 11){
+  if(i < 12){
     tmpData <- tmpData[tmpData$bblid %in% bblid.index,]
   }
-  if(i > 10){
+  if(i > 11){
     tmpData <- tmpData[tmpData$bblid %in% bblid.index.fa,]
   }
   tmpData <- tmpData[which(tmpData[excludeVals[i]]!=1), ]
-  tmpData <- merge(modal.scores, tmpData, by='bblid')
+  tmpData <- merge(modal.scores, tmpData)
 
   # Now attach our demographic data
   tmpData$sex <- data.values$sex[match(tmpData$bblid, data.values$bblid)]
   tmpData$ageAtGo1Scan <- data.values$ageAtGo1Scan[match(tmpData$bblid, data.values$bblid)]
 
   # produce our avgLR
-  if(i < 11){
+  if(i < 12){
     tmpLR <- averageLeftAndRight(tmpData)
   }  
-  if(i > 10){
+  if(i > 11){
     tmpLR <- averageLeftAndRight1(tmpData)
   }
 
@@ -104,10 +106,24 @@ for(i in 1:length(dataVals)){
   tmpAR <- tmpData
   tmpAR[,grep(modalNames[i], names(tmpAR))] <- apply(tmpAR[,grep(modalNames[i], names(tmpAR))], 2, function(x) regressOutAgeNoQA(x, tmpAR$ageAtGo1Scan, tmpAR$envSES))
   write.csv(tmpAR, outAgeNM, quote=F, row.names=F)
-  if(i < 11){
+
+  # Now produce age and modal reg values
+  colsToRM <- NULL
+  colsToRM <- grep('_jlf_ICV', names(tmpAR))
+  colsToRM <- append(colsToRM, grep('_Mean', names(tmpAR)))
+  if(!identical(integer(0), colsToRM)){
+    tmpMR <- tmpAR[, -colsToRM]
+  } else if(identical(integer(0), colsToRM)){
+    tmpMR <- tmpAR
+  }
+  tmpMR <- regressWithinModality(tmpMR, modalNames[i])
+  write.csv(tmpMR, outAgeNMMod, quote=F, row.names=F)  
+
+  # Now produce the meaned across hemisphere and modality regressed values  
+  if(i < 12){
     tmpAR <- averageLeftAndRight(tmpAR)
   }  
-  if(i > 10){
+  if(i > 11){
     tmpAR <- averageLeftAndRight1(tmpAR)
   }
 
@@ -130,30 +146,12 @@ for(i in 1:length(dataVals)){
   write.csv(tmpMR, outMod, quote=F, row.names=F)
 }
 
-# Now produce the volume values
-volIndex <- max(grep('mprage_jlf_vol_', names(volume.data)))
-volume.data$ageAtGo1Scan <- data.values$ageAtGo1Scan[match(volume.data$bblid, data.values$bblid)]
-volume.data$sex <- data.values$sex[match(volume.data$bblid, data.values$bblid)]
-volume.data <- volume.data[volume.data$bblid %in% bblid.index,]
-volume.data2 <- volume.data
-volAVG <- averageLeftAndRight(volume.data)
-volume.data2[,33:volIndex] <- apply(volume.data2[,33:volIndex], 2, function(x) regressOutAgeNoQA(x, volume.data2$ageAtGo1Scan, volume.data2$envSES))
-write.csv(volume.data2, "/home/adrose/dataPrepForHiLoPaper/data/ageReg/volumeData.csv", quote=F, row.names=F)
-volume.data.2 <- averageLeftAndRight(volume.data2)
-volume.data2 <- averageLeftAndRight(volume.data2)
-volume.data.2 <- volume.data.2[,-c(40, 33, 34, 35)]
-volume.data.MR <- regressWithinModality(volume.data.2, 'mprage_jlf_vol')
-write.csv(volAVG, "/home/adrose/dataPrepForHiLoPaper/data/meanLR/volumeData.csv", quote=F, row.names=F)
-write.csv(volume.data2, "/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeReg/volumeData.csv", quote=F, row.names=F)
-write.csv(volume.data.MR, "/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeRegModalReg/volumeData.csv", quote=F, row.names=F)
-
-
-
 # Now do the same thing but add QA regressing 
 outputMeanLR <- "/home/adrose/dataPrepForHiLoPaper/data/meanLRQA/"
 outputMeanLRAgeReg <- "/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeRegQA/"
 outputMeanLRAgeRegModReg <- "/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeRegModalRegQA/"
-qaVals <- c('pcaslRelMeanRMSMotion', 'averageManualRating', 'averageManualRating', 'restRelMeanRMSMotion', 'restRelMeanRMSMotion', 'dti64Tsnr', 'averageManualRating',  'dti64Tsnr','dti64Tsnr','dti64Tsnr','dti64Tsnr','dti64Tsnr')
+outputAgeRegModReg <- "/home/adrose/dataPrepForHiLoPaper/data/ageRegModalRegQA/"
+qaVals <- c('averageManualRating','pcaslRelMeanRMSMotion', 'averageManualRating', 'averageManualRating', 'restRelMeanRMSMotion', 'restRelMeanRMSMotion', 'dti64Tsnr', 'averageManualRating',  'dti64Tsnr','dti64Tsnr','dti64Tsnr','dti64Tsnr','dti64Tsnr')
 
 # Now run em all thorugh the loop
 for(i in 1:length(dataVals)){
@@ -166,25 +164,25 @@ for(i in 1:length(dataVals)){
   outMod <- paste(outputMeanLRAgeRegModReg, outNames[i], sep='')
 
   # Now apply our immediete restrictions
-  if(i < 11){
+  if(i < 12){
     tmpData <- tmpData[tmpData$bblid %in% bblid.index,]
   }
-  if(i > 10){
+  if(i > 11){
     tmpData <- tmpData[tmpData$bblid %in% bblid.index.fa,]
   }
   tmpData <- tmpData[which(tmpData[excludeVals[i]]!=1), ]
-  tmpData <- merge(modal.scores, tmpData, by='bblid')
+  tmpData <- merge(modal.scores, tmpData)
 
   # Now attach our demographic data
   tmpData$sex <- data.values$sex[match(tmpData$bblid, data.values$bblid)]
   tmpData$ageAtGo1Scan <- data.values$ageAtGo1Scan[match(tmpData$bblid, data.values$bblid)]
 
   # produce our avgLR
-  if(i < 11){
+  if(i < 12){
     tmpLR <- averageLeftAndRight(tmpData)
     tmpLR <- regressOutQuality(dataFrame=tmpLR, modalityName=modalNames[i], qualityName=qaVals[i])
   }  
-  if(i > 10){
+  if(i > 11){
     tmpLR <- averageLeftAndRight1(tmpData)
     tmpLR <- regressOutQuality(dataFrame=tmpLR, modalityName=modalNames[i], qualityName=qaVals[i])
   }
@@ -193,10 +191,23 @@ for(i in 1:length(dataVals)){
   tmpAR <- tmpData
   tmpAR[,grep(modalNames[i], names(tmpAR))] <- apply(tmpAR[,grep(modalNames[i], names(tmpAR))], 2, function(x) regressOutAgeNoQA(x, tmpAR$ageAtGo1Scan, tmpAR$envSES))
   write.csv(tmpAR, outAgeNM, quote=F, row.names=F)
-  if(i < 11){
+
+  # Now produce age and modal reg values
+  colsToRM <- NULL
+  colsToRM <- grep('_jlf_ICV', names(tmpAR))
+  colsToRM <- append(colsToRM, grep('_Mean', names(tmpAR)))
+  if(!identical(integer(0), colsToRM)){
+    tmpMR <- tmpAR[, -colsToRM]
+  } else if(identical(integer(0), colsToRM)){
+    tmpMR <- tmpAR
+  }
+  tmpMR <- regressWithinModality(tmpMR, modalNames[i])
+  write.csv(tmpMR, outAgeNMMod, quote=F, row.names=F)
+
+  if(i < 12){
     tmpAR <- averageLeftAndRight(tmpAR)
   }  
-  if(i > 10){
+  if(i > 11){
     tmpAR <- averageLeftAndRight1(tmpAR)
   }
 
