@@ -149,6 +149,7 @@ for(i in 1:length(dataVals)){
 # Now do the same thing but add QA regressing 
 outputMeanLR <- "/home/adrose/dataPrepForHiLoPaper/data/meanLRQA/"
 outputMeanLRAgeReg <- "/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeRegQA/"
+outputAgeReg <- "/home/adrose/dataPrepForHiLoPaper/data/ageRegQA/"
 outputMeanLRAgeRegModReg <- "/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeRegModalRegQA/"
 outputAgeRegModReg <- "/home/adrose/dataPrepForHiLoPaper/data/ageRegModalRegQA/"
 qaVals <- c('averageManualRating','pcaslRelMeanRMSMotion', 'averageManualRating', 'averageManualRating', 'restRelMeanRMSMotion', 'restRelMeanRMSMotion', 'dti64Tsnr', 'averageManualRating',  'dti64Tsnr','dti64Tsnr','dti64Tsnr','dti64Tsnr','dti64Tsnr')
