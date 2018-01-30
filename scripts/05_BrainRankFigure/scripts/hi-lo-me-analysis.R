@@ -3,13 +3,14 @@ source("/home/adrose/adroseHelperScripts/R/afgrHelpFunc.R")
 source("/home/adrose/hiLo/scripts/03_CognitiveTrends/functions/wm2Functions.R")
 source("/home/adrose/hiLo/scripts/03_CognitiveTrends/functions/wm1Functions2.R")
 source("/home/adrose/hiLo/scripts/03_CognitiveTrends/functions/functions-forJLF.R")
+source("/home/adrose/hiLo/scripts/05_BrainRankFigure/functions/functions.R")
 install_load('plyr', 'ggplot2', 'reshape2', 'grid', 'gridExtra', 'labeling', 'data.table')
 
 ## Load data
-vol.modal.data.age.reg <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeReg/volumeData.csv')
-cbf.modal.data.age.reg <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeRegQA/cbfData.csv')
-gmd.modal.data.age.reg <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeReg/gmdData.csv')
-tr.modal.data.age.reg <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeRegQA/jlfTRData.csv')
+vol.modal.data.age.reg <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/ageReg/volumeData.csv')
+cbf.modal.data.age.reg <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/ageRegQA/cbfData.csv')
+gmd.modal.data.age.reg <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/ageReg/gmdData.csv')
+tr.modal.data.age.reg <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/ageRegQA/jlfTRData.csv')
 
 ## Prep data
 cbf.modal.data.age.reg$ageBin <- 'Age Regressed'
@@ -34,13 +35,13 @@ returnPerfBin <- function(data) {
 ## Now modify our do everything ever function
 doEverythingEver <- function(df, modalityGrepPattern, lowerAge.e, upperAge.e, ageBinName.e, cerebellumIn=F){
   tmp <- standardizePerfGroups(df, modalityGrepPattern, ageBinName.e)
-  tmp <- organizeROINames(tmp, cerebellum=cerebellumIn)
-  tmp <- subtractHiFromLo(tmp)
-  tmp$gender <- revalue(tmp$gender, c('1'='Male', '2'='Female'))
-  tmp$meanValue <- as.numeric(as.character(tmp$meanValue))
-  colnames(tmp)[6] <- 'Gender'
-  tmp$roiFinal <- strSplitMatrixReturn(tmp$ROI_readable, modalityGrepPattern)
-  output <- tmp[,c('roiFinal', 'zScoreDifference', 'Gender')]
+  #tmp <- organizeROINames(tmp, cerebellum=cerebellumIn)
+  output <- subtractHiFromLo(tmp)
+  #tmp$gender <- revalue(tmp$gender, c('1'='Male', '2'='Female'))
+  #tmp$meanValue <- as.numeric(as.character(tmp$meanValue))
+  #colnames(tmp)[6] <- 'Gender'
+  #tmp$roiFinal <- strSplitMatrixReturn(tmp$ROI_readable, modalityGrepPattern)
+  #output <- tmp[,c('roiFinal', 'zScoreDifference', 'Gender')]
   return(output)
 }
 
@@ -71,9 +72,16 @@ rm(tmpDF)
 # Now I need to grab the effect sizes
 ## Now prep the data 
 age.reg.vol <- doEverythingEver(vol.modal.data.age.reg, 'mprage_jlf_vol_', 0, 999, 'Age Regressed', cerebellum=T)
-age.reg.vol <- rbind(age.reg.vol, )
 age.reg.cbf <- doEverythingEver(cbf.modal.data.age.reg, 'pcasl_jlf_cbf_', 0, 999, 'Age Regressed', cerebellum=F)
 age.reg.gmd <- doEverythingEver(gmd.modal.data.age.reg, 'mprage_jlf_gmd_', 0, 999, 'Age Regressed', cerebellum=T)
 age.reg.tr <- doEverythingEver(tr.modal.data.age.reg, 'dti_jlf_tr_', 0, 167, 'Age Regressed', cerebellum=T)
 
-
+# Now write the output for each isolated gender
+for(genZ in c('F', 'M')){
+  for(modZ in c('vol', 'cbf', 'gmd', 'tr')){
+    # Grab our data
+    inputDat <- get(paste('age.reg.', modZ, sep=''))
+    inputDat <- inputDat[which(inputDat$sex==genZ),]
+    writeColorTableandKey(inputData=inputDat, inputColumn=8, outName=paste(genZ,modZ, sep=''), minTmp=c(-1,0), maxTmp=c(0,1))
+  }  
+}
