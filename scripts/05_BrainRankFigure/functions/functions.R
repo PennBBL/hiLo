@@ -127,16 +127,16 @@ writeColorTableandKey <- function(inputData, inputColumn, outName, minTmp=NULL, 
   tmpOutputKey[,2] <- as.character(inputData[complete.cases(inputData[,inputColumn]),inputColumn])
   tmpOutputKey <- tmpOutputKey[order(as.numeric(tmpOutputKey[,2])),]
   tmpOutputKey[,3] <- rev(seq(dim(tmpColorTable)[1]-1, 1, -1))
-  tmpOutputKeyFlip <- tmpOutputKey
-  tmpOutputKey[,1] <- paste('R_', tmpOutputKey[,1], sep='')
-  tmpOutputKeyFlip[,1] <- paste('L_', tmpOutputKeyFlip[,1], sep='')
+  #tmpOutputKeyFlip <- tmpOutputKey
+  #tmpOutputKey[,1] <- paste('R_', tmpOutputKey[,1], sep='')
+  #tmpOutputKeyFlip[,1] <- paste('L_', tmpOutputKeyFlip[,1], sep='')
  
   # Now write the tables
   outCTName <- paste(outName, '-ColorTable.txt', sep='')
   outKeyName <- paste(outName, '-KEY.csv', sep='')
   tmpColorTable <- rbind(tmpColorTable, valuesToBind)
   write.table(tmpColorTable, file=outCTName, sep="\t", quote=F, row.names=F, col.names=F)
-  tmpOutputKey <- rbind(tmpOutputKey, tmpOutputKeyFlip)
+  #tmpOutputKey <- rbind(tmpOutputKey, tmpOutputKeyFlip)
   tmpOutputKey[,1] <- rmLatVal(tmpOutputKey[,1]) 
   tmpOutputKey <- tmpOutputKey[!duplicated(tmpOutputKey[,1]),]
   write.csv(tmpOutputKey, file=outKeyName, quote=F)
