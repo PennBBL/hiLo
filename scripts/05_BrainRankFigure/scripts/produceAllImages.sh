@@ -44,17 +44,29 @@ done
 exit 67
 
 # Now finally the hi - lo images -_-
-baseDir="/home/arosen/hiLo/data/05_BrainRankFigure/hiMinusLoFigure/"
-rData="/home/arosen/hiLo/data/05_BrainRankFigure/hiMinusLoFigure/input/"
-modalityVals=(vol cbf gmd tr)
-genderValues=(M F)
-scriptName="/home/arosen/pncMJPS/scripts/09_brainImages/scripts/makeZScoreJLFPNCTemplateImage.sh"
-for g in ${genderValues[*]} ; do 
-  for m in ${modalityVals[*]} ; do 
-    inputCSV="${rData}${g}${m}-KEY.csv"
-    mkdir -p ${baseDir}${g}
-    ${scriptName} ${inputCSV} 4 1 
-    mv outputImage.nii.gz ${baseDir}${g}/${m}.nii.gz
+foo() {
+  baseDir="/home/arosen/hiLo/data/05_BrainRankFigure/hiMinusLoFigure/"
+  rData="/home/arosen/hiLo/data/05_BrainRankFigure/hiMinusLoFigure/input/"
+  m=$1
+  g=$2
+  scriptName="/home/arosen/pncMJPS/scripts/09_brainImages/scripts/makeZScoreJLFPNCTemplateImage.sh"
+  inputCSV="${rData}${g}${m}-KEY.csv"
+  mkdir -p ${baseDir}${g}/${m}/
+  cd ${baseDir}${g}/${m}/
+  ${scriptName} ${inputCSV} 4 1 
+  fslmaths outputImage.nii.gz -edge -bin tmp.nii.gz
+  fslmaths outputImage.nii.gz -mul tmp.nii.gz edge.nii.gz
+  fslmaths outputImage.nii.gz -sub edge.nii.gz outputImage.nii.gz
+  fslmaths tmp.nii.gz -mul 5000 tmp.nii.gz
+  fslmaths outputImage.nii.gz -add tmp.nii.gz outputImage.nii.gz 
+  rm tmp.nii.gz edge.nii.gz
+  echo "All done"
+}
+
+loopVal1=(vol cbf gmd tr)
+loopVal2=(M F)
+for x in ${loopVal1[*]} ; do
+  for q in ${loopVal2[*]} ; do 
+    foo $x $q &
   done
 done
-exit 68
