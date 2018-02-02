@@ -38,6 +38,22 @@ for(q in 1:905){
 }
 allOut <- cbind(reho.data[,c(1, 21)], rehoOutVals, alffOutVals)
 
+# Now do the same for the cbf values
+cbfVals <- cbf.data[,grep('_jlf_', names(cbf.data))]
+# Quickly remove the summary metric from this group
+#cbfVals <- cbfVals[,-c(126)]
+volVals <- merge(vol.data, cbf.data)
+volVals <- volVals[,grep('mprage_jlf_vol_', names(volVals))]
+tmpNamesCbf <- gsub(names(cbfVals), pattern='pcasl_jlf_cbf_', replacement= '')
+tmpNamesVol <- gsub(names(volVals), pattern='mprage_jlf_vol_', replacement= '')
+volVals <- volVals[,tmpNamesVol %in% tmpNamesCbf]
+cbfValsOut <- NULL
+for(q in 1:1508){
+  weightedVal <- weighted.mean(cbfVals[q,], volVals[q,])
+  cbfValsOut <- append(cbfValsOut, weightedVal)
+}
+cbfOut <- cbind(cbf.data[,c(1,2)], cbfValsOut)
+
 all.data <- merge(vol.data, cbf.data, by=intersect(names(vol.data), names(cbf.data)))
 all.data <- merge(all.data, gmd.data, by=intersect(names(all.data), names(gmd.data)))
 all.data <- merge(all.data, tr.data, by=intersect(names(all.data), names(tr.data)))
@@ -122,7 +138,7 @@ for(q in seq(1,10)){
     tmpDat <- tmpDat[which(tmpDat$sex==1),]
     tmpDatX <- tmpDat[,grep(grepValue[i], names(tmpDat))]
     tmpDatY <- tmpDat$F1_Exec_Comp_Cog_Accuracy
-    predVals <- runTpotOnAll(tmpDatX, tmpDatY, 40, grepValue[i])
+    predVals <- runTpotOnAll(tmpDatX, tmpDatY, 300, grepValue[i])
     corVal <- cor(predVals[[1]], tmpDatY)^2
     cvICC <- ICC(cbind(predVals[[1]], tmpDatY))$results[4,2]
     cvRMSE <- sqrt(mean((tmpDatY-predVals[[1]])^2))
@@ -136,9 +152,9 @@ orig <- allR
 allR <- as.data.frame(allR)
 allR <- dcast(V2 ~ V1, data=allR, value.var='V3')
 outMean <- round(apply(allR, 2, mean), digits=2)
-outMedian <- apply(allR, 2, median)
-outMin <- apply(allR, 2, min)
-outMax <- apply(allR, 2, max)
+outMedian <- round(apply(allR, 2, median), digits=2)
+outMin <- round(apply(allR, 2, min), digits=2)
+outMax <- round(apply(allR, 2, max), digits=2)
 output <- cbind(orig[1:5,4], orig[1:5,5], outMean[2:6], outMedian[2:6], outMin[2:6], outMax[2:6])
 write.csv(output, 'tmpAllRValsMale.csv', quote=F, row.names=F)
 
@@ -150,7 +166,7 @@ for(q in seq(1,10)){
     tmpDat <- tmpDat[which(tmpDat$sex==2),]
     tmpDatX <- tmpDat[,grep(grepValue[i], names(tmpDat))]
     tmpDatY <- tmpDat$F1_Exec_Comp_Cog_Accuracy
-    predVals <- runTpotOnAll(tmpDatX, tmpDatY, 40, grepValue[i])
+    predVals <- runTpotOnAll(tmpDatX, tmpDatY, 300, grepValue[i])
     corVal <- cor(predVals[[1]], tmpDatY)^2
     cvICC <- ICC(cbind(predVals[[1]], tmpDatY))$results[4,2]
     cvRMSE <- sqrt(mean((tmpDatY-predVals[[1]])^2))
@@ -163,9 +179,9 @@ for(q in seq(1,10)){
 orig <- allR
 allR <- as.data.frame(allR)
 allR <- dcast(V2 ~ V1, data=allR, value.var='V3')
-outMean <- apply(allR, 2, mean)
-outMedian <- apply(allR, 2, median)
-outMin <- apply(allR, 2, min)
-outMax <- apply(allR, 2, max)
+outMean <- round(apply(allR, 2, mean), digits=2)
+outMedian <- round(apply(allR, 2, median), digits=2)
+outMin <- round(apply(allR, 2, min), digits=2)
+outMax <- round(apply(allR, 2, max), digits=2)
 output <- cbind(orig[1:5,4], orig[1:5,5], outMean[2:6], outMedian[2:6], outMin[2:6], outMax[2:6])
 write.csv(output, 'tmpAllRValsFemale.csv', quote=F, row.names=F)
