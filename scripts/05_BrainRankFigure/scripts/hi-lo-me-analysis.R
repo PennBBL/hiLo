@@ -4,7 +4,7 @@ source("/home/adrose/hiLo/scripts/03_CognitiveTrends/functions/wm2Functions.R")
 source("/home/adrose/hiLo/scripts/03_CognitiveTrends/functions/wm1Functions2.R")
 source("/home/adrose/hiLo/scripts/03_CognitiveTrends/functions/functions-forJLF.R")
 source("/home/adrose/hiLo/scripts/05_BrainRankFigure/functions/functions.R")
-install_load('plyr', 'ggplot2', 'reshape2', 'grid', 'gridExtra', 'labeling', 'data.table')
+install_load('plyr', 'ggplot2', 'reshape2', 'grid', 'gridExtra', 'labeling', 'data.table', 'psych')
 
 ## Load data
 vol.modal.data.age.reg <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/ageReg/volumeData.csv')
@@ -84,4 +84,24 @@ for(genZ in c('F', 'M')){
     inputDat <- inputDat[which(inputDat$sex==genZ),]
     writeColorTableandKey(inputData=inputDat, inputColumn=8, outName=paste(genZ,modZ, sep=''), minTmp=c(-1,0), maxTmp=c(0,1))
   }  
+}
+
+## Now do the hi-me, me-lo and lo-me 
+# First declare everything we are going to loop through
+sexRep <- c(1, 2)
+suffixRep <- c("mprage_jlf_vol_", "pcasl_jlf_cbf_", "mprage_jlf_gmd_", "dti_jlf_tr_")
+dataRep <- c('vol', 'cbf', 'gmd', 'tr')
+for(g in sexRep){
+  for(p in 1:length(suffixRep)){
+    dataName <- paste(dataRep[p], '.modal.data.age.reg', sep='')
+    prefName <- suffixRep[p]
+    tmpDat <- get(dataName)
+    tmpDat <- tmpDat[which(tmpDat$sex==g),]
+    outputVals <- calculateDeltaHiMeLo(tmpDat, prefName)
+    # Now write every color table
+    for(q in c(2,3,5)){
+      outputName <- paste(g, p, q, sep='')
+      writeColorTableandKey(outputVals, q, outputName, c(-.8, 0), c(0, .8))
+    }
+  }
 }

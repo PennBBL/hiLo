@@ -161,3 +161,39 @@ rmLatVal <- function(inputROIName){
   output[indexToMod] <- vals
   return(output)
 }
+
+# Now also add Angel's function for the hi-me and me-lo contrasts
+calculateDeltaHiMeLo <- function(data, suffix) {
+  
+  data$F1_Exec_Comp_Cog_Accuracy
+  quantiles <- quantile(data$F1_Exec_Comp_Cog_Accuracy, c(0,.3333,.6666,1))
+  
+  data$PerformanceGroup <- 0
+  data$PerformanceGroup[which(data$F1_Exec_Comp_Cog_Accuracy < quantiles[2])] <- 1
+  data$PerformanceGroup[which(data$F1_Exec_Comp_Cog_Accuracy >= quantiles[2] &
+                          data$F1_Exec_Comp_Cog_Accuracy < quantiles[3])] <- 2
+  data$PerformanceGroup[which(data$F1_Exec_Comp_Cog_Accuracy >= quantiles[3])] <- 3
+  
+  roi.index <- grep(pattern = suffix, x = names(data))
+  
+  
+  output <- as.data.frame(matrix(NA, 
+                                 nrow = length(roi.index), 
+                                 ncol= (4)))
+  
+  j <- 1
+  for (i in roi.index) {
+    temp.matrix <- describeBy(scale(data[,i]), group=data$PerformanceGroup, mat = T)
+    meanvals <- temp.matrix$mean
+    output[j,1] <- names(data)[i]
+    output[j,2] <- meanvals[2] - meanvals[1]
+    output[j,3] <- meanvals[3] - meanvals[2]
+    output[j,4] <- meanvals[3] - meanvals[1]
+    output[j,5] <- meanvals[1] - meanvals[2]
+    
+    j <- j + 1
+  }
+  
+  names(output) <- c("roi","me-lo","hi-me","hi-lo","lo-me")
+  return(output)
+}
