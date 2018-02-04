@@ -2,22 +2,47 @@
 # This is gong to be a quick and dirty script to produce all of the beta weight brain images for the hi lo project
 baseDir="/home/arosen/hiLo/data/05_BrainRankFigure/"
 rData="${baseDir}rOutput/"
-modalityVals=(vol cbf gmd tr) #ct reho alff tr)
-genderValues=(Male Female)
-contrast=(Hi Lo)
-scriptName="/home/arosen/hiLo/scripts/05_BrainRankFigure/scripts/makeZScoreJLFPNCTemplateImage.sh"
-
-for c in ${contrast[*]} ; do
-  for g in ${genderValues[*]} ; do 
-    for m in ${modalityVals[*]} ; do 
-      inputCsv="${rData}${m}${g}${c}-KEY.csv"
-      mkdir -p ${baseDir}/imagingFigures/${c}/Cortical/${g}/${m}/ 
-      cd ${baseDir}/imagingFigures/${c}/Cortical/${g}/${m}/ 
-      ${scriptName} ${inputCsv} 4 1 & 
+modalityVals=(1 2 3 4) #ct reho alff tr)
+genderValues=(1 2)
+contrast=(2 3 5)
+scriptName="/home/arosen/pncMJPS/scripts/09_brainImages/scripts/makeZScoreJLFPNCTemplateImage.sh"
+foo() {
+  baseDir="/home/arosen/hiLo/data/05_BrainRankFigure/"
+  rData="${baseDir}rOutput/"
+  m=$1
+  g=$2
+  c=$3
+  scriptName="/home/arosen/pncMJPS/scripts/09_brainImages/scripts/makeZScoreJLFPNCTemplateImage.sh"
+  inputCSV="${rData}${g}${m}${c}-KEY.csv"
+  mkdir -p ${baseDir}/imagingFigures/${c}/${g}/${m}/ 
+  cd ${baseDir}/imagingFigures/${c}/${g}/${m}/ 
+  ${scriptName} ${inputCSV} 4 1 
+  fslmaths outputImage.nii.gz -edge -bin tmp.nii.gz
+  fslmaths outputImage.nii.gz -mul tmp.nii.gz edge.nii.gz
+  fslmaths outputImage.nii.gz -sub edge.nii.gz outputImage.nii.gz
+  fslmaths tmp.nii.gz -mul 5000 tmp.nii.gz
+  fslmaths outputImage.nii.gz -add tmp.nii.gz outputImage.nii.gz 
+  rm tmp.nii.gz edge.nii.gz
+  echo "All done"
+}
+for s in ${contrast[*]} ; do
+  for r in ${genderValues[*]} ; do 
+    for q in ${modalityVals[*]} ; do 
+      foo $q $r $s &  
     done
   done
 done
 exit 66
+
+for s in ${contrast[*]} ; do
+  for r in ${genderValues[*]} ; do 
+    for q in ${modalityVals[*]} ; do 
+      cd /home/arosen/hiLo/data/05_BrainRankFigure/imagingFigures/$s/$r/$q/
+      itksnap -g ~/pnc_template_brain.nii.gz -s /home/arosen/hiLo/data/05_BrainRankFigure/imagingFigures/$s/$r/$q/outputImage.nii.gz -l /home/arosen/hiLo/data/05_BrainRankFigure/rOutput/$r$q$s-ColorTable.txt 
+    done
+  done
+done
+
 
 # Now do the beta weight images down here
 baseDir="/home/arosen/hiLo/data/05_BrainRankFigure/"
