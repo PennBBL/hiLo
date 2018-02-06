@@ -138,7 +138,7 @@ for(q in seq(1,10)){
     tmpDat <- tmpDat[which(tmpDat$sex==1),]
     tmpDatX <- tmpDat[,grep(grepValue[i], names(tmpDat))]
     tmpDatY <- tmpDat$F1_Exec_Comp_Cog_Accuracy
-    predVals <- runTpotOnAll(tmpDatX, tmpDatY, 300, grepValue[i])
+    predVals <- runTpotOnAll(tmpDatX, tmpDatY, 200, grepValue[i])
     corVal <- cor(predVals[[1]], tmpDatY)^2
     cvICC <- ICC(cbind(predVals[[1]], tmpDatY))$results[4,2]
     cvRMSE <- sqrt(mean((tmpDatY-predVals[[1]])^2))
@@ -166,7 +166,7 @@ for(q in seq(1,10)){
     tmpDat <- tmpDat[which(tmpDat$sex==2),]
     tmpDatX <- tmpDat[,grep(grepValue[i], names(tmpDat))]
     tmpDatY <- tmpDat$F1_Exec_Comp_Cog_Accuracy
-    predVals <- runTpotOnAll(tmpDatX, tmpDatY, 300, grepValue[i])
+    predVals <- runTpotOnAll(tmpDatX, tmpDatY, 200, grepValue[i])
     corVal <- cor(predVals[[1]], tmpDatY)^2
     cvICC <- ICC(cbind(predVals[[1]], tmpDatY))$results[4,2]
     cvRMSE <- sqrt(mean((tmpDatY-predVals[[1]])^2))
