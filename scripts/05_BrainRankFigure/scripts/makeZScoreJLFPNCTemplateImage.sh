@@ -18,8 +18,8 @@ exit 1
 }
 
 # First lets declare all of the static variables
-jlfLookUp="/data/joy/BBL/studies/pnc/template/jlf/hiLoLookup/jlf_lookupWithWM.csv"
-pncJlfLabelImage="/data/joy/BBL/studies/pnc/template/jlf/Younger24/pncTemplateJLF_LabelsWithWM.nii.gz"
+jlfLookUp="/home/arosen/template/jlf/hiLoLookup/jlf_lookupWithWM.csv"
+pncJlfLabelImage="/home/arosen/templateMNI/mniJLF_LabelsWithWM.nii.gz"
 if [ ! "X${4}" == "X" ] ; then 
   jlfLookUp="/data/joy/BBL/studies/pnc/template/jlf/hiLoLookup/jlf_lookup${4}.csv" ; 
 fi 
@@ -62,7 +62,7 @@ for lineValue in `seq 2 ${loopLength}` ; do
   roiToGrep=`echo ${specLine} | cut -f 2 -d ,` 
   echo ${roiToGrep}
   # Now lets grep our ROI in our input csv
-  valueToFind=`grep "${roiToGrep}" ${inputCSV}`
+  valueToFind=`grep "${roiToGrep}" ${inputCSV} | head -n 1`
   if [ ! "X${valueToFind}" == "X" ] ; then 
     # first lets ensure that only one ROI is returned
     quickCheck=`grep -c "${roiToGrep}" ${inputCSV}`

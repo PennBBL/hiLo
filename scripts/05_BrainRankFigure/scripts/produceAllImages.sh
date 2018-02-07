@@ -5,14 +5,14 @@ rData="${baseDir}rOutput/"
 modalityVals=(1 2 3 4) #ct reho alff tr)
 genderValues=(1 2)
 contrast=(2 3 5)
-scriptName="/home/arosen/pncMJPS/scripts/09_brainImages/scripts/makeZScoreJLFPNCTemplateImage.sh"
+scriptName="/home/arosen/hiLo/scripts/05_BrainRankFigure/scripts/makeZScoreJLFPNCTemplateImage.sh"
 foo() {
   baseDir="/home/arosen/hiLo/data/05_BrainRankFigure/"
   rData="${baseDir}rOutput/"
   m=$1
   g=$2
   c=$3
-  scriptName="/home/arosen/pncMJPS/scripts/09_brainImages/scripts/makeZScoreJLFPNCTemplateImage.sh"
+  scriptName="/home/arosen/hiLo/scripts/05_BrainRankFigure/scripts/makeZScoreJLFPNCTemplateImage.sh"
   inputCSV="${rData}${g}${m}${c}-KEY.csv"
   mkdir -p ${baseDir}/imagingFigures/${c}/${g}/${m}/ 
   cd ${baseDir}/imagingFigures/${c}/${g}/${m}/ 
@@ -38,7 +38,7 @@ for s in ${contrast[*]} ; do
   for r in ${genderValues[*]} ; do 
     for q in ${modalityVals[*]} ; do 
       cd /home/arosen/hiLo/data/05_BrainRankFigure/imagingFigures/$s/$r/$q/
-      itksnap -g ~/pnc_template_brain.nii.gz -s /home/arosen/hiLo/data/05_BrainRankFigure/imagingFigures/$s/$r/$q/outputImage.nii.gz -l /home/arosen/hiLo/data/05_BrainRankFigure/rOutput/$r$q$s-ColorTable.txt 
+      itksnap -g /share/apps/fsl/5.0.8/data/standard/MNI152_T1_1mm_brain.nii.gz -s /home/arosen/hiLo/data/05_BrainRankFigure/imagingFigures/$s/$r/$q/outputImage.nii.gz -l /home/arosen/hiLo/data/05_BrainRankFigure/rOutput/$r$q$s-ColorTable.txt -z 1.6
     done
   done
 done
