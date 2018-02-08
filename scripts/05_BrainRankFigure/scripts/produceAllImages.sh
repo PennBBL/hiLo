@@ -38,7 +38,7 @@ for s in ${contrast[*]} ; do
   for r in ${genderValues[*]} ; do 
     for q in ${modalityVals[*]} ; do 
       cd /home/arosen/hiLo/data/05_BrainRankFigure/imagingFigures/$s/$r/$q/
-      itksnap -g /share/apps/fsl/5.0.8/data/standard/MNI152_T1_1mm_brain.nii.gz -s /home/arosen/hiLo/data/05_BrainRankFigure/imagingFigures/$s/$r/$q/outputImage.nii.gz -l /home/arosen/hiLo/data/05_BrainRankFigure/rOutput/$r$q$s-ColorTable.txt -z 1.6
+      itksnap -g /share/apps/fsl/5.0.8/data/standard/MNI152_T1_1mm_brain.nii.gz -s /home/arosen/hiLo/data/05_BrainRankFigure/imagingFigures/$s/$r/$q/outputImage.nii.gz -l /home/arosen/hiLo/data/05_BrainRankFigure/rOutput/$r$q$s-ColorTable.txt -z 1.6 &
     done
   done
 done
@@ -74,7 +74,7 @@ foo() {
   rData="/home/arosen/hiLo/data/05_BrainRankFigure/hiMinusLoFigure/input/"
   m=$1
   g=$2
-  scriptName="/home/arosen/pncMJPS/scripts/09_brainImages/scripts/makeZScoreJLFPNCTemplateImage.sh"
+  scriptName="/home/arosen/hiLo/scripts/05_BrainRankFigure/scripts/makeZScoreJLFPNCTemplateImage.sh"
   inputCSV="${rData}${g}${m}-KEY.csv"
   mkdir -p ${baseDir}${g}/${m}/
   cd ${baseDir}${g}/${m}/
@@ -93,5 +93,14 @@ loopVal2=(M F)
 for x in ${loopVal1[*]} ; do
   for q in ${loopVal2[*]} ; do 
     foo $x $q &
+  done
+done
+
+# Now open the images in itk snap
+loopVal1=(vol cbf gmd tr)
+loopVal2=(F) # F)
+for x in ${loopVal1[*]} ; do
+  for q in ${loopVal2[*]} ; do 
+    itksnap -g /share/apps/fsl/5.0.8/data/standard/MNI152_T1_1mm_brain.nii.gz -s /home/arosen/hiLo/data/05_BrainRankFigure/hiMinusLoFigure/${q}/${x}/outputImage.nii.gz  -l /home/arosen/hiLo/data/05_BrainRankFigure/hiMinusLoFigure/input/${q}${x}-ColorTable.txt -z 1.6 & 
   done
 done
