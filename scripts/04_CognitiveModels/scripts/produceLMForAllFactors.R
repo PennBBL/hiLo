@@ -7,7 +7,7 @@
 # This will be performed w/in sex
 
 ## Load library(s)
-install_load('psych')
+install_load('psych', 'ggplot2')
 
 ## Load data
 vol.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/ageRegModalReg/volumeData.csv')
@@ -64,3 +64,26 @@ for(w in fact.vals){
   }
   write.csv(output, paste(fac.vals, 'BetaWeights.csv', sep=''), quote=F)
 }
+
+# Now loop through each output csv and combine the values 
+orig <- read.csv(paste(fact.vals[1], 'BetaWeights.csv', sep=''))
+colnames(orig)[2:13] <- paste(colnames(orig)[2:13], '.', fact.vals[1], sep='')
+for(w in fact.vals[2:13]){
+  # First thing we have to do is read in the csv
+  csv.input <- read.csv(paste(fac.vals, 'BetaWeights.csv', sep=''))
+  colnames(csv.input)[2:13] <- paste(colnames(csv.input)[2:13], '.', w, sep='')
+  orig <- merge(orig, csv.input)
+}
+
+# Now make a rank output
+origRank <- orig
+origRank[,2:157] <- apply(-abs(origRank[,-1]), 2, function(x) rank(x, na.last='keep'))
+
+# Now write the outputs
+write.csv(orig, "allFactorBetaValues.csv", quote=F, row.names=F)
+write.csv(origRank, "allFactorValuesBetaRank.csv", quote=F, row.names=F)
+
+# Now prepare some scatter plots for the ranks
+toPlotMale <- ggplot(origRank,aes(x=vol.data.Male.F1_Exec_Comp_Cog_Accuracy,y=vol.data.Male.F2_Social_Cog_Accuracy,label=X)) + 
+  geom_point() + 
+  geom_text()
