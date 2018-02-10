@@ -7,7 +7,7 @@
 # This will be performed w/in sex
 
 ## Load library(s)
-install_load('psych', 'ggplot2')
+install_load('psych', 'ggplot2', 'ggrepel')
 
 ## Load data
 vol.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/ageRegModalReg/volumeData.csv')
@@ -36,6 +36,7 @@ for(w in fact.vals){
         datIn <- data.vals[dat] 
         tmpDF <- get(datIn)
         tmpDF <- tmpDF[which(tmpDF$sex==g),]
+        print(fac)
         tmpY <- tmpDF[,fac]
         tmpX <- as.matrix(scale(tmpDF[,grep('_jlf_', names(tmpDF))]))
         tmpIn <- as.data.frame(cbind(tmpY, tmpX))
@@ -69,8 +70,9 @@ for(w in fact.vals){
 orig <- read.csv(paste(fact.vals[1], 'BetaWeights.csv', sep=''))
 colnames(orig)[2:13] <- paste(colnames(orig)[2:13], '.', fact.vals[1], sep='')
 for(w in fact.vals[2:13]){
+  print(w)
   # First thing we have to do is read in the csv
-  csv.input <- read.csv(paste(fac.vals, 'BetaWeights.csv', sep=''))
+  csv.input <- read.csv(paste(w, 'BetaWeights.csv', sep=''))
   colnames(csv.input)[2:13] <- paste(colnames(csv.input)[2:13], '.', w, sep='')
   orig <- merge(orig, csv.input)
 }
@@ -84,6 +86,29 @@ write.csv(orig, "allFactorBetaValues.csv", quote=F, row.names=F)
 write.csv(origRank, "allFactorValuesBetaRank.csv", quote=F, row.names=F)
 
 # Now prepare some scatter plots for the ranks
-toPlotMale <- ggplot(origRank,aes(x=vol.data.Male.F1_Exec_Comp_Cog_Accuracy,y=vol.data.Male.F2_Social_Cog_Accuracy,label=X)) + 
-  geom_point() + 
-  geom_text()
+# First loop through all of the male 
+stepOne <- colnames(origRank)#[grep("*curacy", colnames(origRank))]
+stepTwo <- stepOne[grep("vol",stepOne)]
+stepThree <- stepTwo[grep("Male", stepTwo)]
+pdf('maleAccuracyRanks.pdf', height=20, width=20)
+for(q in stepThree){
+  toPlotMale <- ggplot(origRank,aes(x=vol.data.Male.F1_Exec_Comp_Cog_Accuracy,y=origRank[,grep(q, colnames(origRank))],label=X)) + 
+    geom_point() + 
+    geom_text_repel() +
+    ylab(q) + 
+    geom_smooth(method=lm) +
+    geom_vline(xintercept = 0 , linetype=3)
+  print(toPlotMale)
+}
+dev.off()
+pdf('maleAccuracyBetas.pdf', height=20, width=20)
+for(q in stepThree){
+  toPlotMale <- ggplot(orig,aes(x=vol.data.Male.F1_Exec_Comp_Cog_Accuracy,y=orig[,grep(q, colnames(origRank))],label=X)) + 
+    geom_point() + 
+    geom_text_repel() +
+    ylab(q) + 
+    geom_smooth(method=lm) +
+    geom_vline(xintercept = 0 , linetype=3)
+  print(toPlotMale)
+}
+dev.off()
