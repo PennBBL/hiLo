@@ -28,6 +28,39 @@ for(z in 1:length(suffixVals)){
   print(dim(allData))
 }
 
+# Now create our summary metrics
+# These will be weighted averages by volume across the entire brain
+volData <- allData[,c(1,2,grep('mprage_jlf_vol_', names(allData)))]
+ctVals <- allData[,c(1,2,grep('mprage_jlf_ct_', names(allData)))]
+cbfVals <- allData[,c(1,2,grep('pcasl_jlf_cbf', names(allData)))]
+cbfVals <- cbfVals[,-grep('_Cerebral_White_Matter', names(cbfVals))]
+rehoVals <- allData[,c(1,2,grep('rest_jlf_reho_', names(allData)))]
+alffVals <- allData[,c(1,2,grep('rest_jlf_alff_', names(allData)))]
+trVals <- allData[,c(1,2,grep('dti_jlf_tr_', names(allData)))]
+trVals <- trVals[,-grep('_MeanTR', names(trVals))]
+dataValue <- c('ctVals', 'cbfVals', 'rehoVals', 'alffVals', 'trVals')
+nameRep <- c('mprage_jlf_ct_', 'pcasl_jlf_cbf_', 'rest_jlf_reho_', 'rest_jlf_alff_', 'dti_jlf_tr_')
+output <- NULL
+for(q in 1:length(dataValue)){
+  tmpDat <- get(dataValue[q])
+  volNames <- gsub(names(volData), pattern='mprage_jlf_vol_', replacement='')
+  tmpNames <- gsub(names(tmpDat), pattern=nameRep[q], replacement='') 
+  tmpVol <- volData[,volNames %in% tmpNames] 
+  print(dim(tmpVol))
+  print(dim(tmpDat))
+  tmpOutVals <- NULL
+  for(z in 1:1601){
+    weightedVal <- weighted.mean(tmpDat[z,-c(1,2)],tmpVol[z,-c(1,2)], na.rm=T)
+    tmpOutVals <- append(tmpOutVals, weightedVal)
+  }
+  output <- cbind(output, tmpOutVals)
+}
+
+# Now I need to do the same with just the GM regions
+output <- cbind(output, allData$pcaslMeanGMValue,allData$dti_jlf_tr_MeanTR)
+colnames(output) <- c('mprage_jlf_ct_MeanCT', 'pcasl_jlf_cbf_MeanWholeBrainCBF', 'rest_jlf_reho_MeanReho', 'rest_jlf_alff_MeanALFF', 'dti_jlf_tr_MeanWholeBrainTR', 'pcasl_jlf_cbf_MeanGMCBF', 'dti_jlf_tr_MeanGMTR')
+allData <- cbind(allData, output)
+
 # Now attach the cognitive data
 modal.scores <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/cogData2017/20170308/CNB_Factor_Scores_GO1-GO2-GO3.csv',header=TRUE)
 modal.scores <- modal.scores[which(modal.scores$timepoint==1),]
@@ -39,7 +72,8 @@ demo.data <- merge(demo.data, race.vals, by=intersect(names(demo.data), names(ra
 demo.data <- merge(demo.data, ses.vals, by=intersect(names(demo.data), names(ses.vals)))
 all.data <- merge(demo.data, allData, by=intersect(names(demo.data), names(allData)), all=T)
 all.data <- all.data[all.data$bblid %in% allData$bblid,]
-write.csv(all.data, '/home/adrose/forRuben/data/n1601_imagingDataDump_20180104.csv', quote=F, row.names=F)
+fileName <- paste('/home/adrose/forRuben/data/n1601_imagingDataDump_', Sys.Date(), sep='')
+write.csv(all.data, fileName, quote=F, row.names=F)
 
 # Now limit it to only the subjects who we use in the hi Lo analysis
 data.values <- read.csv('/home/analysis/redcap_data/201511/go1/n1601_go1_datarel_113015.csv')
@@ -57,4 +91,5 @@ scanid.index <- data.values$scanid[acceptable.subjs]
 bblid.index <- bblid.index[bblid.index %in% health.values$bblid[which(health.values$incidentalExclude==0)]]
 bblid.index <- bblid.index[bblid.index %in% volume.data$bblid[which(volume.data$t1Exclude==0)]]
 all.data.hilo <- all.data[all.data$bblid %in% bblid.index,]
-write.csv(all.data.hilo, '/home/adrose/forRuben/data/n1601_hiLoDataDump_20180104.csv', quote=F, row.names=F)
+fileName <- paste('/home/adrose/forRuben/data/n1601_hiLoDataDump_', Sys.Date(), sep='')
+write.csv(all.data.hilo, fileName, quote=F, row.names=F)
