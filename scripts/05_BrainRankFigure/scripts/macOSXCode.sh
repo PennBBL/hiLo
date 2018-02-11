@@ -16,7 +16,9 @@ genderValues=(M F)
 for g in ${genderValues[*]} ; do
   for m in ${modalityVals[*]} ; do
 cd /Users/arose/Documents/forRuben/hiLo/data/hiMinusLoFigure/${g}/${m}/
-~/Desktop/ffmpeg -i axial%4d.png -y -b 2M -framerate 10 -filter:v "setpts=2.0*PTS" -vcodec libx264 -pix_fmt yuv440p ${m}.mp4
+rm ${m}.mp4
+~/Desktop/ffmpeg -i axial%4d.png -y -b 2M -framerate 10 -filter:v "setpts=2.0*PTS" -vf scale=646:618 -vcodec libx264 -pix_fmt yuv420p ${m}2.mp4
+ffmpeg -i ${m}2.mp4 -filter:v "setpts=2*PTS" ${m}.mp4
 mv /Users/arose/Documents/forRuben/hiLo/data/hiMinusLoFigure/${g}/${m}/${m}.mp4 /Users/arose/Documents/adrose.github.io/hiLo/effectSize/${g}/
   done
 done
@@ -30,16 +32,20 @@ for s in ${contrast[*]} ; do
     for q in ${modalityVals[*]} ; do
 cd /Users/arose/Documents/forRuben/hiLo/data/imagingFigures/${s}/${r}/${q}/
 if [[ ${q} == 1 ]] ; then
-~/Desktop/ffmpeg -i axial%4d.png -y -b 2M -framerate 10 -filter:v "setpts=2.0*PTS" -vcodec libx264 -pix_fmt yuv440p vol.mp4
+~/Desktop/ffmpeg -i axial%4d.png -y -b 2M -framerate 10 -filter:v "setpts=2.0*PTS" -vf scale=646:618 -vcodec libx264 -pix_fmt yuv420p vol2.mp4
+ffmpeg -i vol2.mp4 -filter:v "setpts=2*PTS" vol.mp4
 fi
 if [[ ${q} == 2 ]] ; then
-~/Desktop/ffmpeg -i axial%4d.png -y -b 2M -framerate 10 -filter:v "setpts=2.0*PTS" -vcodec libx264 -pix_fmt yuv440p cbf.mp4
+~/Desktop/ffmpeg -i axial%4d.png -y -b 2M -framerate 10 -filter:v "setpts=2.0*PTS" -vf scale=646:618 -vcodec libx264 -pix_fmt yuv420p cbf2.mp4
+ffmpeg -i cbf2.mp4 -filter:v "setpts=2*PTS" cbf.mp4
 fi
 if [[ ${q} == 3 ]] ; then
-~/Desktop/ffmpeg -i axial%4d.png -y -b 2M -framerate 10 -filter:v "setpts=2.0*PTS" -vcodec libx264 -pix_fmt yuv440p gmd.mp4
+~/Desktop/ffmpeg -i axial%4d.png -y -b 2M -framerate 10 -filter:v "setpts=2.0*PTS" -vf scale=646:618 -vcodec libx264 -pix_fmt yuv420p gmd2.mp4
+ffmpeg -i gmd2.mp4 -filter:v "setpts=2*PTS" gmd.mp4
 fi
 if [[ ${q} == 4 ]] ; then
-~/Desktop/ffmpeg -i axial%4d.png -y -b 2M -framerate 10 -filter:v "setpts=2.0*PTS" -vcodec libx264 -pix_fmt yuv440p md.mp4
+~/Desktop/ffmpeg -i axial%4d.png -y -b 2M -framerate 10 -filter:v "setpts=2.0*PTS" -vf scale=646:618 -vcodec libx264 -pix_fmt yuv420p md2.mp4
+ffmpeg -i md2.mp4 -filter:v "setpts=2*PTS" md.mp4
 fi
     done
   done
