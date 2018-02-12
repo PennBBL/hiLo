@@ -38,22 +38,6 @@ for(q in 1:905){
 }
 allOut <- cbind(reho.data[,c(1, 21)], rehoOutVals, alffOutVals)
 
-# Now do the same for the cbf values
-cbfVals <- cbf.data[,grep('_jlf_', names(cbf.data))]
-# Quickly remove the summary metric from this group
-#cbfVals <- cbfVals[,-c(126)]
-volVals <- merge(vol.data, cbf.data)
-volVals <- volVals[,grep('mprage_jlf_vol_', names(volVals))]
-tmpNamesCbf <- gsub(names(cbfVals), pattern='pcasl_jlf_cbf_', replacement= '')
-tmpNamesVol <- gsub(names(volVals), pattern='mprage_jlf_vol_', replacement= '')
-volVals <- volVals[,tmpNamesVol %in% tmpNamesCbf]
-cbfValsOut <- NULL
-for(q in 1:1508){
-  weightedVal <- weighted.mean(cbfVals[q,], volVals[q,])
-  cbfValsOut <- append(cbfValsOut, weightedVal)
-}
-cbfOut <- cbind(cbf.data[,c(1,2)], cbfValsOut)
-
 all.data <- merge(vol.data, cbf.data, by=intersect(names(vol.data), names(cbf.data)))
 all.data <- merge(all.data, gmd.data, by=intersect(names(all.data), names(gmd.data)))
 all.data <- merge(all.data, tr.data, by=intersect(names(all.data), names(tr.data)))
@@ -67,49 +51,16 @@ runTpotOnAll <- function(x, y, nFold=10, grepID){
   trainSeq <- seq(1, length(y))
   modelOut <- matrix(0, dim(x)[2], nFold)
   rownames(modelOut) <- colnames(x)
+  # FInally scale our data
+  inputX <- as.matrix(scale(x))
+  inputY <- as.matrix(scale(y))
+
   # Now we need to loop thorugh each fold and get our output fit stats
   for(i in 1:nFold){
     index <- unlist(folds[[i]])
-    trainX <- as.matrix(x)[index,]
-    trainY <- as.vector(y)[index]
-    testX <- as.matrix(x)[-index,]
-
-    # Now get the summary metrics
-    sumValIndex <- grep('ICV', colnames(trainX))
-    sumValIndex <- append(sumValIndex, grep('Mean', colnames(testX)))
-
-    # Now protext agains our factor analysis results
-    if(identical(sumValIndex, integer(0))){
-      varSelectDF <- as.data.frame(cbind(trainY, trainX))
-    } else{
-      varSelectDF <- as.data.frame(cbind(trainY, trainX[,-sumValIndex]))
-    }
-
-    # Run variable selection
-    varSelectDF$sex <- 1
-    colnames(varSelectDF)[1] <- 'F1_Exec_Comp_Cog_Accuracy'
-    #selectSums <- returnSelectionN(dataFrame=varSelectDF, grepID=grepID, genderID=1, iterationCount=100, nCor=31)
-    
-    # Now explore different cut off values
-    #valsToUse <- which(as.numeric(returnSelectionCol(selectSums)[,2]) > 24)
-    #nameVals <- rownames(selectSums)[valsToUse]
-    #colVals <- which(colnames(trainX) %in% nameVals)
-    #colVals <- c(colVals, sumValIndex)
-    
-    # Now apply the selection
-    #trainX <- trainX[,colVals]
-    #testX <- testX[,colVals]  
-    #pVal <- dim(trainX)[2]
-    #varSelectDF <- varSelectDF[,c(1, which(names(varSelectDF) %in% colnames(trainX)))]
-
-    # Build a regression tree
-    #tree1 <- rpart(F1_Exec_Comp_Cog_Accuracy~.,data=trainX, method='anova',control=rpart.control(minsplit=10,maxdepth=1))
-    #trainX <- cbind(trainX, predict(tree1))
-    #testX <- cbind(testX, predict(tree1, newdata=as.data.frame(testX)))
-
-    # Now scale the data
-    trainX <- as.matrix(scale(trainX))
-    testX <- as.matrix(scale(testX))
+    trainX <- inputX[index,]
+    trainY <- inputY[index]
+    testX <- as.matrix(inputX)[-index,]
 
     # Now grab our lambda to use 
     fit.cv <- cv.glmnet(x=trainX, y=trainY, alpha=0,nfolds=10)
@@ -118,9 +69,8 @@ runTpotOnAll <- function(x, y, nFold=10, grepID){
     modelOut[rownames(modelOut) %in% rownames(coef(modelFit)),i] <- 1
 
     # Now get our prediction values in the test values
-    outputCvValsR[trainSeq[-index]] <- predict(modelFit, testX)
+    outputCvValsR[trainSeq[-index]] <- predict(modelFit, t(data.matrix(testX)))
   }
-
   # Now return the output CvVals
   output <- list()
   output[[1]] <- outputCvValsR
@@ -138,7 +88,7 @@ for(q in seq(1,10)){
     tmpDat <- tmpDat[which(tmpDat$sex==1),]
     tmpDatX <- tmpDat[,grep(grepValue[i], names(tmpDat))]
     tmpDatY <- tmpDat$F1_Exec_Comp_Cog_Accuracy
-    predVals <- runTpotOnAll(tmpDatX, tmpDatY, 200, grepValue[i])
+    predVals <- runTpotOnAll(tmpDatX, tmpDatY, dim(tmpDatX)[1], grepValue[i])
     corVal <- cor(predVals[[1]], tmpDatY)^2
     cvICC <- ICC(cbind(predVals[[1]], tmpDatY))$results[4,2]
     cvRMSE <- sqrt(mean((tmpDatY-predVals[[1]])^2))
