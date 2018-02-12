@@ -87,23 +87,26 @@ write.csv(origRank, "allFactorValuesBetaRank.csv", quote=F, row.names=F)
 
 # Now prepare some scatter plots for the ranks
 # First loop through all of the male 
-stepOne <- colnames(origRank)#[grep("*curacy", colnames(origRank))]
+stepOne <- colnames(origRank)[grep("*curacy", colnames(origRank))]
 stepTwo <- stepOne[grep("vol",stepOne)]
-stepThree <- stepTwo[grep("Male", stepTwo)]
-pdf('maleAccuracyRanks.pdf', height=20, width=20)
+stepThree <- stepTwo[grep("Female", stepTwo)]
+pdf('femaleAccuracyRanks.pdf', height=20, width=20)
 for(q in stepThree){
-  toPlotMale <- ggplot(origRank,aes(x=vol.data.Male.F1_Exec_Comp_Cog_Accuracy,y=origRank[,grep(q, colnames(origRank))],label=X)) + 
+  corVal <- paste("r = ", round(cor(origRank$vol.data.Female.F1_Exec_Comp_Cog_Accuracy, origRank[,grep(q, colnames(origRank))]), digits=2))
+  toPlotMale <- ggplot(origRank,aes(x=vol.data.Female.F1_Exec_Comp_Cog_Accuracy,y=origRank[,grep(q, colnames(origRank))],label=X)) + 
     geom_point() + 
     geom_text_repel() +
     ylab(q) + 
     geom_smooth(method=lm) +
-    geom_vline(xintercept = 0 , linetype=3)
+    geom_vline(xintercept = 0 , linetype=3) + 
+    geom_abline(intercept=0, slope=1) +
+    geom_text(aes(x=-Inf, y=Inf, hjust=0, vjust=1, label=corVal))
   print(toPlotMale)
 }
 dev.off()
-pdf('maleAccuracyBetas.pdf', height=20, width=20)
+pdf('femaleAccuracyBetas.pdf', height=20, width=20)
 for(q in stepThree){
-  toPlotMale <- ggplot(orig,aes(x=vol.data.Male.F1_Exec_Comp_Cog_Accuracy,y=orig[,grep(q, colnames(origRank))],label=X)) + 
+  toPlotMale <- ggplot(orig,aes(x=vol.data.Female.F1_Exec_Comp_Cog_Accuracy,y=orig[,grep(q, colnames(origRank))],label=X)) + 
     geom_point() + 
     geom_text_repel() +
     ylab(q) + 
