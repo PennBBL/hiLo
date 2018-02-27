@@ -44,6 +44,7 @@ rd.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/rawData/n1601_jlfRD.
 rd.data <- rd.data[complete.cases(rd.data[,grep('dti_jlf_rd', names(rd.data))]),]
 fa.label <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/rawData/n1601_jhuFALabels.csv')
 tr.label <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/rawData/n1601_jhuTRLabels.csv')
+fa.tracts <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/rawData/n1601_jhuFATracts.csv')
 
 # Find the subjects that had their cnb within one year of their imaging session
 scan.Value <- data.values$ageAtGo1Scan
@@ -59,10 +60,10 @@ bblid.index.fa <- bblid.index
 bblid.index <- bblid.index[bblid.index %in% volume.data$bblid[which(volume.data$t1Exclude==0)]]
 
 # Now create a for loop to do everything for our GM values
-dataVals <- c('volume.data', 'cbf.data', 'gmd.data', 'ct.data', 'reho.data', 'alff.data', 'md.data', 'cc.data', 'fa.data', 'ad.data', 'rd.data', 'fa.label', 'tr.label')
-outNames <- c('volumeData.csv', 'cbfData.csv', 'gmdData.csv', 'ctData.csv', 'rehoData.csv', 'alffData.csv', 'jlfTRData.csv', 'ccData.csv', 'jlfFAData.csv', 'jlfADData.csv', 'jlfRDData.csv', 'jhuFALabel.csv', 'jhuTRLabel.csv')
-modalNames <- c('mprage_jlf_vol_', 'pcasl_jlf_cbf', 'mprage_jlf_gmd', 'mprage_jlf_ct', 'rest_jlf_reho', 'rest_jlf_alff', 'dti_jlf_tr', 'mprage_jlf_cortcon', 'dti_jlf_fa', 'dti_jlf_ad', 'dti_jlf_rd', 'dti_dtitk_jhulabel','dti_dtitk_jhulabel')
-excludeVals <- c('t1Exclude', 'pcaslExclude', 't1Exclude', 't1Exclude', 'restExclude', 'restExclude', 'dti64Exclude', 't1Exclude','dti64Exclude', 'dti64Exclude', 'dti64Exclude', 'dti64Exclude', 'dti64Exclude')
+dataVals <- c('volume.data', 'cbf.data', 'gmd.data', 'ct.data', 'reho.data', 'alff.data', 'md.data', 'cc.data', 'fa.data', 'ad.data', 'rd.data', 'fa.label', 'tr.label', 'fa.tracts')
+outNames <- c('volumeData.csv', 'cbfData.csv', 'gmdData.csv', 'ctData.csv', 'rehoData.csv', 'alffData.csv', 'jlfTRData.csv', 'ccData.csv', 'jlfFAData.csv', 'jlfADData.csv', 'jlfRDData.csv', 'jhuFALabel.csv', 'jhuTRLabel.csv', 'jhuFATracts.csv')
+modalNames <- c('mprage_jlf_vol_', 'pcasl_jlf_cbf', 'mprage_jlf_gmd', 'mprage_jlf_ct', 'rest_jlf_reho', 'rest_jlf_alff', 'dti_jlf_tr', 'mprage_jlf_cortcon', 'dti_jlf_fa', 'dti_jlf_ad', 'dti_jlf_rd', 'dti_dtitk_jhulabel','dti_dtitk_jhulabel', 'dti_dtitk_jhutract_fa')
+excludeVals <- c('t1Exclude', 'pcaslExclude', 't1Exclude', 't1Exclude', 'restExclude', 'restExclude', 'dti64Exclude', 't1Exclude','dti64Exclude', 'dti64Exclude', 'dti64Exclude', 'dti64Exclude', 'dti64Exclude', 'dti64Exclude')
 outputMeanLR <- "/home/adrose/dataPrepForHiLoPaper/data/meanLR/"
 outputAgeReg <- "/home/adrose/dataPrepForHiLoPaper/data/ageReg/"
 outputMeanLRAgeReg <- "/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeReg/"
@@ -152,7 +153,7 @@ outputMeanLRAgeReg <- "/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeReg
 outputAgeReg <- "/home/adrose/dataPrepForHiLoPaper/data/ageRegQA/"
 outputMeanLRAgeRegModReg <- "/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeRegModalRegQA/"
 outputAgeRegModReg <- "/home/adrose/dataPrepForHiLoPaper/data/ageRegModalRegQA/"
-qaVals <- c('averageManualRating','pcaslRelMeanRMSMotion', 'averageManualRating', 'averageManualRating', 'restRelMeanRMSMotion', 'restRelMeanRMSMotion', 'dti64Tsnr', 'averageManualRating',  'dti64Tsnr','dti64Tsnr','dti64Tsnr','dti64Tsnr','dti64Tsnr')
+qaVals <- c('averageManualRating','pcaslRelMeanRMSMotion', 'averageManualRating', 'averageManualRating', 'restRelMeanRMSMotion', 'restRelMeanRMSMotion', 'dti64Tsnr', 'averageManualRating',  'dti64Tsnr','dti64Tsnr','dti64Tsnr','dti64Tsnr','dti64Tsnr','dti64Tsnr')
 
 # Now run em all thorugh the loop
 for(i in 1:length(dataVals)){
