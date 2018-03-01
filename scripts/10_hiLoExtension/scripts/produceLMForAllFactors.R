@@ -7,7 +7,7 @@
 # This will be performed w/in sex
 
 ## Load library(s)
-install_load('psych', 'ggplot2', 'ggrepel')
+install_load('psych', 'ggplot2', 'ggrepel', 'reshape')
 
 ## Load data
 vol.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/ageRegModalReg/volumeData.csv')
@@ -79,7 +79,7 @@ for(w in fact.vals[2:13]){
 
 # Now make a rank output
 origRank <- orig
-origRank[,2:157] <- apply(-abs(origRank[,-1]), 2, function(x) rank(x, na.last='keep'))
+origRank[,2:157] <- apply(origRank[,-1], 2, function(x) rank(x, na.last='keep'))
 
 # Now write the outputs
 write.csv(orig, "allFactorBetaValues.csv", quote=F, row.names=F)
@@ -89,11 +89,11 @@ write.csv(origRank, "allFactorValuesBetaRank.csv", quote=F, row.names=F)
 # First loop through all of the male 
 stepOne <- colnames(origRank)[grep("*curacy", colnames(origRank))]
 stepTwo <- stepOne[grep("vol",stepOne)]
-stepThree <- stepTwo[grep("Female", stepTwo)]
-pdf('femaleAccuracyRanks.pdf', height=20, width=20)
+stepThree <- stepTwo[grep("Male", stepTwo)]
+pdf('maleAccuracyRanks.pdf', height=20, width=20)
 for(q in stepThree){
-  corVal <- paste("r = ", round(cor(origRank$vol.data.Female.F1_Exec_Comp_Cog_Accuracy, origRank[,grep(q, colnames(origRank))]), digits=2))
-  toPlotMale <- ggplot(origRank,aes(x=vol.data.Female.F1_Exec_Comp_Cog_Accuracy,y=origRank[,grep(q, colnames(origRank))],label=X)) + 
+  corVal <- paste("r = ", round(cor(origRank$vol.data.Male.F1_Exec_Comp_Cog_Accuracy, origRank[,grep(q, colnames(origRank))]), digits=2))
+  toPlotMale <- ggplot(origRank,aes(x=vol.data.Male.F1_Exec_Comp_Cog_Accuracy,y=origRank[,grep(q, colnames(origRank))],label=X)) + 
     geom_point() + 
     geom_text_repel() +
     ylab(q) + 
@@ -104,9 +104,9 @@ for(q in stepThree){
   print(toPlotMale)
 }
 dev.off()
-pdf('femaleAccuracyBetas.pdf', height=20, width=20)
+pdf('maleAccuracyBetas.pdf', height=20, width=20)
 for(q in stepThree){
-  toPlotMale <- ggplot(orig,aes(x=vol.data.Female.F1_Exec_Comp_Cog_Accuracy,y=orig[,grep(q, colnames(origRank))],label=X)) + 
+  toPlotMale <- ggplot(orig,aes(x=vol.data.Male.F1_Exec_Comp_Cog_Accuracy,y=orig[,grep(q, colnames(origRank))],label=X)) + 
     geom_point() + 
     geom_text_repel() +
     ylab(q) + 
@@ -119,8 +119,28 @@ dev.off()
 # Now write a cor matrix
 # First start with the beta values
 stepOne <- colnames(orig)[grep("vol",colnames(orig))]
-stepTwo <- stepOne[grep("Female", stepOne)]
+stepTwo <- stepOne[grep("Male", stepOne)]
 corMat <- cor(origRank[,stepTwo])
+corDat <- melt(corMat)
+outFig1 <- qplot(x=X1, y=X2, data=corDat, fill=value, geom="tile") + 
+    theme(text=element_text(size=12), axis.text.x = element_text(angle = 45, hjust = 1, face="bold"),
+          axis.text.y = element_text(face="bold")) +
+    scale_fill_gradient2(low="blue", high="red", limits=c(0, 1))
+
+## Now do the ranks
+corMat <- cor(orig[,stepTwo])
+corDat <- melt(corMat)
+outFig2 <- qplot(x=X1, y=X2, data=corDat, fill=value, geom="tile") + 
+    theme(text=element_text(size=12), axis.text.x = element_text(angle = 45, hjust = 1, face="bold"),
+          axis.text.y = element_text(face="bold")) +
+    scale_fill_gradient2(low="blue", high="red", limits=c(0, 1))
+
+pdf("modRegBetaHeatMaps.pdf")
+outFig1
+outFig2
+dev.off()
+
+q()
 
 ## Now do the same thing as above but only with the GM roi's
 vol.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/ageReg/volumeData.csv')

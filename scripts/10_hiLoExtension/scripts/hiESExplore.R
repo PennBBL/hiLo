@@ -4,7 +4,7 @@ source("/home/adrose/hiLo/scripts/10_hiLoExtension/functions/functions.R")
 install_load('plyr', 'ggplot2', 'reshape2', 'grid', 'gridExtra', 'labeling', 'data.table', 'ggrepel')
 
 ## Load data
-vol.modal.data.age.reg <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeReg/volumeData.csv')
+vol.modal.data.age.reg <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/ageReg/volumeData.csv')
 cbf.modal.data.age.reg <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeRegQA/cbfData.csv')
 gmd.modal.data.age.reg <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeReg/gmdData.csv')
 tr.modal.data.age.reg <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeRegQA/jlfTRData.csv')
@@ -57,14 +57,14 @@ fact.vals <- names(vol.modal.data.age.reg)[4:16]
 orig <- age.reg.vol <- doEverythingEver(vol.modal.data.age.reg, 'mprage_jlf_vol', 0, 999, 'Age Regressed', cerebellum=F,optionalRace=NULL, optionalFactor=fact.vals[1]) 
 for(f in fact.vals){
   age.reg.vol <- doEverythingEver(vol.modal.data.age.reg, 'mprage_jlf_vol', 0, 999, 'Age Regressed', cerebellum=F,optionalRace=NULL, optionalFactor=f)
-  orig <- merge(orig, age.reg.vol, by=c('ROI', 'Gender', 'sex', 'groupLevel', 'ageBin', 'ROI_readable', 'lobe', 'Order'), suffixes=c("", f))
+  orig <- merge(orig, age.reg.vol, by=c('ROI', 'Gender', 'sex', 'groupLevel', 'ageBin', 'ROI_readable', 'lobe'), suffixes=c("", f))
 }
 origM <- orig[which(orig$sex=="M"),]
 origF <- orig[which(orig$sex=="F"),]
 
 # Now compare the new hi - lo values to the f1 exec comp cog acc values
 valsIn <- grep("zScoreDifference", names(orig))[-1]
-pdf("scatterPlotMale.pdf")
+pdf("scatterPlotMale.pdf", height=20, width=20)
 for(f in valsIn){
   # Make a ggplot scatter image as per usual
   corVal <- paste("r = ", round(cor(origM$zScoreDifferenceF1_Exec_Comp_Cog_Accuracy, origM[,f]), digits=2))
