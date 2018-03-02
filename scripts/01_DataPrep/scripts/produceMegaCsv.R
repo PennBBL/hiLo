@@ -124,7 +124,7 @@ colnames(allOut)[85:96] <- gsub(gsub(templatVals, pattern="%MODALITY%", replacem
 # Now attach it to all of the imaging data
 allData <- cbind(allData, allOut)
 allOut <- cbind(allData$bblid, allData$scanid, allOut)
-write.csv(allOut, "~/tmpVals.csv", quote=F, row.names=F)
+write.csv(allOut, "~/tmpVals.csv", quote=F, row.names=F, na="")
 
 # Now attach the cognitive data
 modal.scores <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/cogData2017/20170308/CNB_Factor_Scores_GO1-GO2-GO3.csv',header=TRUE)
@@ -157,4 +157,4 @@ bblid.index <- bblid.index[bblid.index %in% health.values$bblid[which(health.val
 bblid.index <- bblid.index[bblid.index %in% volume.data$bblid[which(volume.data$t1Exclude==0)]]
 all.data.hilo <- all.data[all.data$bblid %in% bblid.index,]
 fileName <- paste('/home/adrose/forRuben/data/n1601_hiLoDataDump_', Sys.Date(), '.csv', sep='')
-write.csv(all.data.hilo, fileName, quote=F, row.names=F)
+write.csv(all.data.hilo, fileName, quote=F, row.names=F, na="")
