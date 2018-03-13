@@ -232,3 +232,105 @@ for(i in 1:length(dataVals)){
   write.csv(tmpAR, outAge, quote=F, row.names=F)
   write.csv(tmpMR, outMod, quote=F, row.names=F)
 }
+
+## Now do the longitudinal data down here
+## Start by loading the data
+long.data.vals <- read.csv("/home/adrose/dataPrepForHiLoPaper/data/n2416ClinicalDemoPsycho/allLongData.csv")
+long.data.vals <- long.data.vals[,1:19]
+demo.values <- read.csv("/home/adrose/dataPrepForHiLoPaper/data/n2416ClinicalDemoPsycho/n2416_demographics_20170310.csv")
+modal.scores <- merge(long.data.vals, demo.values, all=T)
+ses.vals <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/n9498_go1_environment_factor_scores_tymoore_20150909.csv')
+modal.scores <- merge(modal.scores, ses.vals)
+volume.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/rawData2416/n2416_antsCtVol_jlfVol.csv')
+volume.data <- volume.data[,-grep('Cerebral_White_Matter', names(volume.data))]
+volume.data <- volume.data[,-grep("4th_Ventricle", names(volume.data))]
+volume.data <- merge(modal.scores, volume.data)
+cbf.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/rawData2416/n2416_jlfCbf-Impute.csv')
+cbf.data <- cbf.data[,-grep('Cerebral_White_Matter', names(cbf.data))]
+cbf.data <- cbf.data[complete.cases(cbf.data),]
+gmd.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/rawData2416/n2416_jlfGMD.csv')
+ct.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/rawData2416/n2416_jlfCt.csv')
+cc.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/rawData2416/n2416_jlfCc.csv')
+reho.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/rawData2416/n2416_jlfReho.csv')
+alff.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/rawData2416/n2416_jlfAlff.csv')
+
+# Now create a for loop to do everything for our GM values
+dataVals <- c('volume.data', 'cbf.data', 'gmd.data', 'ct.data', 'reho.data', 'alff.data')
+outNames <- c('volumeData.csv', 'cbfData.csv', 'gmdData.csv', 'ctData.csv', 'rehoData.csv', 'alffData.csv')
+modalNames <- c('mprage_jlf_vol_', 'pcasl_jlf_cbf', 'mprage_jlf_gmd', 'mprage_jlf_ct', 'rest_jlf_reho', 'rest_jlf_alff')
+excludeVals <- c('t1Exclude', 'pcaslExclude', 't1Exclude', 't1Exclude', 'restExclude', 'restExclude')
+outputMeanLR <- "/home/adrose/dataPrepForHiLoPaper/data/meanLR2416/"
+outputAgeReg <- "/home/adrose/dataPrepForHiLoPaper/data/ageReg2416/"
+outputMeanLRAgeReg <- "/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeReg2416/"
+outputMeanLRAgeRegModReg <- "/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeRegModalReg2416/"
+outputAgeRegModReg <- "/home/adrose/dataPrepForHiLoPaper/data/ageRegModalReg2416/"
+
+# Now I am going to create a for loop which will output all of the required CSV's 
+for(i in 1:length(dataVals)){
+  # First load the data set, and create all of our output names
+  tmpData <- get(dataVals[i])
+  tmpData <- tmpData[complete.cases(tmpData[,grep(modalNames[i], names(tmpData))]),]
+  outMean <- paste(outputMeanLR, outNames[i], sep='')
+  outAgeNM <- paste(outputAgeReg, outNames[i], sep='')
+  outAgeNMMod <- paste(outputAgeRegModReg, outNames[i], sep='')
+  outAge <- paste(outputMeanLRAgeReg, outNames[i], sep='')
+  outMod <- paste(outputMeanLRAgeRegModReg, outNames[i], sep='')
+
+  # Combine our psychological data and modality data
+  tmpData <- tmpData[which(tmpData[excludeVals[i]]!=1), ]
+  tmpData <- merge(modal.scores, tmpData)
+
+  # Now attach our demographic data
+  tmpData$ageAtGo1Scan <- tmpData$scanageMonths
+
+  # produce our avgLR
+  if(i < 12){
+    tmpLR <- averageLeftAndRight(tmpData)
+  }  
+  if(i > 11){
+    tmpLR <- averageLeftAndRight1(tmpData)
+  }
+
+  # Now produce our ageReg vals 
+  tmpAR <- tmpData
+  tmpAR[,grep(modalNames[i], names(tmpAR))] <- apply(tmpAR[,grep(modalNames[i], names(tmpAR))], 2, function(x) regressOutAgeNoQA(x, tmpAR$ageAtGo1Scan, tmpAR$envSES))
+  write.csv(tmpAR, outAgeNM, quote=F, row.names=F)
+
+  # Now produce age and modal reg values
+  colsToRM <- NULL
+  colsToRM <- grep('ICV', names(tmpAR))
+  colsToRM <- append(colsToRM, grep('Mean', names(tmpAR)))
+  if(!identical(integer(0), colsToRM)){
+    tmpMR <- tmpAR[, -colsToRM]
+  } else if(identical(integer(0), colsToRM)){
+    tmpMR <- tmpAR
+  }
+  tmpMR <- regressWithinModality(tmpMR, modalNames[i])
+  write.csv(tmpMR, outAgeNMMod, quote=F, row.names=F)  
+
+  # Now produce the meaned across hemisphere and modality regressed values  
+  if(i < 12){
+    tmpAR <- averageLeftAndRight(tmpAR)
+  }  
+  if(i > 11){
+    tmpAR <- averageLeftAndRight1(tmpAR)
+  }
+
+  # Now for modality regression make sure we don't inuclude any global summary metrics
+  colsToRM <- NULL
+  colsToRM <- grep('_jlf_ICV', names(tmpAR))
+  colsToRM <- append(colsToRM, grep('_Mean', names(tmpAR)))
+  if(!identical(integer(0), colsToRM)){
+    tmpMR <- tmpAR[, -colsToRM]
+  } else if(identical(integer(0), colsToRM)){
+    tmpMR <- tmpAR
+  }
+
+  # Now produce a modality regressed data frame
+  tmpMR <- regressWithinModality(tmpMR, modalNames[i])
+
+  # Now write the csvs
+  write.csv(tmpLR, outMean, quote=F, row.names=F)
+  write.csv(tmpAR, outAge, quote=F, row.names=F)
+  write.csv(tmpMR, outMod, quote=F, row.names=F)
+}

@@ -157,3 +157,90 @@ write.csv(adData, '/home/adrose/dataPrepForHiLoPaper/data/rawData/n1601_jlfAD.cs
 write.csv(faData, '/home/adrose/dataPrepForHiLoPaper/data/rawData/n1601_jlfFA.csv', quote=F, row.names=F)
 write.csv(rdData, '/home/adrose/dataPrepForHiLoPaper/data/rawData/n1601_jlfRD.csv', quote=F, row.names=F)
 write.csv(trData, '/home/adrose/dataPrepForHiLoPaper/data/rawData/n1601_jlfTR.csv', quote=F, row.names=F)
+
+## Now move onto the longitudinal data 
+jlfVol <-  read.csv('/home/adrose/dataPrepForHiLoPaper/data/n2416DataPreRaw/n2416_jlfAntsCTIntersectionVol_20170412.csv')
+icvVol <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/preRaw2017/outIcv.csv')
+jlfWmVol <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/n2416DataPreRaw/n2416_jlfWmVol_20170818.csv')
+antsVol <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/n2416DataPreRaw/n2416_antsCtVol_20170412.csv')
+jlfCt <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/n2416DataPreRaw/n2416_jlfAntsCTIntersectionCt_20170331.csv')
+jlfCC <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/n2416DataPreRaw/n2416_jlfAntsCTIntersectionCortCon_20170814.csv')
+jlfGmd <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/n2416DataPreRaw/n2416_jlfAtroposIntersectionGMD_20170410.csv')
+meanGmd <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/preRaw2017/averageGMD.csv')
+t1QA <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/n2416DataPreRaw/n2416_t1QaData_20170516.csv')
+
+# Now merge all of the t1 data
+volData <- merge(t1QA, jlfVol)
+volData <- merge(volData, jlfWmVol)
+volData <- merge(volData, icvVol)
+volData <- merge(volData, antsVol)
+
+# Now write our csv
+write.csv(volData, '/home/adrose/dataPrepForHiLoPaper/data/rawData2416/n2416_antsCtVol_jlfVol.csv', quote=F, row.names=F)
+
+# Now do the GMD and CT and cortcon
+gmdData <- merge(t1QA, jlfGmd)
+gmdData <- merge(gmdData, meanGmd)
+#gmdData <- merge(gmdData, gmdFactor, by='bblid')
+#write csv...
+write.csv(gmdData, '/home/adrose/dataPrepForHiLoPaper/data/rawData2416/n2416_jlfGMD.csv', quote=F, row.names=F)
+
+ctData <- merge(t1QA, jlfCt)
+#as ever write the csv...
+write.csv(ctData, '/home/adrose/dataPrepForHiLoPaper/data/rawData2416/n2416_jlfCt.csv', quote=F, row.names=F)
+
+#Now do CC vals
+ccData <- merge(t1QA, jlfCC)
+write.csv(ccData, '/home/adrose/dataPrepForHiLoPaper/data/rawData2416/n2416_jlfCc.csv', quote=F, row.names=F)
+
+# Now lets do all of the cbf data 
+cbfData <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/n2416DataPreRaw/n2416_jlfAntsCTIntersectionPcaslValues_20170404.csv')
+cbfData[cbfData<20] <- NA
+cbfWmData <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/n2416DataPreRaw/n2416_jlfWMPcasl_20170412.csv')
+cbfWmData[cbfWmData<5] <- NA
+cbfQA <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/n2416DataPreRaw/n2416_PcaslQaData_20170404.csv')
+
+# Now merge the cbf data 
+cbfData <- merge(cbfData, cbfWmData, by=c('bblid', 'scanid'))
+cbfData <- merge(cbfQA, cbfData, by=c('bblid', 'scanid'))
+
+# Write our csv
+write.csv(cbfData , '/home/adrose/dataPrepForHiLoPaper/data/rawData2416/n2416_jlfCbf-nonImpute.csv', quote=F, row.names=F)
+
+# Now produce an imputed data frame
+cbfData <- cbfData[which(cbfData$pcaslExclude==0),]
+toImpute <- cbfData[,grep('jlf', names(cbfData))]
+options(mc.cores=8)
+toImpute <- mi(toImpute, parallel=T, seed=16, n.chains=8)
+output <- complete(toImpute, 8)
+output.1 <- output[[1]][,1:127]
+output.2 <- output[[2]][,1:127]
+output.3 <- output[[3]][,1:127]
+output.4 <- output[[4]][,1:127]
+output.5 <- output[[5]][,1:127]
+output.6 <- output[[6]][,1:127]
+output.7 <- output[[7]][,1:127]
+output.8 <- output[[8]][,1:127]
+output <- (output.1 + output.2 + output.3 + output.4 + output.5 + output.6 + output.7 + output.8)/8
+cbfDataImpute <- cbfData
+cbfDataImpute[,grep('jlf', names(cbfData))] <- output
+
+# Now write the imputed csv
+write.csv(cbfDataImpute , '/home/adrose/dataPrepForHiLoPaper/data/rawData2416/n2416_jlfCbf-Impute.csv', quote=F, row.names=F)
+
+# Now do the resting data down here
+alffData <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/n2416DataPreRaw/n2416_jlfALFFValues_20170714.csv')
+rehoData <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/n2416DataPreRaw/n2416_jlfReHoValues_20170714.csv')
+restQa <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/n2416DataPreRaw/n2416_RestQAData_20170714.csv')
+
+# Now produce the reho values down here
+alffData <- merge(restQa, alffData, by=c('bblid', 'scanid'))
+
+# Now write the alff csv
+write.csv(alffData, '/home/adrose/dataPrepForHiLoPaper/data/rawData2416/n2416_jlfAlff.csv', quote=F, row.names=F)
+
+# Now do reho
+rehoData <- merge(restQa, rehoData, by=c('bblid', 'scanid')) 
+
+# writelasdfoshdfouhsdf
+write.csv(rehoData, '/home/adrose/dataPrepForHiLoPaper/data/rawData2416/n2416_jlfReho.csv', quote=F, row.names=F)
