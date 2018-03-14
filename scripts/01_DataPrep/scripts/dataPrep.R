@@ -253,12 +253,22 @@ ct.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/rawData2416/n2416_jl
 cc.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/rawData2416/n2416_jlfCc.csv')
 reho.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/rawData2416/n2416_jlfReho.csv')
 alff.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/rawData2416/n2416_jlfAlff.csv')
+md.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/rawData2416/n2416_jlfTR.csv')
+md.data <- md.data[complete.cases(md.data[,grep('dti_jlf_tr', names(md.data))]),]
+fa.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/rawData2416/n2416_jlfFA.csv')
+fa.data <- fa.data[complete.cases(fa.data[,grep('dti_jlf_fa', names(fa.data))]),]
+ad.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/rawData2416/n2416_jlfAD.csv')
+ad.data <- ad.data[complete.cases(ad.data[,grep('dti_jlf_ad', names(ad.data))]),]
+rd.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/rawData2416/n2416_jlfRD.csv')
+rd.data <- rd.data[complete.cases(rd.data[,grep('dti_jlf_rd', names(rd.data))]),]
+fa.label <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/rawData2416/n2416_jhuFALabels.csv')
+tr.label <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/rawData2416/n2416_jhuTRLabels.csv')
 
 # Now create a for loop to do everything for our GM values
-dataVals <- c('volume.data', 'cbf.data', 'gmd.data', 'ct.data', 'reho.data', 'alff.data')
-outNames <- c('volumeData.csv', 'cbfData.csv', 'gmdData.csv', 'ctData.csv', 'rehoData.csv', 'alffData.csv')
-modalNames <- c('mprage_jlf_vol_', 'pcasl_jlf_cbf', 'mprage_jlf_gmd', 'mprage_jlf_ct', 'rest_jlf_reho', 'rest_jlf_alff')
-excludeVals <- c('t1Exclude', 'pcaslExclude', 't1Exclude', 't1Exclude', 'restExclude', 'restExclude')
+dataVals <- c('volume.data', 'cbf.data', 'gmd.data', 'ct.data', 'reho.data', 'alff.data', 'md.data', 'cc.data', 'fa.data', 'ad.data', 'rd.data', 'fa.label', 'tr.label')
+outNames <- c('volumeData.csv', 'cbfData.csv', 'gmdData.csv', 'ctData.csv', 'rehoData.csv', 'alffData.csv', 'jlfTRData.csv', 'ccData.csv', 'jlfFAData.csv', 'jlfADData.csv', 'jlfRDData.csv', 'jhuFALabel.csv', 'jhuTRLabel.csv', 'jhuFATracts.csv')
+modalNames <- c('mprage_jlf_vol_', 'pcasl_jlf_cbf', 'mprage_jlf_gmd', 'mprage_jlf_ct', 'rest_jlf_reho', 'rest_jlf_alff', 'dti64_jlf_tr', 'mprage_jlf_cortcon', 'dti64_jlf_fa', 'dti64_jlf_ad', 'dti64_jlf_rd', 'dti_dtitk_jhulabel','dti_dtitk_jhulabel', 'dti_dtitk_jhutract_fa')
+excludeVals <- c('t1Exclude', 'pcaslExclude', 't1Exclude', 't1Exclude', 'restExclude', 'restExclude', 'dti64Exclude', 't1Exclude','dti64Exclude', 'dti64Exclude', 'dti64Exclude', 'dti64Exclude', 'dti64Exclude', 'dti64Exclude')
 outputMeanLR <- "/home/adrose/dataPrepForHiLoPaper/data/meanLR2416/"
 outputAgeReg <- "/home/adrose/dataPrepForHiLoPaper/data/ageReg2416/"
 outputMeanLRAgeReg <- "/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeReg2416/"

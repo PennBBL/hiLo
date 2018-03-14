@@ -244,3 +244,71 @@ rehoData <- merge(restQa, rehoData, by=c('bblid', 'scanid'))
 
 # writelasdfoshdfouhsdf
 write.csv(rehoData, '/home/adrose/dataPrepForHiLoPaper/data/rawData2416/n2416_jlfReho.csv', quote=F, row.names=F)
+
+# Now onto diffusion
+# Start with all of the labels
+adLabels <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/n2416DataPreRaw/n2416_DTI_JHULabelsAD.csv')
+rdLabels <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/n2416DataPreRaw/n2416_DTI_JHULabelsRD.csv')
+trLabels <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/n2416DataPreRaw/n2416_DTI_JHULabelsTR.csv')
+faLabels <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/n2416DataPreRaw/n2416_DTI_JHULabelsFA.csv')
+dtiQA <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/n2416DataPreRaw/n2416_dti_qa_20170301.csv')
+
+# Now merge our data and QA values
+adData <- merge(adLabels, dtiQA, by=c('bblid', 'scanid'))
+faData <- merge(faLabels, dtiQA, by=c('bblid', 'scanid'))
+rdData <- merge(rdLabels, dtiQA, by=c('bblid', 'scanid'))
+trData <- merge(trLabels, dtiQA, by=c('bblid', 'scanid'))
+
+# sdfklhasfluhrfkljhaf write sd.kfjhasfuhasdflkhu
+write.csv(adData, '/home/adrose/dataPrepForHiLoPaper/data/rawData2416/n2416_jhuADLabels.csv', quote=F, row.names=F)
+write.csv(faData, '/home/adrose/dataPrepForHiLoPaper/data/rawData2416/n2416_jhuFALabels.csv', quote=F, row.names=F)
+write.csv(rdData, '/home/adrose/dataPrepForHiLoPaper/data/rawData2416/n2416_jhuRDLabels.csv', quote=F, row.names=F)
+write.csv(trData, '/home/adrose/dataPrepForHiLoPaper/data/rawData2416/n2416_jhuTRLabels.csv', quote=F, row.names=F)
+
+# Now lets do tracts
+adLabels <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/n2416DataPreRaw/n2416_DTI_JHUTractAD_template_20170413.csv')
+rdLabels <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/n2416DataPreRaw/n2416_DTI_JHUTractRD_template_20170413.csv')
+trLabels <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/n2416DataPreRaw/n2416_DTI_JHUTractTR_template_20170413.csv')
+faLabels <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/n2416DataPreRaw/n2416_DTI_JHUTractFA_template_20170413.csv')
+
+# Now merge with QA data
+# Now merge our data and QA values
+adData <- merge(adLabels, dtiQA, by=c('bblid', 'scanid'))
+faData <- merge(faLabels, dtiQA, by=c('bblid', 'scanid'))
+rdData <- merge(rdLabels, dtiQA, by=c('bblid', 'scanid'))
+trData <- merge(trLabels, dtiQA, by=c('bblid', 'scanid'))
+
+# Now write the csv
+write.csv(adData, '/home/adrose/dataPrepForHiLoPaper/data/rawData2416/n2416_jhuADTracts.csv', quote=F, row.names=F)
+write.csv(faData, '/home/adrose/dataPrepForHiLoPaper/data/rawData2416/n2416_jhuFATracts.csv', quote=F, row.names=F)
+write.csv(rdData, '/home/adrose/dataPrepForHiLoPaper/data/rawData2416/n2416_jhuRDTracts.csv', quote=F, row.names=F)
+write.csv(trData, '/home/adrose/dataPrepForHiLoPaper/data/rawData2416/n2416_jhuTRTracts.csv', quote=F, row.names=F)
+
+# Now onto DTI GM values
+adLabels <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/n2416DataPreRaw/n2416_jlfADValues_20180314.csv')
+rdLabels <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/n2416DataPreRaw/n2416_jlfRDValues_20180314.csv')
+trLabels <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/n2416DataPreRaw/n2416_jlfTRValues_20180314.csv')
+faLabels <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/n2416DataPreRaw/n2416_jlfFAValues_20180314.csv')
+adLabelWM <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/n2416DataPreRaw/n2416_jlfWmLobesADValues_20180314.csv')
+rdLabelWM <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/n2416DataPreRaw/n2416_jlfWmLobesRDValues_20180314.csv')
+trLabelWM <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/n2416DataPreRaw/n2416_jlfWmLobesTRValues_20180314.csv')
+faLabelWM <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/n2416DataPreRaw/n2416_jlfWmLobesFAValues_20180314.csv')
+
+# Merge WM values to the GM values
+adLabels <- merge(adLabels, adLabelWM, by=intersect(names(adLabels), names(adLabelWM)))
+rdLabels <- merge(rdLabels, rdLabelWM, by=intersect(names(rdLabels), names(rdLabelWM)))
+trLabels <- merge(trLabels, trLabelWM, by=intersect(names(trLabels), names(trLabelWM)))
+faLabels <- merge(faLabels, faLabelWM, by=intersect(names(faLabels), names(faLabelWM)))
+
+# Now merge with QA data
+# Now merge our data and QA values
+adData <- merge(adLabels, dtiQA, by=c('bblid', 'scanid'))
+faData <- merge(faLabels, dtiQA, by=c('bblid', 'scanid'))
+rdData <- merge(rdLabels, dtiQA, by=c('bblid', 'scanid'))
+trData <- merge(trLabels, dtiQA, by=c('bblid', 'scanid'))
+
+#sdfkluhasfgliuhafrliuhasf csv
+write.csv(adData, '/home/adrose/dataPrepForHiLoPaper/data/rawData2416/n2416_jlfAD.csv', quote=F, row.names=F)
+write.csv(faData, '/home/adrose/dataPrepForHiLoPaper/data/rawData2416/n2416_jlfFA.csv', quote=F, row.names=F)
+write.csv(rdData, '/home/adrose/dataPrepForHiLoPaper/data/rawData2416/n2416_jlfRD.csv', quote=F, row.names=F)
+write.csv(trData, '/home/adrose/dataPrepForHiLoPaper/data/rawData2416/n2416_jlfTR.csv', quote=F, row.names=F)
