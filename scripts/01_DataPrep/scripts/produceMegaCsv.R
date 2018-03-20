@@ -139,7 +139,7 @@ colnames(allOut)[85:96] <- gsub(gsub(templatVals, pattern="%MODALITY%", replacem
 # Now attach it to all of the imaging data
 allData <- cbind(allData, allOut)
 allOut <- cbind(allData$bblid, allData$scanid, allOut)
-write.csv(allOut, "~/tmpVals.csv", quote=F, row.names=F, na="")
+#write.csv(allOut, "~/tmpVals.csv", quote=F, row.names=F, na="")
 
 # Now attach the cognitive data
 modal.scores <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/cogData2017/20170308/CNB_Factor_Scores_GO1-GO2-GO3.csv',header=TRUE)
@@ -217,13 +217,12 @@ cbfVals <- cbfVals[,-grep('_Cerebral_White_Matter', names(cbfVals))]
 cbfWMVals <- cbfVals[,c(1,2,116:127)]
 rehoVals <- allData[,c(1,2,grep('rest_jlf_reho_', names(allData)))]
 alffVals <- allData[,c(1,2,grep('rest_jlf_alff_', names(allData)))]
-trVals <- allData[,c(1,2,grep('dti_jlf_tr_', names(allData)))]
-trVals <- trVals[,-grep('_MeanTR', names(trVals))]
+trVals <- allData[,c(1,2,grep('dti64_jlf_tr_', names(allData)))]
 trWMVals <- trVals[,c(1,2,7,121:132)]
-faVals <- allData[,c(1,2,grep('dti_jlf_fa_', names(allData)))]
+faVals <- allData[,c(1,2,grep('dti64_jlf_fa_', names(allData)))]
 faWMVals <- faVals[,c(1,2,7,120:131)]
 dataValue <- c('ctVals', 'cbfVals', 'rehoVals', 'alffVals', 'trVals', 'cbfWMVals', 'trWMVals','faWMVals')
-nameRep <- c('mprage_jlf_ct_','pcasl_jlf_cbf_','rest_jlf_reho_','rest_jlf_alff_','dti_jlf_tr_','pcasl_jlf_cbf_','dti_jlf_tr_','dti_jlf_fa_')
+nameRep <- c('mprage_jlf_ct_','pcasl_jlf_cbf_','rest_jlf_reho_','rest_jlf_alff_','dti64_jlf_tr_','pcasl_jlf_cbf_','dti64_jlf_tr_','dti64_jlf_fa_')
 output <- NULL
 for(q in 1:length(dataValue)){
   tmpDat <- get(dataValue[q])
@@ -233,7 +232,7 @@ for(q in 1:length(dataValue)){
   print(dim(tmpVol))
   print(dim(tmpDat))
   tmpOutVals <- NULL
-  for(z in 1:1601){
+  for(z in 1:2416){
     weightedVal <- weighted.mean(tmpDat[z,-c(1,2)],tmpVol[z,-c(1,2)], na.rm=T)
     tmpOutVals <- append(tmpOutVals, weightedVal)
   }
@@ -252,8 +251,8 @@ WMValsOut <- volData[,c(1,2,9,14,15,130:141)]
 WMValsOut <- apply(WMValsOut[,-c(1,2)], 1, sum)
 
 # Now I need to do the same with just the GM regions
-output <- cbind(output, allData$pcaslMeanGMValue,allData$dti_jlf_tr_MeanTR, TBVValsOut, GMValsOut, WMValsOut)
-colnames(output) <- c('mprage_jlf_ct_MeanCT', 'pcasl_jlf_cbf_MeanWholeBrainCBF', 'rest_jlf_reho_MeanReho', 'rest_jlf_alff_MeanALFF', 'dti_jlf_tr_MeanWholeBrainTR', 'pcasl_jlf_cbf_MeanGMCBF', 'dti_jlf_tr_MeanGMTR','pcasl_jlf_cbf_MeanWMCBF','dti_jlf_tr_MeanWMTR','dti_jlf_fa_MeanWMFA','mprage_jlf_vol_TBV', 'mprage_jlf_vol_TBGM', 'mprage_jlf_vol_TBWM')
+output <- cbind(output, allData$pcaslMeanGMValue,TBVValsOut, GMValsOut, WMValsOut)
+colnames(output) <- c('mprage_jlf_ct_MeanCT', 'pcasl_jlf_cbf_MeanWholeBrainCBF', 'rest_jlf_reho_MeanReho', 'rest_jlf_alff_MeanALFF','pcasl_jlf_cbf_MeanGMCBF', 'dti64_jlf_tr_MeanGMTR','pcasl_jlf_cbf_MeanWMCBF','dti64_jlf_tr_MeanWMTR','dti64_jlf_fa_MeanWMFA','mprage_jlf_vol_TBV', 'mprage_jlf_vol_TBGM', 'mprage_jlf_vol_TBWM')
 allData <- cbind(allData, output)
 
 # Now produce lobar values
@@ -305,7 +304,7 @@ templatVals <- c("%MODALITY%_jlfLobe_%MEASURE%_R_Limbic_Lobe",
 "%MODALITY%_jlfLobe_%MEASURE%_L_Occipital_Lobe",
 "%MODALITY%_jlfLobe_%MEASURE%_R_Temporal_Lobe",
 "%MODALITY%_jlfLobe_%MEASURE%_L_Temporal_Lobe")
-modVal <- c("mprage", "mprage", "mprage", "mprage", "pcasl", "dti", "rest", "rest")
+modVal <- c("mprage", "mprage", "mprage", "mprage", "pcasl", "dti64", "rest", "rest")
 measureVal <- c("vol", "ct", "gmd", "cortcon", "cbf", "tr", "alff", "reho")
 colnames(allOut)[1:12] <- gsub(gsub(templatVals, pattern="%MODALITY%", replacement=modVal[1]), pattern="%MEASURE%", replacement=measureVal[1])
 colnames(allOut)[13:24] <- gsub(gsub(templatVals, pattern="%MODALITY%", replacement=modVal[2]), pattern="%MEASURE%", replacement=measureVal[2])
