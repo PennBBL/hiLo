@@ -34,12 +34,16 @@ volData <- allData[,c(1,2,grep('mprage_jlf_vol_', names(allData)))]
 ctVals <- allData[,c(1,2,grep('mprage_jlf_ct_', names(allData)))]
 cbfVals <- allData[,c(1,2,grep('pcasl_jlf_cbf', names(allData)))]
 cbfVals <- cbfVals[,-grep('_Cerebral_White_Matter', names(cbfVals))]
+cbfWMVals <- cbfVals[,c(1,2,116:127)]
 rehoVals <- allData[,c(1,2,grep('rest_jlf_reho_', names(allData)))]
 alffVals <- allData[,c(1,2,grep('rest_jlf_alff_', names(allData)))]
 trVals <- allData[,c(1,2,grep('dti_jlf_tr_', names(allData)))]
 trVals <- trVals[,-grep('_MeanTR', names(trVals))]
-dataValue <- c('ctVals', 'cbfVals', 'rehoVals', 'alffVals', 'trVals')
-nameRep <- c('mprage_jlf_ct_', 'pcasl_jlf_cbf_', 'rest_jlf_reho_', 'rest_jlf_alff_', 'dti_jlf_tr_')
+trWMVals <- trVals[,c(1,2,7,121:132)]
+faVals <- allData[,c(1,2,grep('dti_jlf_fa_', names(allData)))]
+faWMVals <- faVals[,c(1,2,7,120:131)]
+dataValue <- c('ctVals', 'cbfVals', 'rehoVals', 'alffVals', 'trVals', 'cbfWMVals', 'trWMVals','faWMVals')
+nameRep <- c('mprage_jlf_ct_','pcasl_jlf_cbf_','rest_jlf_reho_','rest_jlf_alff_','dti_jlf_tr_','pcasl_jlf_cbf_','dti_jlf_tr_','dti_jlf_fa_')
 output <- NULL
 for(q in 1:length(dataValue)){
   tmpDat <- get(dataValue[q])
@@ -56,9 +60,20 @@ for(q in 1:length(dataValue)){
   output <- cbind(output, tmpOutVals)
 }
 
+## Now produce a TBV value
+## This will include all of the parenchyma
+## we will also produce a total GM and WM values here. 
+## I am going to call the brain stem a WM ROI
+TBVValsOut <- volData[,c(1,2,5:15, 17,18,23:141)]
+TBVValsOut <- apply(TBVValsOut[,-c(1,2)], 1, sum)
+GMValsOut <- volData[,c(1,2,5,6,10,11,12,13,17,18,23:129)]
+GMValsOut <- apply(GMValsOut[,-c(1,2)], 1, sum)
+WMValsOut <- volData[,c(1,2,9,14,15,130:141)]
+WMValsOut <- apply(WMValsOut[,-c(1,2)], 1, sum)
+
 # Now I need to do the same with just the GM regions
-output <- cbind(output, allData$pcaslMeanGMValue,allData$dti_jlf_tr_MeanTR)
-colnames(output) <- c('mprage_jlf_ct_MeanCT', 'pcasl_jlf_cbf_MeanWholeBrainCBF', 'rest_jlf_reho_MeanReho', 'rest_jlf_alff_MeanALFF', 'dti_jlf_tr_MeanWholeBrainTR', 'pcasl_jlf_cbf_MeanGMCBF', 'dti_jlf_tr_MeanGMTR')
+output <- cbind(output, allData$pcaslMeanGMValue,allData$dti_jlf_tr_MeanTR, TBVValsOut, GMValsOut, WMValsOut)
+colnames(output) <- c('mprage_jlf_ct_MeanCT', 'pcasl_jlf_cbf_MeanWholeBrainCBF', 'rest_jlf_reho_MeanReho', 'rest_jlf_alff_MeanALFF', 'dti_jlf_tr_MeanWholeBrainTR', 'pcasl_jlf_cbf_MeanGMCBF', 'dti_jlf_tr_MeanGMTR','pcasl_jlf_cbf_MeanWMCBF','dti_jlf_tr_MeanWMTR','dti_jlf_fa_MeanWMFA','mprage_jlf_vol_TBV', 'mprage_jlf_vol_TBGM', 'mprage_jlf_vol_TBWM')
 allData <- cbind(allData, output)
 
 # Now produce lobar values
@@ -148,6 +163,7 @@ volume.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/rawData/n1601_an
 scan.Value <- data.values$ageAtGo1Scan
 cnb.values <- data.values$ageAtGo1Cnb
 diff.values <- scan.Value - cnb.values
+diff.values <-  rep(0, length(diff.values))
 acceptable.subjs <- which(diff.values <=12)
 bblid.index <- data.values$bblid[acceptable.subjs]
 scanid.index <- data.values$scanid[acceptable.subjs]
@@ -198,13 +214,16 @@ volData <- allData[,c(1,2,grep('mprage_jlf_vol_', names(allData)))]
 ctVals <- allData[,c(1,2,grep('mprage_jlf_ct_', names(allData)))]
 cbfVals <- allData[,c(1,2,grep('pcasl_jlf_cbf', names(allData)))]
 cbfVals <- cbfVals[,-grep('_Cerebral_White_Matter', names(cbfVals))]
+cbfWMVals <- cbfVals[,c(1,2,116:127)]
 rehoVals <- allData[,c(1,2,grep('rest_jlf_reho_', names(allData)))]
 alffVals <- allData[,c(1,2,grep('rest_jlf_alff_', names(allData)))]
-trVals <- allData[,c(1,2,grep('dti64_jlf_tr_', names(allData)))]
-trVals2 <- allData[,c(1,2,grep('dti64_jlf_tr_', names(allData)))]
-trVals2 <- trVals2[,1:120]
-dataValue <- c('ctVals', 'cbfVals', 'rehoVals', 'alffVals', 'trVals', 'trVals2')
-nameRep <- c('mprage_jlf_ct_', 'pcasl_jlf_cbf_', 'rest_jlf_reho_', 'rest_jlf_alff_', 'dti64_jlf_tr_', 'dti64_jlf_tr_')
+trVals <- allData[,c(1,2,grep('dti_jlf_tr_', names(allData)))]
+trVals <- trVals[,-grep('_MeanTR', names(trVals))]
+trWMVals <- trVals[,c(1,2,7,121:132)]
+faVals <- allData[,c(1,2,grep('dti_jlf_fa_', names(allData)))]
+faWMVals <- faVals[,c(1,2,7,120:131)]
+dataValue <- c('ctVals', 'cbfVals', 'rehoVals', 'alffVals', 'trVals', 'cbfWMVals', 'trWMVals','faWMVals')
+nameRep <- c('mprage_jlf_ct_','pcasl_jlf_cbf_','rest_jlf_reho_','rest_jlf_alff_','dti_jlf_tr_','pcasl_jlf_cbf_','dti_jlf_tr_','dti_jlf_fa_')
 output <- NULL
 for(q in 1:length(dataValue)){
   tmpDat <- get(dataValue[q])
@@ -214,16 +233,27 @@ for(q in 1:length(dataValue)){
   print(dim(tmpVol))
   print(dim(tmpDat))
   tmpOutVals <- NULL
-  for(z in 1:2416){
+  for(z in 1:1601){
     weightedVal <- weighted.mean(tmpDat[z,-c(1,2)],tmpVol[z,-c(1,2)], na.rm=T)
     tmpOutVals <- append(tmpOutVals, weightedVal)
   }
   output <- cbind(output, tmpOutVals)
 }
 
+## Now produce a TBV value
+## This will include all of the parenchyma
+## we will also produce a total GM and WM values here. 
+## I am going to call the brain stem a WM ROI
+TBVValsOut <- volData[,c(1,2,5:15, 17,18,23:141)]
+TBVValsOut <- apply(TBVValsOut[,-c(1,2)], 1, sum)
+GMValsOut <- volData[,c(1,2,5,6,10,11,12,13,17,18,23:129)]
+GMValsOut <- apply(GMValsOut[,-c(1,2)], 1, sum)
+WMValsOut <- volData[,c(1,2,9,14,15,130:141)]
+WMValsOut <- apply(WMValsOut[,-c(1,2)], 1, sum)
+
 # Now I need to do the same with just the GM regions
-output <- cbind(output, allData$pcaslMeanGMValue)
-colnames(output) <- c('mprage_jlf_ct_MeanCT', 'pcasl_jlf_cbf_MeanWholeBrainCBF', 'rest_jlf_reho_MeanReho', 'rest_jlf_alff_MeanALFF', 'dti_jlf_tr_MeanWholeBrainTR','dti_jlf_tr_MeanGMTR','pcasl_jlf_cbf_MeanGMCBF')
+output <- cbind(output, allData$pcaslMeanGMValue,allData$dti_jlf_tr_MeanTR, TBVValsOut, GMValsOut, WMValsOut)
+colnames(output) <- c('mprage_jlf_ct_MeanCT', 'pcasl_jlf_cbf_MeanWholeBrainCBF', 'rest_jlf_reho_MeanReho', 'rest_jlf_alff_MeanALFF', 'dti_jlf_tr_MeanWholeBrainTR', 'pcasl_jlf_cbf_MeanGMCBF', 'dti_jlf_tr_MeanGMTR','pcasl_jlf_cbf_MeanWMCBF','dti_jlf_tr_MeanWMTR','dti_jlf_fa_MeanWMFA','mprage_jlf_vol_TBV', 'mprage_jlf_vol_TBGM', 'mprage_jlf_vol_TBWM')
 allData <- cbind(allData, output)
 
 # Now produce lobar values
