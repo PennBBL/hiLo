@@ -1,5 +1,5 @@
 ## Library(s)
-install_load('ggplot2', 'utils')
+install_load('plyr', 'ggplot2', 'reshape2', 'grid', 'gridExtra', 'labeling', 'data.table', 'utils')
 source("~/hiLo/scripts/11_Longitudinal/functions/functions.R")
 
 ## Now extend digit value in options
@@ -14,7 +14,7 @@ gmd.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLR2416/gmdData.
 ct.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLR2416/ctData.csv')
 reho.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLR2416/rehoData.csv')
 alff.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLR2416/alffData.csv')
-all.data <- read.csv('/home/adrose/forRuben/data/n2416_imagingDataDump_2018-03-14.csv')
+all.data <- read.csv('/home/adrose/forRuben/data/n2416_imagingDataDump_2018-03-20.csv')
 all.data$DOSCAN <- as.character(all.data$DOSCAN)
 all.data$DOSCAN <- as.Date(all.data$DOSCAN, "%m/%d/%y")
 n1601.vals <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/n1601_demographics_go1_20161212.csv')
@@ -49,7 +49,7 @@ all.data <- merge(all.data, ageBinVals, all=T)
 
 ## Now produce the age regressed by z scoring values
 ## This should be done within gender
-summaryMetrics <- c('mprage_jlf_vol_ICV', 'mprage_jlf_ct_MeanCT', 'mprage_jlf_gmd_MeanGMD', 'pcasl_jlf_cbf_MeanGMCBF', 'rest_jlf_reho_MeanReho', 'rest_jlf_alff_MeanALFF')
+summaryMetrics <- c('mprage_jlf_vol_TBV', 'mprage_jlf_ct_MeanCT', 'mprage_jlf_gmd_MeanGMD', 'pcasl_jlf_cbf_MeanGMCBF', 'rest_jlf_reho_MeanReho', 'rest_jlf_alff_MeanALFF')
 all.data.male <- all.data[which(all.data$sex==1),]
 percent.diff.male.out <- all.data.male
 for(s in summaryMetrics){
@@ -178,6 +178,30 @@ for(i in summaryMetrics){
     geom_smooth(method='gam',aes(group=pncGrpPsychosisCl, col=pncGrpPsychosisCl)) +
     ylab(i) +
     theme_bw()
+  print(pasta.plot.one)
+}
+dev.off()
+
+## Now graph these values w/o and age regrssion, just mean trends across time 
+## with the x axis being age in years, and the y axis being our imaging metrics
+## Lets first reload our data
+all.data <- read.csv('/home/adrose/forRuben/data/n2416_imagingDataDump_2018-03-20.csv')
+all.data$DOSCAN <- as.character(all.data$DOSCAN)
+all.data$DOSCAN <- as.Date(all.data$DOSCAN, "%m/%d/%y")
+
+## Now lets make our plots
+summaryMetrics <- c('mprage_jlf_vol_TBV', 'mprage_jlf_ct_MeanCT', 'mprage_jlf_gmd_MeanGMD', 'pcasl_jlf_cbf_MeanGMCBF', 'rest_jlf_reho_MeanReho', 'rest_jlf_alff_MeanALFF')
+pdf('ageXAxis.pdf', height=20, width=30)
+for(i in summaryMetrics){
+  colVal <- grep(i, names(all.data))
+  toPlot <- all.data[complete.cases(all.data[,colVal]),]
+  pasta.plot.one <- ggplot(toPlot, aes(x=scanageMonths/12, y=toPlot[,colVal])) + 
+    geom_point() + 
+    geom_line(aes(group=bblid, col=pncGrpPsychosisCl, alpha=.1)) +
+    geom_smooth() +
+    ylab(i) +
+    theme_bw() + 
+    facet_grid(.~sex)
   print(pasta.plot.one)
 }
 dev.off()
