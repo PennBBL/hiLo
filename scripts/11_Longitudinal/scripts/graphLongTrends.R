@@ -193,62 +193,98 @@ all.data$goassessDxpmr7 <- factor(all.data$goassessDxpmr7)
 all.data$pncGrpPsychosisCl <- factor(all.data$pncGrpPsychosisCl)
 all.data$Gender <- n1601.vals$sex[match(all.data$bblid, n1601.vals$bblid)]
 ## Now lets make our plots
-summaryMetrics <- c('mprage_jlf_vol_TBV', 'mprage_jlf_vol_TBGM', 'mprage_jlf_vol_TBWM', 'mprage_jlf_ct_MeanCT', 'mprage_jlf_gmd_MeanGMD', 'pcasl_jlf_cbf_MeanGMCBF', 'rest_jlf_reho_MeanReho', 'rest_jlf_alff_MeanALFF')
-pdf('ageXAxisWithpncGrpPsychosisCl.pdf', height=30, width=20)
+summaryMetrics <- c('mprage_jlf_vol_TBV', 'mprage_jlf_vol_TBGM', 'mprage_jlf_vol_TBWM', 'mprage_jlf_ct_MeanCT', 'mprage_jlf_gmd_MeanGMD', 'pcasl_jlf_cbf_MeanWholeBrainCBF', 'rest_jlf_reho_MeanReho', 'rest_jlf_alff_MeanALFF')
+pdf('ageXAxisWithpncGrpPsychosisCl.pdf', height=23, width=20)
 options(digits=7)
+minVal <- c(800000, 500000, 300000, 2.5, .7,25, .05, 200)
+maxVal <- c(1610000,1000000,700000,4.5,.95,110,.3,1000)
+index <- 1
 for(i in summaryMetrics){
   colVal <- grep(i, names(all.data))
   toPlot <- all.data[complete.cases(all.data[,colVal]),]
   toPlot <- toPlot[-which(toPlot$pncGrpPsychosisCl==""),]
   toPlot$pncGrpPsychosisCl <- factor(toPlot$pncGrpPsychosisCl)
-  pasta.plot.one <- ggplot(toPlot, aes(x=scanageMonths/12, y=toPlot[,colVal])) + 
-    geom_point(aes(fill=factor(goassessDxpmr7))) +
-    facet_grid(Gender~., shrink=F, margins=F) +
+  pasta.plot.one <- ggplot(toPlot[which(toPlot$sex==1),], aes(x=scanageMonths/12, y=toPlot[which(toPlot$sex==1),colVal])) +
+    geom_point(aes(shape=factor(goassessDxpmr7), size=4)) +
     geom_line(aes(group=bblid, col=pncGrpPsychosisCl, alpha=.1)) +
     geom_smooth(method='gam',formula = y ~ s(x, k=4),aes(group=pncGrpPsychosisCl, col=pncGrpPsychosisCl)) +
     ylab(i) +
-    theme_bw() 
-  print(pasta.plot.one)
+    theme_bw() +
+    theme(legend.position="bottom") +
+    ggtitle("Male") +
+    coord_cartesian(ylim=c(minVal[index], maxVal[index]))
+pasta.plot.two <- ggplot(toPlot[which(toPlot$sex==2),], aes(x=scanageMonths/12, y=toPlot[which(toPlot$sex==2),colVal])) +
+    geom_point(aes(shape=factor(goassessDxpmr7), size=4)) +
+    geom_line(aes(group=bblid, col=pncGrpPsychosisCl, alpha=.1)) +
+    geom_smooth(method='gam',formula = y ~ s(x, k=4),aes(group=pncGrpPsychosisCl, col=pncGrpPsychosisCl)) +
+    ylab(i) +
+    theme_bw() +
+    ggtitle("Female") +
+    theme(legend.position="bottom") +
+    coord_cartesian(ylim=c(minVal[index], maxVal[index]))
+  multiplot(pasta.plot.one,pasta.plot.two, cols=2)
+  index <- index + 1
 }
 dev.off()
 
-pdf('ageXAxisWithgoassess.pdf', height=20, width=30)
-options(digits=7)
+# Now do plots with timepoint specific labels
+pdf('ageXAxisWithgoassess.pdf', height=23, width=20)
+index <- 1
 for(i in summaryMetrics){
-  colVal <- grep(i, names(all.data))
-  toPlot <- all.data[complete.cases(all.data[,colVal]),]
-  toPlot <- toPlot[-which(toPlot$pncGrpPsychosisCl==""),]
-  toPlot$pncGrpPsychosisCl <- factor(toPlot$pncGrpPsychosisCl)
-  pasta.plot.one <- ggplot(toPlot, aes(x=scanageMonths/12, y=toPlot[,colVal])) + 
-    geom_point(aes(fill=factor(goassessDxpmr7))) +
-    #scale_fill_discrete(values=c("white", "black","white")) +
-    geom_line(aes(group=bblid, col=goassessDxpmr7, alpha=.1)) +
+    colVal <- grep(i, names(all.data))
+    toPlot <- all.data[complete.cases(all.data[,colVal]),]
+    toPlot <- toPlot[-which(toPlot$pncGrpPsychosisCl==""),]
+    toPlot$pncGrpPsychosisCl <- factor(toPlot$pncGrpPsychosisCl)
+    pasta.plot.one <- ggplot(toPlot[which(toPlot$sex==1),], aes(x=scanageMonths/12, y=toPlot[which(toPlot$sex==1),colVal])) +
+    geom_point(aes(shape=factor(goassessDxpmr7), size=4)) +
+    geom_line(aes(group=bblid, alpha=.1)) +
     geom_smooth(method='gam',formula = y ~ s(x, k=4),aes(group=goassessDxpmr7, col=goassessDxpmr7)) +
     ylab(i) +
-    theme_bw() + 
-    facet_grid(.~sex)
-  print(pasta.plot.one)
+    theme_bw() +
+    ggtitle("Male") +
+    theme(legend.position="bottom") +
+    coord_cartesian(ylim=c(minVal[index], maxVal[index]))
+    pasta.plot.two <- ggplot(toPlot[which(toPlot$sex==2),], aes(x=scanageMonths/12, y=toPlot[which(toPlot$sex==2),colVal])) +
+    geom_point(aes(shape=factor(goassessDxpmr7), size=4)) +
+    geom_line(aes(group=bblid, alpha=.1)) +
+    geom_smooth(method='gam',formula = y ~ s(x, k=4),aes(group=goassessDxpmr7, col=goassessDxpmr7)) +
+    ylab(i) +
+    theme_bw() +
+    theme(legend.position="bottom") +
+    ggtitle("Female") +
+    coord_cartesian(ylim=c(minVal[index], maxVal[index]))
+    multiplot(pasta.plot.one,pasta.plot.two, cols=2)
+    index <- index + 1
 }
 dev.off()
 
-
-## Now lets make our plots
-summaryMetrics <- c('mprage_jlf_vol_TBV', 'mprage_jlf_vol_TBGM', 'mprage_jlf_vol_TBWM', 'mprage_jlf_ct_MeanCT', 'mprage_jlf_gmd_MeanGMD', 'pcasl_jlf_cbf_MeanGMCBF', 'rest_jlf_reho_MeanReho', 'rest_jlf_alff_MeanALFF')
-pdf('ageXAxis.pdf', height=30, width=20)
-options(digits=7)
+## Now lets make our plots w/o any labels
+pdf('ageXAxis.pdf', height=23, width=20)
+index <- 1
 for(i in summaryMetrics){
-  colVal <- grep(i, names(all.data))
-  toPlot <- all.data[complete.cases(all.data[,colVal]),]
-  toPlot <- toPlot[-which(toPlot$pncGrpPsychosisCl==""),]
-  toPlot$pncGrpPsychosisCl <- factor(toPlot$pncGrpPsychosisCl)
-  pasta.plot.one <- ggplot(toPlot, aes(x=scanageMonths/12, y=toPlot[,colVal])) + 
-    facet_grid(Gender~., shrink=F, margins=F, scales='free') +
-    geom_point(aes(fill=factor(goassessDxpmr7))) +
-    #scale_fill_discrete(values=c("white", "black","white")) +
+    colVal <- grep(i, names(all.data))
+    toPlot <- all.data[complete.cases(all.data[,colVal]),]
+    toPlot <- toPlot[-which(toPlot$pncGrpPsychosisCl==""),]
+    toPlot$pncGrpPsychosisCl <- factor(toPlot$pncGrpPsychosisCl)
+    pasta.plot.one <- ggplot(toPlot[which(toPlot$sex==1),], aes(x=scanageMonths/12, y=toPlot[which(toPlot$sex==1),colVal])) +
+    geom_point(aes(shape=factor(goassessDxpmr7), size=4)) +
     geom_line(aes(group=bblid, col=pncGrpPsychosisCl, alpha=.1)) +
     geom_smooth(method='gam',formula = y ~ s(x, k=4)) +
     ylab(i) +
-    theme_bw() 
-  print(pasta.plot.one)
+    theme_bw() +
+    ggtitle("Male") +
+    theme(legend.position="bottom") +
+    coord_cartesian(ylim=c(minVal[index], maxVal[index]))
+    pasta.plot.two <- ggplot(toPlot[which(toPlot$sex==2),], aes(x=scanageMonths/12, y=toPlot[which(toPlot$sex==2),colVal])) +
+    geom_point(aes(shape=factor(goassessDxpmr7), size=4)) +
+    geom_line(aes(group=bblid, col=pncGrpPsychosisCl, alpha=.1)) +
+    geom_smooth(method='gam',formula = y ~ s(x, k=4)) +
+    ylab(i) +
+    theme_bw() +
+    theme(legend.position="bottom") +
+    ggtitle("Female") +
+    coord_cartesian(ylim=c(minVal[index], maxVal[index]))
+    multiplot(pasta.plot.one,pasta.plot.two, cols=2)
+    index <- index + 1
 }
 dev.off()
