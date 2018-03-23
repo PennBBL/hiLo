@@ -186,22 +186,69 @@ dev.off()
 ## with the x axis being age in years, and the y axis being our imaging metrics
 ## Lets first reload our data
 all.data <- read.csv('/home/adrose/forRuben/data/n2416_imagingDataDump_2018-03-20.csv')
+n1601.vals <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/n1601_demographics_go1_20161212.csv')
 all.data$DOSCAN <- as.character(all.data$DOSCAN)
 all.data$DOSCAN <- as.Date(all.data$DOSCAN, "%m/%d/%y")
-
+all.data$goassessDxpmr7 <- factor(all.data$goassessDxpmr7)
+all.data$pncGrpPsychosisCl <- factor(all.data$pncGrpPsychosisCl)
+all.data$Gender <- n1601.vals$sex[match(all.data$bblid, n1601.vals$bblid)]
 ## Now lets make our plots
-summaryMetrics <- c('mprage_jlf_vol_TBV', 'mprage_jlf_ct_MeanCT', 'mprage_jlf_gmd_MeanGMD', 'pcasl_jlf_cbf_MeanGMCBF', 'rest_jlf_reho_MeanReho', 'rest_jlf_alff_MeanALFF')
-pdf('ageXAxis.pdf', height=20, width=30)
+summaryMetrics <- c('mprage_jlf_vol_TBV', 'mprage_jlf_vol_TBGM', 'mprage_jlf_vol_TBWM', 'mprage_jlf_ct_MeanCT', 'mprage_jlf_gmd_MeanGMD', 'pcasl_jlf_cbf_MeanGMCBF', 'rest_jlf_reho_MeanReho', 'rest_jlf_alff_MeanALFF')
+pdf('ageXAxisWithpncGrpPsychosisCl.pdf', height=30, width=20)
+options(digits=7)
 for(i in summaryMetrics){
   colVal <- grep(i, names(all.data))
   toPlot <- all.data[complete.cases(all.data[,colVal]),]
+  toPlot <- toPlot[-which(toPlot$pncGrpPsychosisCl==""),]
+  toPlot$pncGrpPsychosisCl <- factor(toPlot$pncGrpPsychosisCl)
   pasta.plot.one <- ggplot(toPlot, aes(x=scanageMonths/12, y=toPlot[,colVal])) + 
-    geom_point() + 
+    geom_point(aes(fill=factor(goassessDxpmr7))) +
+    facet_grid(Gender~., shrink=F, margins=F) +
     geom_line(aes(group=bblid, col=pncGrpPsychosisCl, alpha=.1)) +
-    geom_smooth() +
+    geom_smooth(method='gam',formula = y ~ s(x, k=4),aes(group=pncGrpPsychosisCl, col=pncGrpPsychosisCl)) +
+    ylab(i) +
+    theme_bw() 
+  print(pasta.plot.one)
+}
+dev.off()
+
+pdf('ageXAxisWithgoassess.pdf', height=20, width=30)
+options(digits=7)
+for(i in summaryMetrics){
+  colVal <- grep(i, names(all.data))
+  toPlot <- all.data[complete.cases(all.data[,colVal]),]
+  toPlot <- toPlot[-which(toPlot$pncGrpPsychosisCl==""),]
+  toPlot$pncGrpPsychosisCl <- factor(toPlot$pncGrpPsychosisCl)
+  pasta.plot.one <- ggplot(toPlot, aes(x=scanageMonths/12, y=toPlot[,colVal])) + 
+    geom_point(aes(fill=factor(goassessDxpmr7))) +
+    #scale_fill_discrete(values=c("white", "black","white")) +
+    geom_line(aes(group=bblid, col=goassessDxpmr7, alpha=.1)) +
+    geom_smooth(method='gam',formula = y ~ s(x, k=4),aes(group=goassessDxpmr7, col=goassessDxpmr7)) +
     ylab(i) +
     theme_bw() + 
     facet_grid(.~sex)
+  print(pasta.plot.one)
+}
+dev.off()
+
+
+## Now lets make our plots
+summaryMetrics <- c('mprage_jlf_vol_TBV', 'mprage_jlf_vol_TBGM', 'mprage_jlf_vol_TBWM', 'mprage_jlf_ct_MeanCT', 'mprage_jlf_gmd_MeanGMD', 'pcasl_jlf_cbf_MeanGMCBF', 'rest_jlf_reho_MeanReho', 'rest_jlf_alff_MeanALFF')
+pdf('ageXAxis.pdf', height=30, width=20)
+options(digits=7)
+for(i in summaryMetrics){
+  colVal <- grep(i, names(all.data))
+  toPlot <- all.data[complete.cases(all.data[,colVal]),]
+  toPlot <- toPlot[-which(toPlot$pncGrpPsychosisCl==""),]
+  toPlot$pncGrpPsychosisCl <- factor(toPlot$pncGrpPsychosisCl)
+  pasta.plot.one <- ggplot(toPlot, aes(x=scanageMonths/12, y=toPlot[,colVal])) + 
+    facet_grid(Gender~., shrink=F, margins=F, scales='free') +
+    geom_point(aes(fill=factor(goassessDxpmr7))) +
+    #scale_fill_discrete(values=c("white", "black","white")) +
+    geom_line(aes(group=bblid, col=pncGrpPsychosisCl, alpha=.1)) +
+    geom_smooth(method='gam',formula = y ~ s(x, k=4)) +
+    ylab(i) +
+    theme_bw() 
   print(pasta.plot.one)
 }
 dev.off()
