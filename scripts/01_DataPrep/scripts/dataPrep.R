@@ -69,6 +69,7 @@ outputAgeReg <- "/home/adrose/dataPrepForHiLoPaper/data/ageReg/"
 outputMeanLRAgeReg <- "/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeReg/"
 outputMeanLRAgeRegModReg <- "/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeRegModalReg/"
 outputAgeRegModReg <- "/home/adrose/dataPrepForHiLoPaper/data/ageRegModalReg/"
+outputNoReg <- "/home/adrose/dataPrepForHiLoPaper/data/noReg/"
 
 # Now I am going to create a for loop which will output all of the required CSV's 
 for(i in 1:length(dataVals)){
@@ -80,6 +81,7 @@ for(i in 1:length(dataVals)){
   outAgeNMMod <- paste(outputAgeRegModReg, outNames[i], sep='')
   outAge <- paste(outputMeanLRAgeReg, outNames[i], sep='')
   outMod <- paste(outputMeanLRAgeRegModReg, outNames[i], sep='')
+  outNR <- paste(outputNoReg, outNames[i], sep='')
 
   # Now apply our immediete restrictions
   if(i < 12){
@@ -94,6 +96,7 @@ for(i in 1:length(dataVals)){
   # Now attach our demographic data
   tmpData$sex <- data.values$sex[match(tmpData$bblid, data.values$bblid)]
   tmpData$ageAtGo1Scan <- data.values$ageAtGo1Scan[match(tmpData$bblid, data.values$bblid)]
+  write.csv(tmpData, outNR, quote=F, row.names=F)
 
   # produce our avgLR
   if(i < 12){
