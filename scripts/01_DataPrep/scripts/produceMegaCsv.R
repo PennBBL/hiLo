@@ -45,6 +45,7 @@ faWMVals <- faVals[,c(1,2,7,120:131)]
 dataValue <- c('ctVals', 'cbfVals', 'rehoVals', 'alffVals', 'trVals', 'cbfWMVals', 'trWMVals','faWMVals')
 nameRep <- c('mprage_jlf_ct_','pcasl_jlf_cbf_','rest_jlf_reho_','rest_jlf_alff_','dti_jlf_tr_','pcasl_jlf_cbf_','dti_jlf_tr_','dti_jlf_fa_')
 output <- NULL
+outputNames <- c('mprage_jlf_ct_MeanCT', 'pcasl_jlf_cbf_MeanWholeBrainCBF', 'rest_jlf_reho_MeanReho', 'rest_jlf_alff_MeanALFF', 'dti_jlf_tr_MeanWholeBrainTR', 'pcasl_jlf_cbf_MeanWMCBF', 'dti_jlf_tr_MeanWMTR', 'dti_jlf_fa_MeanWMFA')
 for(q in 1:length(dataValue)){
   tmpDat <- get(dataValue[q])
   volNames <- gsub(names(volData), pattern='mprage_jlf_vol_', replacement='')
@@ -58,6 +59,7 @@ for(q in 1:length(dataValue)){
     tmpOutVals <- append(tmpOutVals, weightedVal)
   }
   output <- cbind(output, tmpOutVals)
+  colnames(output)[q] <- outputNames[q]
 }
 
 ## Now produce a TBV value
@@ -73,7 +75,7 @@ WMValsOut <- apply(WMValsOut[,-c(1,2)], 1, sum)
 
 # Now I need to do the same with just the GM regions
 output <- cbind(output, allData$pcaslMeanGMValue,allData$dti_jlf_tr_MeanTR, TBVValsOut, GMValsOut, WMValsOut)
-colnames(output) <- c('mprage_jlf_ct_MeanCT', 'pcasl_jlf_cbf_MeanWholeBrainCBF', 'rest_jlf_reho_MeanReho', 'rest_jlf_alff_MeanALFF', 'dti_jlf_tr_MeanWholeBrainTR', 'pcasl_jlf_cbf_MeanGMCBF', 'dti_jlf_tr_MeanGMTR','pcasl_jlf_cbf_MeanWMCBF','dti_jlf_tr_MeanWMTR','dti_jlf_fa_MeanWMFA','mprage_jlf_vol_TBV', 'mprage_jlf_vol_TBGM', 'mprage_jlf_vol_TBWM')
+colnames(output)[9:13] <- c('pcasl_jlf_cbf_MeanGMCBF','dti_jlf_tr_MeanWholeBrainTR','mprage_jlf_vol_TBV', 'mprage_jlf_vol_TBGM', 'mprage_jlf_vol_TBWM')
 allData <- cbind(allData, output)
 
 # Now produce lobar values
@@ -224,6 +226,7 @@ faWMVals <- faVals[,c(1,2,7,120:131)]
 dataValue <- c('ctVals', 'cbfVals', 'rehoVals', 'alffVals', 'trVals', 'cbfWMVals', 'trWMVals','faWMVals')
 nameRep <- c('mprage_jlf_ct_','pcasl_jlf_cbf_','rest_jlf_reho_','rest_jlf_alff_','dti64_jlf_tr_','pcasl_jlf_cbf_','dti64_jlf_tr_','dti64_jlf_fa_')
 output <- NULL
+outputNames <- c('mprage_jlf_ct_MeanCT', 'pcasl_jlf_cbf_MeanWholeBrainCBF', 'rest_jlf_reho_MeanReho', 'rest_jlf_alff_MeanALFF', 'dti_jlf_tr_MeanWholeBrainTR', 'pcasl_jlf_cbf_MeanWMCBF', 'dti_jlf_tr_MeanWMTR', 'dti_jlf_fa_MeanWMFA')
 for(q in 1:length(dataValue)){
   tmpDat <- get(dataValue[q])
   volNames <- gsub(names(volData), pattern='mprage_jlf_vol_', replacement='')
@@ -237,6 +240,7 @@ for(q in 1:length(dataValue)){
     tmpOutVals <- append(tmpOutVals, weightedVal)
   }
   output <- cbind(output, tmpOutVals)
+  colnames(output)[q] <- outputNames[q]
 }
 
 ## Now produce a TBV value
@@ -252,7 +256,7 @@ WMValsOut <- apply(WMValsOut[,-c(1,2)], 1, sum)
 
 # Now I need to do the same with just the GM regions
 output <- cbind(output, allData$pcaslMeanGMValue,TBVValsOut, GMValsOut, WMValsOut)
-colnames(output) <- c('mprage_jlf_ct_MeanCT', 'pcasl_jlf_cbf_MeanWholeBrainCBF', 'rest_jlf_reho_MeanReho', 'rest_jlf_alff_MeanALFF','pcasl_jlf_cbf_MeanGMCBF', 'dti64_jlf_tr_MeanGMTR','pcasl_jlf_cbf_MeanWMCBF','dti64_jlf_tr_MeanWMTR','dti64_jlf_fa_MeanWMFA','mprage_jlf_vol_TBV', 'mprage_jlf_vol_TBGM', 'mprage_jlf_vol_TBWM')
+colnames(output)[9:12] <- c('pcasl_jlf_cbf_MeanGMCBF','mprage_jlf_vol_TBV', 'mprage_jlf_vol_TBGM', 'mprage_jlf_vol_TBWM')
 allData <- cbind(allData, output)
 
 # Now produce lobar values
