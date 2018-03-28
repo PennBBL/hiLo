@@ -44,30 +44,30 @@ tr.modal.data.age.reg$ageBin <- 'Age Regressed'
 data.names <- c('vol','cbf','gmd','tr')
 grepVals <- c('mprage_jlf_vol_', 'pcasl_jlf_cbf_', 'mprage_jlf_gmd_','dti_jlf_tr_')
 wmAdd <- c(0,0,0,0)
-cerebellumValues <- c('FALSE', 'FALSE', 'FALSE', 'FALSE')
+cerebellumValues <- c('TRUE', 'FALSE', 'TRUE', 'TRUE')
 ## Now prepare an output matrix
-data <- doEverythingEver(vol.modal.data.age.reg, 'mprage_jlf_vol_', 0, 999, 'Age Regressed', cerebellumIn=F, optionalRace=NULL)
+data <- doEverythingEver(vol.modal.data.age.reg, 'mprage_jlf_vol_', 0, 999, 'Age Regressed', cerebellumIn=T, optionalRace=NULL)
 output.data <- data[,c(1,6,8,9,11)]
 
 for(q in 2:4){
     print(data.names[q])
     dfName <- paste(data.names[q], ".modal.data.age.reg", sep='')
     data <- doEverythingEver(get(dfName), grepVals[q], 0, 999, 'Age Regressed', cerebellumIn=cerebellumValues[q], optionalRace=NULL)
-    output.data <- merge(output.data, data, by=c('ROI', 'Gender', 'lobe'), suffixes=c('', data.names[q]))
+    output.data <- merge(output.data, data, by=c('ROI', 'Gender', 'lobe'), suffixes=c('', data.names[q]), all=T)
 }
 
 # Now combine the values
 # Make sure the take the absolute for cbf and tr
-output.data$sumEffectSize <- output.data$zScoreDifference + abs(output.data$zScoreDifferencecbf) + output.data$zScoreDifferencegmd + abs(output.data$zScoreDifferencetr)
-output.data <- reshape(data=output.data, direction="wide", idvar="ROI", timevar='sex', v.names='sumEffectSize')
-output.data$lobe <- revalue(output.data$lobe, replace=c("Basal Ganglia"="Basalstriatal", "Limbic"="Limbic", "Frontal Orbital"="Frontal", "Frontal Dorsal"="Frontal", "Temporal"="Temporal", "Parietal"="Parietal", "Occipital"="Occipital"))
+output.data$sumEffectSize <- rowSums(cbind(output.data$zScoreDifference,abs(output.data$zScoreDifferencecbf),output.data$zScoreDifferencegmd,abs(output.data$zScoreDifferencetr)),na.rm=T)
+output.data <- reshape(data=output.data, direction="wide", idvar="ROI", timevar='Gender', v.names='sumEffectSize')
+output.data$lobe <- revalue(output.data$lobe, replace=c("Basal Ganglia"="Basalstriatal", "Limbic"="Limbic", "Frontal Orbital"="Frontal", "Frontal Dorsal"="Frontal", "Temporal"="Temporal", "Parietal"="Parietal", "Occipital"="Occipital","Cerebellum"="Cereellum"))
 # Now make a scatter plot with these values
-corVal <- paste("r = ", round(cor(output.data$sumEffectSize.M, output.data$sumEffectSize.F), digits=2))
-plotOut <-  ggplot(output.data, aes(x=sumEffectSize.M, y=sumEffectSize.F)) +
+corVal <- paste("r = ", round(cor(output.data$sumEffectSize.Male, output.data$sumEffectSize.Female), digits=2))
+plotOut <-  ggplot(output.data, aes(x=sumEffectSize.Male, y=sumEffectSize.Female)) +
     geom_point(aes(fill=lobe)) +
     geom_abline(intercept=0, slope=1) +
     geom_smooth(method=lm) +
-  geom_label_repel(aes(label=ROI,color=lobe,size=3.5),box.padding=unit(0.5,"lines"),point.padding=unit(0.25,"lines")) +
+  geom_label_repel(aes(label=ROI,color=lobe,size=3.5),box.padding=unit(0.5,"lines"),point.padding=unit(0.5,"lines")) +
     coord_cartesian(xlim=c(0, 2.5), ylim=c(0, 2.5)) +
     xlab("Male z-score difference") +
     ylab("Female z-score difference") +
