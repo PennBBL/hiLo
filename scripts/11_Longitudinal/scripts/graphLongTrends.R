@@ -272,7 +272,7 @@ for(i in summaryMetrics){
     geom_point(aes(shape=factor(goassessDxpmr7), size=4)) +
     geom_point(data = subset(toPlot, goassessDxpmr7 == "TD" & sex == "1"), aes(x = scanageMonths/12, y = subset(toPlot, goassessDxpmr7 == "TD" & sex == "1")[, colVal],shape = goassessDxpmr7),size=3,  color='white') +
     geom_line(aes(group=bblid, col=pncGrpPsychosisCl, alpha=.1)) +
-    geom_smooth(data=subset(toPlot,pncGrpPsychosisCl!="Persister" & sex=="1"),method='gam',formula = y ~ s(x, k=4),aes(x=scanageMonths/12, y=subset(toPlot, pncGrpPsychosisCl!="Persister" & sex=="1")[,colVal])) +
+    geom_smooth(data=subset(toPlot,pncGrpPsychosisCl=="TD" & sex=="1"),method='gam',formula = y ~ s(x, k=4),aes(x=scanageMonths/12, y=subset(toPlot, pncGrpPsychosisCl=="TD" & sex=="1")[,colVal])) +
     geom_smooth(data=subset(toPlot, pncGrpPsychosisCl=="Persister" & sex=="1"), method='gam',formula = y ~ s(x, k=4),aes(x=scanageMonths/12, y=subset(toPlot, pncGrpPsychosisCl=="Persister" & sex=="1")[,colVal], group=pncGrpPsychosisCl, col=pncGrpPsychosisCl)) +
     ylab(i) +
     theme_bw() +
@@ -283,9 +283,44 @@ for(i in summaryMetrics){
     geom_point(aes(shape=factor(goassessDxpmr7), size=4)) +
     geom_point(data = subset(toPlot, goassessDxpmr7 == "TD" & sex == "2"), aes(x = scanageMonths/12, y = subset(toPlot, goassessDxpmr7 == "TD" & sex == "2")[, colVal],shape = goassessDxpmr7),size=3,  color='white') +
     geom_line(aes(group=bblid, col=pncGrpPsychosisCl, alpha=.1)) +
-    geom_smooth(data=subset(toPlot,pncGrpPsychosisCl!="Persister" & sex=="2"),method='gam',formula = y ~ s(x, k=4),aes(x=scanageMonths/12, y=subset(toPlot, pncGrpPsychosisCl!="Persister" & sex=="2")[,colVal])) +
+    geom_smooth(data=subset(toPlot,pncGrpPsychosisCl=="TD" & sex=="2"),method='gam',formula = y ~ s(x, k=4),aes(x=scanageMonths/12, y=subset(toPlot, pncGrpPsychosisCl=="TD" & sex=="2")[,colVal])) +
     geom_smooth(data=subset(toPlot, pncGrpPsychosisCl=="Persister" & sex=="2"), method='gam',formula = y ~ s(x, k=4),aes(x=scanageMonths/12, y=subset(toPlot, pncGrpPsychosisCl=="Persister" & sex=="2")[,colVal], group=pncGrpPsychosisCl, col=pncGrpPsychosisCl)) +
-    geom_smooth(method='gam',formula = y ~ s(x, k=4)) +
+    ylab(i) +
+    theme_bw() +
+    theme(legend.position="bottom") +
+    ggtitle("Female") +
+    coord_cartesian(ylim=c(minVal[index], maxVal[index]))
+    multiplot(pasta.plot.one,pasta.plot.two, cols=2)
+    index <- index + 1
+}
+dev.off()
+
+## Now plot only those with multiple timepoints
+pdf('ageXAxisPersistVsAllElseOnlyMTTTP.pdf', height=20, width=28)
+index <- 1
+for(i in summaryMetrics){
+    colVal <- grep(i, names(all.data))
+    toPlot <- all.data[complete.cases(all.data[,colVal]),]
+    toPlot <- toPlot[-which(toPlot$pncGrpPsychosisCl==""),]
+    toPlot <- toPlot[which(toPlot$bblid %in% names(which(table(toPlot$bblid)>1))),]
+    toPlot$pncGrpPsychosisCl <- factor(toPlot$pncGrpPsychosisCl)
+    pasta.plot.one <- ggplot(toPlot[which(toPlot$sex==1),], aes(x=scanageMonths/12, y=toPlot[which(toPlot$sex==1),colVal])) +
+    geom_point(aes(shape=factor(goassessDxpmr7), size=4)) +
+    geom_point(data = subset(toPlot, goassessDxpmr7 == "TD" & sex == "1"), aes(x = scanageMonths/12, y = subset(toPlot, goassessDxpmr7 == "TD" & sex == "1")[, colVal],shape = goassessDxpmr7),size=3,  color='white') +
+    geom_line(aes(group=bblid, col=pncGrpPsychosisCl, alpha=.1)) +
+    geom_smooth(data=subset(toPlot,pncGrpPsychosisCl=="TD" & sex=="1"),method='gam',formula = y ~ s(x, k=4),aes(x=scanageMonths/12, y=subset(toPlot, pncGrpPsychosisCl=="TD" & sex=="1")[,colVal])) +
+    geom_smooth(data=subset(toPlot, pncGrpPsychosisCl=="Persister" & sex=="1"), method='gam',formula = y ~ s(x, k=4),aes(x=scanageMonths/12, y=subset(toPlot, pncGrpPsychosisCl=="Persister" & sex=="1")[,colVal], group=pncGrpPsychosisCl, col=pncGrpPsychosisCl)) +
+    ylab(i) +
+    theme_bw() +
+    ggtitle("Male") +
+    theme(legend.position="bottom") +
+    coord_cartesian(ylim=c(minVal[index], maxVal[index]))
+    pasta.plot.two <- ggplot(toPlot[which(toPlot$sex==2),], aes(x=scanageMonths/12, y=toPlot[which(toPlot$sex==2),colVal])) +
+    geom_point(aes(shape=factor(goassessDxpmr7), size=4)) +
+    geom_point(data = subset(toPlot, goassessDxpmr7 == "TD" & sex == "2"), aes(x = scanageMonths/12, y = subset(toPlot, goassessDxpmr7 == "TD" & sex == "2")[, colVal],shape = goassessDxpmr7),size=3,  color='white') +
+    geom_line(aes(group=bblid, col=pncGrpPsychosisCl, alpha=.1)) +
+    geom_smooth(data=subset(toPlot,pncGrpPsychosisCl=="TD" & sex=="2"),method='gam',formula = y ~ s(x, k=4),aes(x=scanageMonths/12, y=subset(toPlot, pncGrpPsychosisCl=="TD" & sex=="2")[,colVal])) +
+    geom_smooth(data=subset(toPlot, pncGrpPsychosisCl=="Persister" & sex=="2"), method='gam',formula = y ~ s(x, k=4),aes(x=scanageMonths/12, y=subset(toPlot, pncGrpPsychosisCl=="Persister" & sex=="2")[,colVal], group=pncGrpPsychosisCl, col=pncGrpPsychosisCl)) +
     ylab(i) +
     theme_bw() +
     theme(legend.position="bottom") +
