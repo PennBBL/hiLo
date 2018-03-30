@@ -328,10 +328,15 @@ allOut <- cbind(allData$bblid, allData$scanid, allOut)
 # from the dataPrep.R script
 # This will save on the multiple id nightmare I once faced...
 tmpDatWithCog <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/ageReg2416/volumeData.csv')
-tmpDatWithCog <- tmpDatWithCog[,1:29]
+tmpDatWithTP <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/n2416ClinicalDemoPsycho/n2416_pnc_protocol_validation_params_status_20170105.csv')
+tmpDatWithCog <- merge(tmpDatWithCog, tmpDatWithTP)
+tmpDatWithCog <- tmpDatWithCog[,c(1:29, 189)]
 longLabels <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/n2416ClinicalDemoPsycho/pnc_diagnosis_categorical_20170526.csv')
+longClinFacScore <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/n2416ClinicalDemoPsycho/longFacScore.csv')
 tmpDatWithCog <- merge(tmpDatWithCog, longLabels, all=T)
+tmpDatWithCog2 <- merge(tmpDatWithCog, longClinFacScore, by=c('bblid', 'timepoint'))
 all.data <- merge(allData, tmpDatWithCog, by=c('bblid', 'scanid'), all=T)
 all.data <- all.data[paste(all.data$bblid, all.data$scanid) %in% paste(allData$bblid, allData$scanid),]
+all.data[all.data==""] <- NA
 fileName <- paste('/home/adrose/forRuben/data/n2416_imagingDataDump_', Sys.Date(), '.csv', sep='')
-write.csv(all.data, fileName, quote=F, row.names=F)
+write.csv(all.data, fileName, quote=F, row.names=F, , na="")
