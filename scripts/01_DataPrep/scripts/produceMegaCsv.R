@@ -334,7 +334,7 @@ tmpDatWithCog <- tmpDatWithCog[,c(1:29, 189)]
 longLabels <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/n2416ClinicalDemoPsycho/pnc_diagnosis_categorical_20170526.csv')
 longClinFacScore <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/n2416ClinicalDemoPsycho/longFacScore.csv')
 tmpDatWithCog <- merge(tmpDatWithCog, longLabels, all=T)
-tmpDatWithCog2 <- merge(tmpDatWithCog, longClinFacScore, by=c('bblid', 'timepoint'))
+tmpDatWithCog <- merge(tmpDatWithCog, longClinFacScore, by=c('bblid', 'timepoint'))
 all.data <- merge(allData, tmpDatWithCog, by=c('bblid', 'scanid'), all=T)
 all.data <- all.data[paste(all.data$bblid, all.data$scanid) %in% paste(allData$bblid, allData$scanid),]
 all.data[all.data==""] <- NA
