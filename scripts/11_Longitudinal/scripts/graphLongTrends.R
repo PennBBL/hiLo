@@ -185,24 +185,30 @@ dev.off()
 ## Now graph these values w/o and age regrssion, just mean trends across time 
 ## with the x axis being age in years, and the y axis being our imaging metrics
 ## Lets first reload our data
-all.data <- read.csv('/home/adrose/forRuben/data/n2416_imagingDataDump_2018-03-20.csv')
+all.data <- read.csv('/home/adrose/forRuben/data/n2416_imagingDataDump_2018-04-02.csv')
 n1601.vals <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/n1601_demographics_go1_20161212.csv')
 all.data$DOSCAN <- as.character(all.data$DOSCAN)
 all.data$DOSCAN <- as.Date(all.data$DOSCAN, "%m/%d/%y")
 all.data$goassessDxpmr7 <- factor(all.data$goassessDxpmr7)
 all.data$pncGrpPsychosisCl <- factor(all.data$pncGrpPsychosisCl)
 all.data$Gender <- n1601.vals$sex[match(all.data$bblid, n1601.vals$bblid)]
+true.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/n2416ClinicalDemoPsycho/n705_oracle_sips_final_longitudinal_20170707.csv')
+all.data <- all.data[all.data$bblid %in% true.data$bblid,]
 ## Now lets make our plots
-summaryMetrics <- c('mprage_jlf_vol_TBV', 'mprage_jlf_vol_TBGM', 'mprage_jlf_vol_TBWM', 'mprage_jlf_ct_MeanCT', 'mprage_jlf_gmd_MeanGMD', 'pcasl_jlf_cbf_MeanWholeBrainCBF', 'rest_jlf_reho_MeanReho', 'rest_jlf_alff_MeanALFF')
+summaryMetrics <- c('mprage_jlf_vol_TBV', 'mprage_jlf_vol_TBGM', 'mprage_jlf_vol_TBWM', 'mprage_jlf_ct_MeanCT', 'mprage_jlf_gmd_MeanGMD', 'pcasl_jlf_cbf_MeanWholeBrainCBF', 'rest_jlf_reho_MeanReho', 'rest_jlf_alff_MeanALFF','F1_Exec_Comp_Cog_Accuracy', 'F2_Social_Cog_Accuracy', 'F3_Memory_Accuracy', 'F1_Slow_Speed', 'F2_Memory_Speed', 'F3_Fast_Speed', 'F1_Social_Cognition_Efficiency', 'F2_Complex_Reasoning_Efficiency', 'F3_Memory_Efficiency', 'F4_Executive_Efficiency', 'Psychosis')
 pdf('ageXAxisWithpncGrpPsychosisCl.pdf', height=20, width=28)
 options(digits=7)
-minVal <- c(800000, 500000, 300000, 2.5, .7,25, .05, 200)
-maxVal <- c(1610000,1000000,700000,4.5,.95,110,.3,1000)
+minVal <- c(800000, 500000, 300000, 2.5, .7,25, .05, 200, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -1)
+maxVal <- c(1610000,1000000,700000,4.5,.95,110,.3,1000,2,2,2,2,2,2,2,2,2,2,7.5)
 index <- 1
 for(i in summaryMetrics){
   colVal <- grep(i, names(all.data))
+  if(length(colVal)>1){
+    colVal <- colVal[7]
+  }
   toPlot <- all.data[complete.cases(all.data[,colVal]),]
   toPlot <- toPlot[-which(toPlot$pncGrpPsychosisCl==""),]
+  toPlot <- toPlot[which(toPlot$bblid %in% names(which(table(toPlot$bblid)>2))),]
   toPlot$pncGrpPsychosisCl <- factor(toPlot$pncGrpPsychosisCl)
   pasta.plot.one <- ggplot(toPlot[which(toPlot$sex==1),], aes(x=scanageMonths/12, y=toPlot[which(toPlot$sex==1),colVal])) +
     geom_point(aes(shape=factor(goassessDxpmr7), size=4, fill=goassessDxpmr7)) +
@@ -226,37 +232,6 @@ pasta.plot.two <- ggplot(toPlot[which(toPlot$sex==2),], aes(x=scanageMonths/12, 
     coord_cartesian(ylim=c(minVal[index], maxVal[index]))
   multiplot(pasta.plot.one,pasta.plot.two, cols=2)
   index <- index + 1
-}
-dev.off()
-
-# Now do plots with timepoint specific labels
-pdf('ageXAxisWithgoassess.pdf', height=23, width=28)
-index <- 1
-for(i in summaryMetrics){
-    colVal <- grep(i, names(all.data))
-    toPlot <- all.data[complete.cases(all.data[,colVal]),]
-    toPlot <- toPlot[-which(toPlot$pncGrpPsychosisCl==""),]
-    toPlot$pncGrpPsychosisCl <- factor(toPlot$pncGrpPsychosisCl)
-    pasta.plot.one <- ggplot(toPlot[which(toPlot$sex==1),], aes(x=scanageMonths/12, y=toPlot[which(toPlot$sex==1),colVal])) +
-    geom_point(aes(shape=factor(goassessDxpmr7), size=4)) +
-    geom_line(aes(group=bblid, alpha=.1)) +
-    geom_smooth(method='gam',formula = y ~ s(x, k=4),aes(group=goassessDxpmr7, col=goassessDxpmr7)) +
-    ylab(i) +
-    theme_bw() +
-    ggtitle("Male") +
-    theme(legend.position="bottom") +
-    coord_cartesian(ylim=c(minVal[index], maxVal[index]))
-    pasta.plot.two <- ggplot(toPlot[which(toPlot$sex==2),], aes(x=scanageMonths/12, y=toPlot[which(toPlot$sex==2),colVal])) +
-    geom_point(aes(shape=factor(goassessDxpmr7), size=4)) +
-    geom_line(aes(group=bblid, alpha=.1)) +
-    geom_smooth(method='gam',formula = y ~ s(x, k=4),aes(group=goassessDxpmr7, col=goassessDxpmr7)) +
-    ylab(i) +
-    theme_bw() +
-    theme(legend.position="bottom") +
-    ggtitle("Female") +
-    coord_cartesian(ylim=c(minVal[index], maxVal[index]))
-    multiplot(pasta.plot.one,pasta.plot.two, cols=2)
-    index <- index + 1
 }
 dev.off()
 
@@ -300,6 +275,10 @@ pdf('ageXAxisPersistVsAllElseOnlyMTTTP.pdf', height=20, width=28)
 index <- 1
 for(i in summaryMetrics){
     colVal <- grep(i, names(all.data))
+    colVal <- grep(i, names(all.data))
+    if(length(colVal)>1){
+      colVal <- colVal[7]
+    }
     toPlot <- all.data[complete.cases(all.data[,colVal]),]
     toPlot <- toPlot[-which(toPlot$pncGrpPsychosisCl==""),]
     toPlot <- toPlot[which(toPlot$bblid %in% names(which(table(toPlot$bblid)>1))),]
