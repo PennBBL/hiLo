@@ -99,3 +99,19 @@ applyMeanandSD <- function(ageMeanandSDMatrix, valueCol, ageCol){
   ## Now return the outputValues
   return(outputValues)
 }
+
+## Now I need to declare a function which will scale the data between 0-1 and then add one
+range12 <- function(x){
+  # Now make sure we have some standard deviation
+  # If no standard deviation return 1
+  if( is.na(sd(x, na.rm=T)) == 'TRUE'){
+    output <- rep(1, length(x))
+    return(output)
+  }
+  else if (sd(x, na.rm=T) < 0 ){
+    output <- rep(1, length(x))
+    return(output)
+  }
+  else
+    (x-min(x, na.rm=T))/diff(range(x, na.rm=T)) + 1
+}

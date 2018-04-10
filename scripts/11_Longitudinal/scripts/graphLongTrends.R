@@ -281,6 +281,7 @@ for(i in summaryMetrics){
     }
     toPlot <- all.data[complete.cases(all.data[,colVal]),]
     toPlot <- toPlot[-which(toPlot$pncGrpPsychosisCl==""),]
+    toPlot <- toPlot[-which(toPlot$pncGrpPsychosisCl=="Emergent" | toPlot$pncGrpPsychosisCl=="Flux" | toPlot$pncGrpPsychosisCl=="Resilient"),]
     toPlot <- toPlot[which(toPlot$bblid %in% names(which(table(toPlot$bblid)>1))),]
     toPlot$pncGrpPsychosisCl <- factor(toPlot$pncGrpPsychosisCl)
     pasta.plot.one <- ggplot(toPlot[which(toPlot$sex==1),], aes(x=scanageMonths/12, y=toPlot[which(toPlot$sex==1),colVal])) +
@@ -309,3 +310,23 @@ for(i in summaryMetrics){
     index <- index + 1
 }
 dev.off()
+
+# Now make an age by subject plot
+toPlot <- all.data[,complete.cases(all.data$scanageMonths)]
+toPlot <- toPlot[which(toPlot$bblid %in% names(which(table(toPlot$bblid)>1))),]
+toPlot <- toPlot[-which(toPlot$pncGrpPsychosisCl==levels(factor(toPlot$pncGrpPsychosisCl))[1]),]
+makeLevels <- which(toPlot$timepoint==1)
+makeLevels2 <- order(toPlot$scanageMonths[makeLevels])
+makeLevels3 <- toPlot$bblid[makeLevels][makeLevels2] 
+toPlot$bblid <- factor(toPlot$bblid, levels=makeLevels3)
+toPlot <- toPlot[-which(is.na(toPlot$bblid)),]
+outPlot <- ggplot(toPlot, aes(x=scanageMonths/12, y=bblid, col=factor(sex), group=bblid)) +
+  geom_point(aes(shape=pncGrpPsychosisCl)) +
+  geom_line() +
+  theme(text = element_text(size=20)) +
+  facet_grid(pncGrpPsychosisCl~., scales="free", space="free_y")
+pdf("allLongAGeVals.pdf", width=20, height=72)
+print(outPlot)
+dev.off()
+
+
