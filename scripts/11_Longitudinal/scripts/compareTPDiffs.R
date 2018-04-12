@@ -17,6 +17,10 @@ true.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/n2416ClinicalDemoP
 all.data <- all.data[all.data$bblid %in% true.data$bblid,]
 n1601.vals <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/n1601_demographics_go1_20161212.csv')
 all.data$Gender <- n1601.vals$sex[match(all.data$bblid, n1601.vals$bblid)]
+## Now grab the PRS scores down here
+prs.scores <- read.csv('/home/tymoore/PRS_Adon.csv')
+all.data$PRS <- prs.scores$PRS[match(all.data$bblid, prs.scores$bblid)]
+
 ## The first thing I need to do is find the time from T1 in days
 all.data$timeDiff <- 0
 # Now loop through each BBLID and find the time since time 1
@@ -38,12 +42,12 @@ rm(output.vol)
 all.data$age <- scale(all.data$scanageMonths)
 all.data$age2 <- scale(all.data$age)^2
 all.data$age3 <- scale(all.data$age)^3
-ageBinVals <- as.data.frame(cbind(n1601.vals$bblid, returnAgeGroup(n1601.vals$ageAtScan1)))
-colnames(ageBinVals) <- c('bblid', 'ageBin')
+ageBinVals <- as.data.frame(cbind(all.data$bblid, all.data$scanid, returnAgeGroup(all.data$scanageMonths)))
+colnames(ageBinVals) <- c('bblid', 'scanid', 'ageBin')
 all.data <- merge(all.data, ageBinVals)
 
 # Now I need to see how our cognitive and clinical factor scores perform over time in the longitudinal cohort
-summaryMetrics <- c('F1_Exec_Comp_Cog_Accuracy', 'F2_Social_Cog_Accuracy', 'F3_Memory_Accuracy', 'F1_Slow_Speed', 'F2_Memory_Speed', 'F3_Fast_Speed', 'F1_Social_Cognition_Efficiency', 'F2_Complex_Reasoning_Efficiency', 'F3_Memory_Efficiency', 'F4_Executive_Efficiency', 'Psychosis', 'Depression', 'Mania', 'Overall_Psychopathology_SIMPLE')
+summaryMetrics <- c('F1_Exec_Comp_Cog_Accuracy', 'F2_Social_Cog_Accuracy', 'F3_Memory_Accuracy', 'F1_Slow_Speed', 'F2_Memory_Speed', 'F3_Fast_Speed', 'F1_Social_Cognition_Efficiency', 'F2_Complex_Reasoning_Efficiency', 'F3_Memory_Efficiency', 'F4_Executive_Efficiency', 'Psychosis', 'Depression', 'Mania', 'Overall_Psychopathology_SIMPLE', 'Depression_SIMPLE', 'Mania_SIMPLE')
 # Now create our age regeressed values
 freeze <- all.data
 to.use <- all.data
@@ -96,7 +100,8 @@ for(i in summaryMetrics){
     geom_line(aes(group=bblid, col=pncGrpPsychosisCl, alpha=.1)) +
     #geom_smooth(method='gam',aes(group=pncGrpPsychosisCl, col=pncGrpPsychosisCl)) +
     ylab(i) +
-    theme_bw()
+    theme_bw() + 
+     coord_cartesian(ylim=c(-1, 1))
   print(pasta.plot.one)
 }
 dev.off()
@@ -104,7 +109,7 @@ dev.off()
 # Now I need to find some IRR values across the factor scores tp 1 vs tp 2 and tp 1 vs tp 3
 # I am prob going to do this across all diagnosis labels and then within the TD and PERSIS groups
 # We need to make sure we use the freeze at this point here. 
-summaryMetrics <- c('F1_Exec_Comp_Cog_Accuracy', 'F2_Social_Cog_Accuracy', 'F3_Memory_Accuracy', 'F1_Slow_Speed', 'F2_Memory_Speed', 'F3_Fast_Speed', 'F1_Social_Cognition_Efficiency', 'F2_Complex_Reasoning_Efficiency', 'F3_Memory_Efficiency', 'F4_Executive_Efficiency', 'Psychosis', 'Depression', 'Mania', 'Overall_Psychopathology_SIMPLE')
+summaryMetrics <- c('F1_Exec_Comp_Cog_Accuracy', 'F2_Social_Cog_Accuracy', 'F3_Memory_Accuracy', 'F1_Slow_Speed', 'F2_Memory_Speed', 'F3_Fast_Speed', 'F1_Social_Cognition_Efficiency', 'F2_Complex_Reasoning_Efficiency', 'F3_Memory_Efficiency', 'F4_Executive_Efficiency', 'Psychosis', 'Depression', 'Mania', 'Overall_Psychopathology_SIMPLE', 'Depression_SIMPLE', 'Mania_SIMPLE')
 # Now prepare an output matrix with these values
 outValues <- matrix(NA, nrow=length(summaryMetrics), ncol=2)
 rownames(outValues) <- summaryMetrics
@@ -115,8 +120,8 @@ longValues <- reshape(tmpDat, timevar='timepoint', idvar='bblid', direction='wid
 index <- 1
 for(i in summaryMetrics){
   colVals <- grep(i, colnames(longValues))
-  iccValue1 <- icc(longValues[,colVals[1:2]], "twoway", "agreement")$value
-  iccValue2 <- icc(longValues[,colVals[1:3]], "twoway", "agreement")$value
+  iccValue1 <- round(icc(longValues[,colVals[1:2]], "twoway", "agreement")$value, digits=2)
+  iccValue2 <- round(icc(longValues[,colVals[1:3]], "twoway", "agreement")$value, digits=2)
   outValues[index,1] <- iccValue1
   outValues[index,2] <- iccValue2
   index <- index + 1
@@ -134,8 +139,8 @@ for(x in names(table(freeze$pncGrpPsychosisCl))[-1]){
   index <- 1
   for(i in summaryMetrics){
     colVals <- grep(i, colnames(longValues))
-    iccValue1 <- icc(longValues[,colVals[1:2]], "twoway", "agreement")$value
-    iccValue2 <- icc(longValues[,colVals[1:3]], "twoway", "agreement")$value
+    iccValue1 <- round(icc(longValues[,colVals[1:2]], "twoway", "agreement")$value, digits=2)
+    iccValue2 <- round(icc(longValues[,colVals[1:3]], "twoway", "agreement")$value, digits=2)
     outValues[index,1] <- iccValue1
     outValues[index,2] <- iccValue2
     index <- index + 1
@@ -145,3 +150,94 @@ for(x in names(table(freeze$pncGrpPsychosisCl))[-1]){
 
 # Now write this csv
 write.csv(outMatAll, "outputAgreementValues.csv", quote=F, row.names=T)
+
+## Now we need to compare the mean values vs tp
+## In order to do this we need to perform age regression
+## We are also going to expand our summary metrics to include the imaging summary values
+summaryMetrics <- c('F1_Exec_Comp_Cog_Accuracy', 'F2_Social_Cog_Accuracy', 'F3_Memory_Accuracy', 'F1_Slow_Speed', 'F2_Memory_Speed', 'F3_Fast_Speed', 'F1_Social_Cognition_Efficiency', 'F2_Complex_Reasoning_Efficiency', 'F3_Memory_Efficiency', 'F4_Executive_Efficiency', 'Psychosis', 'Depression', 'Mania', 'Overall_Psychopathology_SIMPLE', 'Depression_SIMPLE', 'Mania_SIMPLE','mprage_jlf_vol_TBV', 'mprage_jlf_vol_TBGM', 'mprage_jlf_vol_TBWM', 'mprage_jlf_ct_MeanCT', 'mprage_jlf_gmd_MeanGMD', 'pcasl_jlf_cbf_MeanWholeBrainCBF', 'rest_jlf_reho_MeanReho', 'rest_jlf_alff_MeanALFF')
+all.data <- freeze
+for(s in summaryMetrics){
+  columnValue <- grep(s, names(all.data))
+    if(length(columnValue)>1){
+      columnValue <- grep(paste("^", s, "$", sep=''), names(all.data))
+  }
+  tmpMat <- returnMeanSDValues(all.data[,columnValue], all.data$ageBin)
+  all.data[,columnValue] <- applyMeanandSD(tmpMat, all.data[,columnValue], all.data$ageBin)
+}
+
+## Now we need to plot the mean vs timepoint here - will also add summary mean trajectories 
+## for each of our clinical labels
+summaryMetrics <- c('F1_Exec_Comp_Cog_Accuracy', 'F2_Social_Cog_Accuracy', 'F3_Memory_Accuracy', 'F1_Slow_Speed', 'F2_Memory_Speed', 'F3_Fast_Speed', 'F1_Social_Cognition_Efficiency', 'F2_Complex_Reasoning_Efficiency', 'F3_Memory_Efficiency', 'F4_Executive_Efficiency', 'Psychosis', 'Depression', 'Mania', 'Overall_Psychopathology_SIMPLE', 'Depression_SIMPLE', 'Mania_SIMPLE')
+pdf("tpVsSummaryMetric.pdf")
+for(s in summaryMetrics){
+  columnValue <- grep(s, names(all.data))
+  if(length(columnValue)>1){
+    columnValue <- grep(paste("^", s, "$", sep=''), names(all.data))
+  }
+  toPlot <- all.data[complete.cases(all.data[,columnValue]),]
+  toPlot <- toPlot[-which(toPlot$pncGrpPsychosisCl==""),]
+  toPlot <- toPlot[which(toPlot$bblid %in% names(which(table(toPlot$bblid)>1))),]
+  plotVals <- summarySE(toPlot, measurevar=s, groupvars=c('timepoint', 'pncGrpPsychosisCl'), na.rm=T)
+  plotVals <- plotVals[-which(plotVals$pncGrpPsychosisCl=='Flux'),]
+  tmpPlot <- ggplot(plotVals, aes(x=as.factor(timepoint), y=plotVals[,4], shape=factor(pncGrpPsychosisCl), col=factor(pncGrpPsychosisCl))) + 
+    geom_point(size=5, position = position_jitterdodge(dodge.width = 0.9, jitter.width = 0.2)) +
+    geom_errorbar(aes(ymin=plotVals[,4]-ci, ymax=plotVals[,4]+ci), position = position_jitterdodge(dodge.width = 0.9, jitter.width = 0.2)) +
+    theme_bw() +
+    ylab(paste(s)) + 
+    xlab("Timepoint")
+  print(tmpPlot)
+}
+## Now do the imaging metrics
+summaryMetrics <- c('mprage_jlf_vol_TBV', 'mprage_jlf_vol_TBGM', 'mprage_jlf_vol_TBWM', 'mprage_jlf_ct_MeanCT', 'mprage_jlf_gmd_MeanGMD', 'pcasl_jlf_cbf_MeanWholeBrainCBF', 'rest_jlf_reho_MeanReho', 'rest_jlf_alff_MeanALFF')
+minVal <- c(900000, 550000,375000, 3, .77,35, .1, 300)
+maxVal <- c(1400000,850000,575000,4,.85,65,.2,650)
+index <- 1
+for(s in summaryMetrics){
+  columnValue <- grep(s, names(all.data))
+  if(length(columnValue)>1){
+    columnValue <- grep(paste("^", s, "$", sep=''), names(all.data))
+  }
+  toPlot <- all.data[complete.cases(all.data[,columnValue]),]
+  toPlot <- toPlot[-which(toPlot$pncGrpPsychosisCl==""),]
+  toPlot <- toPlot[which(toPlot$bblid %in% names(which(table(toPlot$bblid)>1))),]
+  plotVals1 <- summarySE(toPlot[which(toPlot$Gender==1),], measurevar=s, groupvars=c('timepoint', 'pncGrpPsychosisCl'), na.rm=T)
+  plotVals1 <- plotVals1[-which(plotVals1$pncGrpPsychosisCl=='Flux'),]
+  tmpPlot1 <- ggplot(plotVals1, aes(x=as.factor(timepoint), y=plotVals1[,4], shape=factor(pncGrpPsychosisCl), col=factor(pncGrpPsychosisCl))) + 
+    geom_point(size=5, position = position_jitterdodge(dodge.width = 0.9, jitter.width = 0.2)) + 
+    geom_errorbar(aes(ymin=plotVals1[,4]-ci, ymax=plotVals1[,4]+ci),, position = position_jitterdodge(dodge.width = 0.9, jitter.width = 0.2)) +
+    theme_bw() +
+    ylab(paste(s)) + 
+    xlab("Timepoint") +
+    coord_cartesian(ylim=c(minVal[index], maxVal[index]))
+  plotVals2 <- summarySE(toPlot[which(toPlot$Gender==2),], measurevar=s, groupvars=c('timepoint', 'pncGrpPsychosisCl'), na.rm=T)
+  plotVals2 <- plotVals2[-which(plotVals2$pncGrpPsychosisCl=='Flux'),]
+  tmpPlot2 <- ggplot(plotVals2, aes(x=as.factor(timepoint), y=plotVals2[,4], shape=factor(pncGrpPsychosisCl), col=factor(pncGrpPsychosisCl))) + 
+    geom_point(size=5, position = position_jitterdodge(dodge.width = 0.9, jitter.width = 0.2)) + 
+    geom_errorbar(aes(ymin=plotVals2[,4]-ci, ymax=plotVals2[,4]+ci),, position = position_jitterdodge(dodge.width = 0.9, jitter.width = 0.2)) +
+    theme_bw() +
+    ylab(paste(s)) + 
+    xlab("Timepoint") +
+    coord_cartesian(ylim=c(minVal[index], maxVal[index]))
+  multiplot(tmpPlot1, tmpPlot2, cols=2)
+  index <- index + 1
+}
+## Now do the ERS and PRS values down here
+summaryMetrics <- c('envSES', 'PRS')
+for(s in summaryMetrics){
+  columnValue <- grep(s, names(all.data))
+  if(length(columnValue)>1){
+    columnValue <- grep(paste("^", s, "$", sep=''), names(all.data))
+  }
+  toPlot <- all.data[complete.cases(all.data[,columnValue]),]
+  toPlot <- toPlot[-which(toPlot$pncGrpPsychosisCl==""),]
+  toPlot <- toPlot[which(toPlot$bblid %in% names(which(table(toPlot$bblid)>1))),]
+  plotVals <- summarySE(toPlot, measurevar=s, groupvars=c('pncGrpPsychosisCl'), na.rm=T)
+  plotVals <- plotVals[-which(plotVals$pncGrpPsychosisCl=='Flux'),]
+  tmpPlot <- ggplot(plotVals, aes(y=plotVals[,3], x=factor(pncGrpPsychosisCl), col=factor(pncGrpPsychosisCl))) + 
+    geom_point(size=5) + 
+    geom_errorbar(aes(ymin=plotVals[,3]-ci, ymax=plotVals[,3]+ci),width = .2) +
+    theme_bw() +
+    ylab(paste(s))
+  print(tmpPlot)
+}
+dev.off()
