@@ -315,13 +315,14 @@ dev.off()
 toPlot <- all.data[,complete.cases(all.data$scanageMonths)]
 toPlot <- toPlot[which(toPlot$bblid %in% names(which(table(toPlot$bblid)>1))),]
 toPlot <- toPlot[-which(toPlot$pncGrpPsychosisCl==levels(factor(toPlot$pncGrpPsychosisCl))[1]),]
+toPlot <- toPlot[which(toPlot$bblid %in% names(which(table(toPlot$bblid)>1))),]
 makeLevels <- which(toPlot$timepoint==1)
 makeLevels2 <- order(toPlot$scanageMonths[makeLevels])
 makeLevels3 <- toPlot$bblid[makeLevels][makeLevels2] 
 toPlot$bblid <- factor(toPlot$bblid, levels=makeLevels3)
 toPlot <- toPlot[-which(is.na(toPlot$bblid)),]
 outPlot <- ggplot(toPlot, aes(x=scanageMonths/12, y=bblid, col=factor(sex), group=bblid)) +
-  geom_point(aes(shape=pncGrpPsychosisCl)) +
+  geom_point() +
   geom_line() +
   theme(text = element_text(size=20)) +
   facet_grid(pncGrpPsychosisCl~., scales="free", space="free_y")
