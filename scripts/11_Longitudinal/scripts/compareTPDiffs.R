@@ -154,7 +154,7 @@ write.csv(outMatAll, "outputAgreementValues.csv", quote=F, row.names=T)
 ## Now we need to compare the mean values vs tp
 ## In order to do this we need to perform age regression
 ## We are also going to expand our summary metrics to include the imaging summary values
-summaryMetrics <- c('F1_Exec_Comp_Cog_Accuracy', 'F2_Social_Cog_Accuracy', 'F3_Memory_Accuracy', 'F1_Slow_Speed', 'F2_Memory_Speed', 'F3_Fast_Speed', 'F1_Social_Cognition_Efficiency', 'F2_Complex_Reasoning_Efficiency', 'F3_Memory_Efficiency', 'F4_Executive_Efficiency', 'Psychosis', 'Depression', 'Mania', 'Overall_Psychopathology_SIMPLE', 'Depression_SIMPLE', 'Mania_SIMPLE','mprage_jlf_vol_TBV', 'mprage_jlf_vol_TBGM', 'mprage_jlf_vol_TBWM', 'mprage_jlf_ct_MeanCT', 'mprage_jlf_gmd_MeanGMD', 'pcasl_jlf_cbf_MeanWholeBrainCBF', 'rest_jlf_reho_MeanReho', 'rest_jlf_alff_MeanALFF')
+summaryMetrics <- c('F1_Exec_Comp_Cog_Accuracy', 'F2_Social_Cog_Accuracy', 'F3_Memory_Accuracy', 'F1_Slow_Speed', 'F2_Memory_Speed', 'F3_Fast_Speed', 'F1_Social_Cognition_Efficiency', 'F2_Complex_Reasoning_Efficiency', 'F3_Memory_Efficiency', 'F4_Executive_Efficiency', 'Psychosis', 'Depression', 'Mania', 'Overall_Psychopathology_SIMPLE', 'Depression_SIMPLE', 'Mania_SIMPLE')
 all.data <- freeze
 for(s in summaryMetrics){
   columnValue <- grep(s, names(all.data))
@@ -168,7 +168,8 @@ for(s in summaryMetrics){
 ## Now we need to plot the mean vs timepoint here - will also add summary mean trajectories 
 ## for each of our clinical labels
 summaryMetrics <- c('F1_Exec_Comp_Cog_Accuracy', 'F2_Social_Cog_Accuracy', 'F3_Memory_Accuracy', 'F1_Slow_Speed', 'F2_Memory_Speed', 'F3_Fast_Speed', 'F1_Social_Cognition_Efficiency', 'F2_Complex_Reasoning_Efficiency', 'F3_Memory_Efficiency', 'F4_Executive_Efficiency', 'Psychosis', 'Depression', 'Mania', 'Overall_Psychopathology_SIMPLE', 'Depression_SIMPLE', 'Mania_SIMPLE')
-pdf("tpVsSummaryMetric.pdf")
+options(digits=7)
+pdf("tpVsSummaryFactorScoresMetric.pdf")
 for(s in summaryMetrics){
   columnValue <- grep(s, names(all.data))
   if(length(columnValue)>1){
@@ -186,40 +187,6 @@ for(s in summaryMetrics){
     ylab(paste(s)) + 
     xlab("Timepoint")
   print(tmpPlot)
-}
-## Now do the imaging metrics
-summaryMetrics <- c('mprage_jlf_vol_TBV', 'mprage_jlf_vol_TBGM', 'mprage_jlf_vol_TBWM', 'mprage_jlf_ct_MeanCT', 'mprage_jlf_gmd_MeanGMD', 'pcasl_jlf_cbf_MeanWholeBrainCBF', 'rest_jlf_reho_MeanReho', 'rest_jlf_alff_MeanALFF')
-minVal <- c(900000, 550000,375000, 3, .77,35, .1, 300)
-maxVal <- c(1400000,850000,575000,4,.85,65,.2,650)
-index <- 1
-for(s in summaryMetrics){
-  columnValue <- grep(s, names(all.data))
-  if(length(columnValue)>1){
-    columnValue <- grep(paste("^", s, "$", sep=''), names(all.data))
-  }
-  toPlot <- all.data[complete.cases(all.data[,columnValue]),]
-  toPlot <- toPlot[-which(toPlot$pncGrpPsychosisCl==""),]
-  toPlot <- toPlot[which(toPlot$bblid %in% names(which(table(toPlot$bblid)>1))),]
-  plotVals1 <- summarySE(toPlot[which(toPlot$Gender==1),], measurevar=s, groupvars=c('timepoint', 'pncGrpPsychosisCl'), na.rm=T)
-  plotVals1 <- plotVals1[-which(plotVals1$pncGrpPsychosisCl=='Flux'),]
-  tmpPlot1 <- ggplot(plotVals1, aes(x=as.factor(timepoint), y=plotVals1[,4], shape=factor(pncGrpPsychosisCl), col=factor(pncGrpPsychosisCl))) + 
-    geom_point(size=5, position = position_jitterdodge(dodge.width = 0.9, jitter.width = 0.2)) + 
-    geom_errorbar(aes(ymin=plotVals1[,4]-ci, ymax=plotVals1[,4]+ci),, position = position_jitterdodge(dodge.width = 0.9, jitter.width = 0.2)) +
-    theme_bw() +
-    ylab(paste(s)) + 
-    xlab("Timepoint") +
-    coord_cartesian(ylim=c(minVal[index], maxVal[index]))
-  plotVals2 <- summarySE(toPlot[which(toPlot$Gender==2),], measurevar=s, groupvars=c('timepoint', 'pncGrpPsychosisCl'), na.rm=T)
-  plotVals2 <- plotVals2[-which(plotVals2$pncGrpPsychosisCl=='Flux'),]
-  tmpPlot2 <- ggplot(plotVals2, aes(x=as.factor(timepoint), y=plotVals2[,4], shape=factor(pncGrpPsychosisCl), col=factor(pncGrpPsychosisCl))) + 
-    geom_point(size=5, position = position_jitterdodge(dodge.width = 0.9, jitter.width = 0.2)) + 
-    geom_errorbar(aes(ymin=plotVals2[,4]-ci, ymax=plotVals2[,4]+ci),, position = position_jitterdodge(dodge.width = 0.9, jitter.width = 0.2)) +
-    theme_bw() +
-    ylab(paste(s)) + 
-    xlab("Timepoint") +
-    coord_cartesian(ylim=c(minVal[index], maxVal[index]))
-  multiplot(tmpPlot1, tmpPlot2, cols=2)
-  index <- index + 1
 }
 ## Now do the ERS and PRS values down here
 summaryMetrics <- c('envSES', 'PRS')
@@ -239,5 +206,59 @@ for(s in summaryMetrics){
     theme_bw() +
     ylab(paste(s))
   print(tmpPlot)
+}
+dev.off()
+
+## Now do the imaging values. 
+## We are going to have to age regress w/in sex because we are adding the global mean
+## I think this z score method is very dumb bbut thats just me...
+summaryMetrics <- c('mprage_jlf_vol_TBV', 'mprage_jlf_vol_TBGM', 'mprage_jlf_vol_TBWM', 'mprage_jlf_ct_MeanCT', 'mprage_jlf_gmd_MeanGMD', 'pcasl_jlf_cbf_MeanWholeBrainCBF', 'rest_jlf_reho_MeanReho', 'rest_jlf_alff_MeanALFF')
+all.data <- freeze
+## Now extend digit value in options
+options(digits=22)
+for(s in summaryMetrics){
+  columnValue <- grep(s, names(all.data))
+    if(length(columnValue)>1){
+      columnValue <- grep(paste("^", s, "$", sep=''), names(all.data))
+  }
+  tmpMat <- returnMeanSDValues(all.data[which(all.data$Gender==1),columnValue], all.data$ageBin[which(all.data$Gender==1)])
+  all.data[which(all.data$Gender==1),columnValue] <- applyMeanandSD(tmpMat, all.data[which(all.data$Gender==1),columnValue], all.data$ageBin[which(all.data$Gender==1)])
+  tmpMat <- returnMeanSDValues(all.data[which(all.data$Gender==2),columnValue], all.data$ageBin[which(all.data$Gender==2)])
+  all.data[which(all.data$Gender==2),columnValue] <- applyMeanandSD(tmpMat, all.data[which(all.data$Gender==2),columnValue], all.data$ageBin[which(all.data$Gender==2)])
+}
+minVal <- c(1100000, 550000,375000, 2.5, .77,35, .1, 300)
+maxVal <- c(1300000,850000,575000,4.5,.85,65,.2,650)
+index <- 1
+pdf("tpVsSummaryImagingScoresMetric.pdf", width=20, height=20)
+for(s in summaryMetrics){
+  columnValue <- grep(s, names(all.data))
+  if(length(columnValue)>1){
+    columnValue <- grep(paste("^", s, "$", sep=''), names(all.data))
+  }
+  toPlot <- all.data[complete.cases(all.data[,columnValue]),]
+  toPlot <- toPlot[-which(toPlot$pncGrpPsychosisCl==""),]
+  toPlot <- toPlot[which(toPlot$bblid %in% names(which(table(toPlot$bblid)>1))),]
+  plotVals1 <- summarySE(toPlot[which(toPlot$Gender==1),], measurevar=s, groupvars=c('timepoint', 'pncGrpPsychosisCl'), na.rm=T)
+  plotVals1 <- plotVals1[-which(plotVals1$pncGrpPsychosisCl=='Flux'),]
+  tmpPlot1 <- ggplot(plotVals1, aes(x=as.factor(timepoint), y=plotVals1[,4], shape=factor(pncGrpPsychosisCl), col=factor(pncGrpPsychosisCl))) + 
+    geom_point(size=5, position = position_jitterdodge(dodge.width = 0.9, jitter.width = 0.2)) + 
+    geom_errorbar(aes(ymin=plotVals1[,4]-ci, ymax=plotVals1[,4]+ci),, position = position_jitterdodge(dodge.width = 0.9, jitter.width = 0.2)) +
+    theme_bw() +
+    ylab(paste(s)) + 
+    xlab("Timepoint") +
+    ggtitle('Male') +
+    theme(legend.position="bottom",text = element_text(size=20))
+  plotVals2 <- summarySE(toPlot[which(toPlot$Gender==2),], measurevar=s, groupvars=c('timepoint', 'pncGrpPsychosisCl'), na.rm=T)
+  plotVals2 <- plotVals2[-which(plotVals2$pncGrpPsychosisCl=='Flux'),]
+  tmpPlot2 <- ggplot(plotVals2, aes(x=as.factor(timepoint), y=plotVals2[,4], shape=factor(pncGrpPsychosisCl), col=factor(pncGrpPsychosisCl))) + 
+    geom_point(size=5, position = position_jitterdodge(dodge.width = 0.9, jitter.width = 0.2)) + 
+    geom_errorbar(aes(ymin=plotVals2[,4]-ci, ymax=plotVals2[,4]+ci),, position = position_jitterdodge(dodge.width = 0.9, jitter.width = 0.2)) +
+    theme_bw() +
+    ylab(paste(s)) + 
+    xlab("Timepoint") +
+    ggtitle('Female') +
+    theme(legend.position="bottom",text = element_text(size=20))
+  multiplot(tmpPlot1, tmpPlot2, cols=2)
+  index <- index + 1
 }
 dev.off()
