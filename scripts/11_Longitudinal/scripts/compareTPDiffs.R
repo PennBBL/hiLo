@@ -162,7 +162,8 @@ for(s in summaryMetrics){
       columnValue <- grep(paste("^", s, "$", sep=''), names(all.data))
   }
   tmpMat <- returnMeanSDValues(all.data[,columnValue], all.data$ageBin)
-  all.data[,columnValue] <- applyMeanandSD(tmpMat, all.data[,columnValue], all.data$ageBin)
+  #all.data[,columnValue] <- applyMeanandSD(tmpMat, all.data[,columnValue], all.data$ageBin)
+  all.data[,columnValue] <- residuals(lm(all.data))
 }
 
 ## Now we need to plot the mean vs timepoint here - will also add summary mean trajectories 
