@@ -3,7 +3,7 @@ source("/home/adrose/adroseHelperScripts/R/afgrHelpFunc.R")
 source("/home/adrose/hiLo/scripts/03_CognitiveTrends/functions/wm2Functions.R")
 source("/home/adrose/hiLo/scripts/03_CognitiveTrends/functions/wm1Functions2.R")
 source("/home/adrose/hiLo/scripts/03_CognitiveTrends/functions/functions-forJLF.R")
-install_load('plyr', 'ggplot2', 'reshape2', 'grid', 'gridExtra', 'labeling', 'data.table', 'ggrepel')
+install_load('plyr', 'ggplot2', 'reshape2', 'grid', 'gridExtra', 'labeling', 'data.table', 'ggrepel', 'irr')
 
 ## Load data
 vol.modal.data.age.reg <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/ageReg/volumeData.csv')
@@ -14,8 +14,7 @@ tr.modal.data.age.reg <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/ageReg
 ## Declare any functions
 returnPerfBin <- function(data, inputCol) {
     
-    data$F1_Exec_Comp_Cog_Accuracy
-    quantiles <- quantile(data$F1_Exec_Comp_Cog_Accuracy, c(0,.33,.67,1))
+    quantiles <- quantile(data[,inputCol], c(0,.33,.67,1))
     
     data$perfBin <- 0
     data$perfBin[which(data$F1_Exec_Comp_Cog_Accuracy < quantiles[2])] <- 'lo'
@@ -124,11 +123,12 @@ reorganizeLobeOrder <- function(dataFrame, lobeOfInterest){
 ## Now in a loop go through all of the values of the factor scores
 ## that we want to return ROI importance for
 tmpDF <- vol.modal.data.age.reg
+allData <- NULL
 for(s in names(tmpDF)[7:16]){
 
 ## Create our static perf bin
 tmpDF <- vol.modal.data.age.reg
-tmpDF <- returnPerfBin(tmpDF, tmpDF[,s])
+tmpDF <- returnPerfBin(tmpDF, s)
 outCol <- tmpDF[,c('bblid','scanid','perfBin')]
 colnames(outCol)[3] <- paste('perfCol', 1, sep='')
 static.perf.bin <- outCol
@@ -188,5 +188,20 @@ output.data$ROI <- paste(output.data$ROI, output.data$hemisphere)
 output.data <- reshape(data=output.data, direction="wide", idvar="ROI", timevar='Gender', v.names='sumEffectSize')
 output.data$lobe <- revalue(output.data$lobe, replace=c("Basal Ganglia"="Basalstriatal", "Limbic"="Limbic", "Frontal Orbital"="Frontal", "Frontal Dorsal"="Frontal", "Temporal"="Temporal", "Parietal"="Parietal", "Occipital"="Occipital","Cerebellum"="Cerebellum"))
 toWrite <- output.data[,c(1,2,4,33,34)]
+if(identical(dim(allData), NULL)){
+  allData <- toWrite
+  colnames(allData)[4:5] <- paste(s, colnames(toWrite)[4:5], sep='_')
+}
+else{
+  colnames(toWrite)[4:5] <- paste(s, colnames(toWrite)[4:5], sep='_')
+  allData <- cbind(allData, toWrite[,4:5])
+}
 write.csv(toWrite, paste(s, "SummedES.csv", sep=''), quote=F, row.names=F)
 }
+
+# Now create a corellation matrix for these values
+corrplot(cor(allData[,grep('Male', names(allData))], method='s'))
+corrplot(cor(allData[,grep('Female', names(allData))], method='s'))
+
+## It looks like there is more varaince across genders than there is across factor scores 
+## for this exercise which is kinda a bummer.
