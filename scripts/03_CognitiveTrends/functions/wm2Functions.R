@@ -36,6 +36,7 @@ organizeWM2ROINames <- function(dataFrame){
   outputDataFrame <- dataFrame
   na.column <- rep(NA,length(outputDataFrame$ROI))
   outputDataFrame$ROI_readable <- na.column
+  outputDataFrame$ROI_readable <- outputDataFrame$ROI
   
   # Now add a lobe to each row
   outputDataFrame$lobe <- na.column
