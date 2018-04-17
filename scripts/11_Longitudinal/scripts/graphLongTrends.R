@@ -311,6 +311,45 @@ for(i in summaryMetrics){
 }
 dev.off()
 
+# Now plot persist vs TD
+pdf('ageXAxisTDVsPersist.pdf', height=20, width=28)
+index <- 1
+for(i in summaryMetrics){
+  colVal <- grep(i, names(all.data))
+  if(length(colVal)>1){
+    colVal <- colVal[7]
+  }
+  toPlot <- all.data[complete.cases(all.data[,colVal]),]
+  toPlot <- toPlot[-which(toPlot$pncGrpPsychosisCl==""),]
+  toPlot <- toPlot[which(toPlot$bblid %in% names(which(table(toPlot$bblid)>1))),]
+  toPlot <- toPlot[-which(toPlot$pncGrpPsychosisCl=="Emergent" | toPlot$pncGrpPsychosisCl=="Flux" | toPlot$pncGrpPsychosisCl=="Resilient"),]
+  pasta.plot.one <- ggplot(toPlot[which(toPlot$sex==1),], aes(x=scanageMonths/12, y=toPlot[which(toPlot$sex==1),colVal])) +
+    geom_point(aes(shape=factor(goassessDxpmr7), size=4, fill=goassessDxpmr7)) +
+    geom_point(data = subset(toPlot, goassessDxpmr7 == "TD" & sex == "1"), aes(x = scanageMonths/12, y = subset(toPlot, goassessDxpmr7 == "TD" & sex == "1")[, colVal],shape = goassessDxpmr7),size=3,  color='white') +
+    geom_line(aes(group=bblid, col=pncGrpPsychosisCl, alpha=.1)) +
+    geom_smooth(data=subset(toPlot, pncGrpPsychosisCl=="Persister" & sex=="1"), method='gam',formula = y ~ s(x, k=4),aes(x=scanageMonths/12, y=subset(toPlot, pncGrpPsychosisCl=="Persister" & sex=="1")[,colVal], group=pncGrpPsychosisCl, col=pncGrpPsychosisCl)) +
+    geom_smooth(data=subset(toPlot, pncGrpPsychosisCl=="TD" & sex=="1"), method='gam',formula = y ~ s(x, k=4),aes(x=scanageMonths/12, y=subset(toPlot, pncGrpPsychosisCl=="TD" & sex=="1")[,colVal], group=pncGrpPsychosisCl, col=pncGrpPsychosisCl)) +
+    ylab(i) +
+    theme_bw() +
+    theme(legend.position="bottom") +
+    ggtitle("Male") +
+    coord_cartesian(ylim=c(minVal[index], maxVal[index]))
+pasta.plot.two <- ggplot(toPlot[which(toPlot$sex==2),], aes(x=scanageMonths/12, y=toPlot[which(toPlot$sex==2),colVal])) +
+    geom_point(aes(shape=factor(goassessDxpmr7), size=4)) +
+    geom_point(data = subset(toPlot, goassessDxpmr7 == "TD" & sex == "2"), aes(x = scanageMonths/12, y = subset(toPlot, goassessDxpmr7 == "TD" & sex == "2")[, colVal],shape = goassessDxpmr7),size=3,  color='white') +
+    geom_line(aes(group=bblid, col=pncGrpPsychosisCl, alpha=.1)) +
+    geom_smooth(data=subset(toPlot, pncGrpPsychosisCl=="Persister" & sex=="2"), method='gam',formula = y ~ s(x, k=4),aes(x=scanageMonths/12, y=subset(toPlot, pncGrpPsychosisCl=="Persister" & sex=="2")[,colVal], group=pncGrpPsychosisCl, col=pncGrpPsychosisCl)) +
+    geom_smooth(data=subset(toPlot, pncGrpPsychosisCl=="TD" & sex=="2"), method='gam',formula = y ~ s(x, k=4),aes(x=scanageMonths/12, y=subset(toPlot, pncGrpPsychosisCl=="TD" & sex=="2")[,colVal], group=pncGrpPsychosisCl, col=pncGrpPsychosisCl)) +
+    ylab(i) +
+    theme_bw() +
+    ggtitle("Female") +
+    theme(legend.position="bottom") +
+    coord_cartesian(ylim=c(minVal[index], maxVal[index]))
+  multiplot(pasta.plot.one,pasta.plot.two, cols=2)
+  index <- index + 1
+}
+dev.off()
+
 # Now make an age by subject plot
 toPlot <- all.data[,complete.cases(all.data$scanageMonths)]
 toPlot <- toPlot[which(toPlot$bblid %in% names(which(table(toPlot$bblid)>1))),]
