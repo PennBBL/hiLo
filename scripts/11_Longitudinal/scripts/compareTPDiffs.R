@@ -68,7 +68,7 @@ for(s in summaryMetrics){
     if(dim(tmpDat)[1]>1){
       # Now if we have multiple time points find the minimum time, and compare everything to that guy
       tmpDatMin <- tmpDat[which(tmpDat$DOSCAN==min(tmpDat$DOSCAN)),]
-      tmpDat[,columnValue] <- (tmpDat[,columnValue] - tmpDatMin[,columnValue])/tmpDatMin[,columnValue]
+      tmpDat[,columnValue] <- ((tmpDat[,columnValue] - tmpDatMin[,columnValue])/tmpDatMin[,columnValue])*100
     }
     else{
       tmpDat[,columnValue] <- 0
@@ -98,10 +98,10 @@ for(i in summaryMetrics){
   pasta.plot.one <- ggplot(toPlot, aes(x=timeDiff, y=toPlot[,colVal])) + 
     geom_point() + 
     geom_line(aes(group=bblid, col=pncGrpPsychosisCl, alpha=.1)) +
-    #geom_smooth(method='gam',aes(group=pncGrpPsychosisCl, col=pncGrpPsychosisCl)) +
+    geom_smooth(method='gam',aes(group=pncGrpPsychosisCl, col=pncGrpPsychosisCl)) +
     ylab(i) +
     theme_bw() + 
-     coord_cartesian(ylim=c(-1, 1))
+     coord_cartesian(ylim=c(-100, 100))
   print(pasta.plot.one)
 }
 dev.off()
@@ -163,7 +163,8 @@ for(s in summaryMetrics){
   }
   tmpMat <- returnMeanSDValues(all.data[,columnValue], all.data$ageBin)
   #all.data[,columnValue] <- applyMeanandSD(tmpMat, all.data[,columnValue], all.data$ageBin)
-  all.data[,columnValue] <- residuals(lm(all.data))
+  index <- names(residuals(lm(all.data[,columnValue]~age+age2+age3, data=all.data)))
+  all.data[index,columnValue] <- scale(residuals(lm(all.data[,columnValue]~age+age2+age3, data=all.data)))
 }
 
 ## Now we need to plot the mean vs timepoint here - will also add summary mean trajectories 
@@ -182,10 +183,12 @@ for(s in summaryMetrics){
   plotVals <- summarySE(toPlot, measurevar=s, groupvars=c('timepoint', 'pncGrpPsychosisCl'), na.rm=T)
   plotVals <- plotVals[-which(plotVals$pncGrpPsychosisCl=='Flux'),]
   tmpPlot <- ggplot(plotVals, aes(x=as.factor(timepoint), y=plotVals[,4], shape=factor(pncGrpPsychosisCl), col=factor(pncGrpPsychosisCl))) + 
-    geom_point(size=5, position = position_jitterdodge(dodge.width = 0.9, jitter.width = 0.2)) +
-    geom_errorbar(aes(ymin=plotVals[,4]-ci, ymax=plotVals[,4]+ci), position = position_jitterdodge(dodge.width = 0.9, jitter.width = 0.2)) +
+    geom_point(size=5, position = position_jitterdodge(dodge.width = .9, jitter.width = .2)) +
+    geom_errorbar(aes(ymin=plotVals[,4]-ci, ymax=plotVals[,4]+ci), position = position_jitterdodge(dodge.width = .9, jitter.width = .2)) +
     theme_bw() +
-    ylab(paste(s)) + 
+    ylab(paste(s)) +
+    scale_x_discrete(limits = c("1","2","3"), expand=c(0,.5)) +
+    coord_cartesian(ylim=c(-2, 2))
     xlab("Timepoint")
   print(tmpPlot)
 }
@@ -223,9 +226,13 @@ for(s in summaryMetrics){
       columnValue <- grep(paste("^", s, "$", sep=''), names(all.data))
   }
   tmpMat <- returnMeanSDValues(all.data[which(all.data$Gender==1),columnValue], all.data$ageBin[which(all.data$Gender==1)])
-  all.data[which(all.data$Gender==1),columnValue] <- applyMeanandSD(tmpMat, all.data[which(all.data$Gender==1),columnValue], all.data$ageBin[which(all.data$Gender==1)])
+  #all.data[which(all.data$Gender==1),columnValue] <- applyMeanandSD(tmpMat, all.data[which(all.data$Gender==1),columnValue], all.data$ageBin[which(all.data$Gender==1)])
+  index <- names(residuals(lm(all.data[,columnValue]~age+age2+age3, data=all.data)))
+  all.data[index,columnValue] <- scale(residuals(lm(all.data[,columnValue]~age+age2+age3, data=all.data)))
   tmpMat <- returnMeanSDValues(all.data[which(all.data$Gender==2),columnValue], all.data$ageBin[which(all.data$Gender==2)])
-  all.data[which(all.data$Gender==2),columnValue] <- applyMeanandSD(tmpMat, all.data[which(all.data$Gender==2),columnValue], all.data$ageBin[which(all.data$Gender==2)])
+  #all.data[which(all.data$Gender==2),columnValue] <- applyMeanandSD(tmpMat, all.data[which(all.data$Gender==2),columnValue], all.data$ageBin[which(all.data$Gender==2)])
+  #index <- names(residuals(lm(all.data[which(all.data$sex==2),columnValue]~age+age2+age3, data=all.data[which(all.data$sex==2),])))
+  #all.data[index,columnValue] <- scale(residuals(lm(all.data[which(all.data$sex==2),columnValue]~age+age2+age3, data=all.data[which(all.data$sex==2),])))
 }
 minVal <- c(1100000, 550000,375000, 2.5, .77,35, .1, 300)
 maxVal <- c(1300000,850000,575000,4.5,.85,65,.2,650)
@@ -248,7 +255,9 @@ for(s in summaryMetrics){
     ylab(paste(s)) + 
     xlab("Timepoint") +
     ggtitle('Male') +
-    theme(legend.position="bottom",text = element_text(size=20))
+    theme(legend.position="bottom",text = element_text(size=20)) +
+    coord_cartesian(ylim=c(-2, 2)) +
+    scale_x_discrete(limits = c("1","2","3"), expand=c(0,.5))
   plotVals2 <- summarySE(toPlot[which(toPlot$Gender==2),], measurevar=s, groupvars=c('timepoint', 'pncGrpPsychosisCl'), na.rm=T)
   plotVals2 <- plotVals2[-which(plotVals2$pncGrpPsychosisCl=='Flux'),]
   tmpPlot2 <- ggplot(plotVals2, aes(x=as.factor(timepoint), y=plotVals2[,4], shape=factor(pncGrpPsychosisCl), col=factor(pncGrpPsychosisCl))) + 
@@ -258,7 +267,9 @@ for(s in summaryMetrics){
     ylab(paste(s)) + 
     xlab("Timepoint") +
     ggtitle('Female') +
-    theme(legend.position="bottom",text = element_text(size=20))
+    theme(legend.position="bottom",text = element_text(size=20)) +
+    coord_cartesian(ylim=c(-2, 2)) +
+    scale_x_discrete(limits = c("1","2","3"), expand=c(0,.5))
   multiplot(tmpPlot1, tmpPlot2, cols=2)
   index <- index + 1
 }
