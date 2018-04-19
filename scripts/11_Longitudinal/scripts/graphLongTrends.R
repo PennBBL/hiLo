@@ -208,7 +208,7 @@ for(i in summaryMetrics){
   }
   toPlot <- all.data[complete.cases(all.data[,colVal]),]
   toPlot <- toPlot[-which(toPlot$pncGrpPsych==""),]
-  toPlot <- toPlot[which(toPlot$bblid %in% names(which(table(toPlot$bblid)>2))),]
+  #toPlot <- toPlot[which(toPlot$bblid %in% names(which(table(toPlot$bblid)>2))),]
   toPlot$pncGrpPsych <- factor(toPlot$pncGrpPsych)
   pasta.plot.one <- ggplot(toPlot[which(toPlot$sex==1),], aes(x=scanageMonths/12, y=toPlot[which(toPlot$sex==1),colVal])) +
     geom_point(aes(shape=factor(goassessDxpmr7), size=4, fill=goassessDxpmr7)) +

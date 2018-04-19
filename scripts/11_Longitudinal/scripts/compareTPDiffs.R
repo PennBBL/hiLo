@@ -204,7 +204,7 @@ for(s in summaryMetrics){
   toPlot <- toPlot[-which(toPlot$pncGrpPsych==""),]
   toPlot <- toPlot[which(toPlot$bblid %in% names(which(table(toPlot$bblid)>1))),]
   plotVals <- summarySE(toPlot, measurevar=s, groupvars=c('pncGrpPsych'), na.rm=T)
-  plotVals <- plotVals[-which(plotVals$pncGrpPsychosisCl=='Flux'),]
+  plotVals <- plotVals[-which(plotVals$pncGrpPsych=='Flux'),]
   tmpPlot <- ggplot(plotVals, aes(y=plotVals[,3], x=factor(pncGrpPsych), col=factor(pncGrpPsych))) + 
     geom_point(size=5) + 
     geom_errorbar(aes(ymin=plotVals[,3]-ci, ymax=plotVals[,3]+ci),width = .2) +
