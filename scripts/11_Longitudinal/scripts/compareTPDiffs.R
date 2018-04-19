@@ -178,17 +178,18 @@ for(s in summaryMetrics){
     columnValue <- grep(paste("^", s, "$", sep=''), names(all.data))
   }
   toPlot <- all.data[complete.cases(all.data[,columnValue]),]
-  toPlot <- toPlot[-which(toPlot$pncGrpPsychosisCl==""),]
+  toPlot <- toPlot[-which(toPlot$pncGrpPsych==""),]
   toPlot <- toPlot[which(toPlot$bblid %in% names(which(table(toPlot$bblid)>1))),]
-  plotVals <- summarySE(toPlot, measurevar=s, groupvars=c('timepoint', 'pncGrpPsychosisCl'), na.rm=T)
-  plotVals <- plotVals[-which(plotVals$pncGrpPsychosisCl=='Flux'),]
-  tmpPlot <- ggplot(plotVals, aes(x=as.factor(timepoint), y=plotVals[,4], shape=factor(pncGrpPsychosisCl), col=factor(pncGrpPsychosisCl))) + 
+  plotVals <- summarySE(toPlot, measurevar=s, groupvars=c('timepoint', 'pncGrpPsych'), na.rm=T)
+  plotVals <- plotVals[-which(plotVals$pncGrpPsych=='Flux'),]
+  tmpPlot <- ggplot(plotVals, aes(x=as.factor(timepoint), y=plotVals[,4], shape=factor(pncGrpPsych), col=factor(pncGrpPsych))) + 
     geom_point(size=5, position = position_jitterdodge(dodge.width = .9, jitter.width = .2)) +
     geom_errorbar(aes(ymin=plotVals[,4]-ci, ymax=plotVals[,4]+ci), position = position_jitterdodge(dodge.width = .9, jitter.width = .2)) +
+    geom_line(aes(x=timepoint, y=plotVals[,4]),position = position_jitterdodge(dodge.width = .9, jitter.width = .2)) +
     theme_bw() +
     ylab(paste(s)) +
     scale_x_discrete(limits = c("1","2","3"), expand=c(0,.5)) +
-    coord_cartesian(ylim=c(-2, 2))
+    coord_cartesian(ylim=c(-2, 2)) +
     xlab("Timepoint")
   print(tmpPlot)
 }
@@ -200,11 +201,11 @@ for(s in summaryMetrics){
     columnValue <- grep(paste("^", s, "$", sep=''), names(all.data))
   }
   toPlot <- all.data[complete.cases(all.data[,columnValue]),]
-  toPlot <- toPlot[-which(toPlot$pncGrpPsychosisCl==""),]
+  toPlot <- toPlot[-which(toPlot$pncGrpPsych==""),]
   toPlot <- toPlot[which(toPlot$bblid %in% names(which(table(toPlot$bblid)>1))),]
-  plotVals <- summarySE(toPlot, measurevar=s, groupvars=c('pncGrpPsychosisCl'), na.rm=T)
+  plotVals <- summarySE(toPlot, measurevar=s, groupvars=c('pncGrpPsych'), na.rm=T)
   plotVals <- plotVals[-which(plotVals$pncGrpPsychosisCl=='Flux'),]
-  tmpPlot <- ggplot(plotVals, aes(y=plotVals[,3], x=factor(pncGrpPsychosisCl), col=factor(pncGrpPsychosisCl))) + 
+  tmpPlot <- ggplot(plotVals, aes(y=plotVals[,3], x=factor(pncGrpPsych), col=factor(pncGrpPsych))) + 
     geom_point(size=5) + 
     geom_errorbar(aes(ymin=plotVals[,3]-ci, ymax=plotVals[,3]+ci),width = .2) +
     theme_bw() +
@@ -244,13 +245,14 @@ for(s in summaryMetrics){
     columnValue <- grep(paste("^", s, "$", sep=''), names(all.data))
   }
   toPlot <- all.data[complete.cases(all.data[,columnValue]),]
-  toPlot <- toPlot[-which(toPlot$pncGrpPsychosisCl==""),]
+  toPlot <- toPlot[-which(toPlot$pncGrpPsych==""),]
   toPlot <- toPlot[which(toPlot$bblid %in% names(which(table(toPlot$bblid)>1))),]
-  plotVals1 <- summarySE(toPlot[which(toPlot$Gender==1),], measurevar=s, groupvars=c('timepoint', 'pncGrpPsychosisCl'), na.rm=T)
-  plotVals1 <- plotVals1[-which(plotVals1$pncGrpPsychosisCl=='Flux'),]
-  tmpPlot1 <- ggplot(plotVals1, aes(x=as.factor(timepoint), y=plotVals1[,4], shape=factor(pncGrpPsychosisCl), col=factor(pncGrpPsychosisCl))) + 
+  plotVals1 <- summarySE(toPlot[which(toPlot$Gender==1),], measurevar=s, groupvars=c('timepoint', 'pncGrpPsych'), na.rm=T)
+  plotVals1 <- plotVals1[-which(plotVals1$pncGrpPsych=='Flux'),]
+  tmpPlot1 <- ggplot(plotVals1, aes(x=as.factor(timepoint), y=plotVals1[,4], shape=factor(pncGrpPsych), col=factor(pncGrpPsych))) + 
     geom_point(size=5, position = position_jitterdodge(dodge.width = 0.9, jitter.width = 0.2)) + 
     geom_errorbar(aes(ymin=plotVals1[,4]-ci, ymax=plotVals1[,4]+ci),, position = position_jitterdodge(dodge.width = 0.9, jitter.width = 0.2)) +
+    geom_line(aes(x=timepoint, y=plotVals1[,4]),position = position_jitterdodge(dodge.width = .9, jitter.width = .2)) +
     theme_bw() +
     ylab(paste(s)) + 
     xlab("Timepoint") +
@@ -258,11 +260,12 @@ for(s in summaryMetrics){
     theme(legend.position="bottom",text = element_text(size=20)) +
     coord_cartesian(ylim=c(-2, 2)) +
     scale_x_discrete(limits = c("1","2","3"), expand=c(0,.5))
-  plotVals2 <- summarySE(toPlot[which(toPlot$Gender==2),], measurevar=s, groupvars=c('timepoint', 'pncGrpPsychosisCl'), na.rm=T)
-  plotVals2 <- plotVals2[-which(plotVals2$pncGrpPsychosisCl=='Flux'),]
-  tmpPlot2 <- ggplot(plotVals2, aes(x=as.factor(timepoint), y=plotVals2[,4], shape=factor(pncGrpPsychosisCl), col=factor(pncGrpPsychosisCl))) + 
+  plotVals2 <- summarySE(toPlot[which(toPlot$Gender==2),], measurevar=s, groupvars=c('timepoint', 'pncGrpPsych'), na.rm=T)
+  plotVals2 <- plotVals2[-which(plotVals2$pncGrpPsych=='Flux'),]
+  tmpPlot2 <- ggplot(plotVals2, aes(x=as.factor(timepoint), y=plotVals2[,4], shape=factor(pncGrpPsych), col=factor(pncGrpPsych))) + 
     geom_point(size=5, position = position_jitterdodge(dodge.width = 0.9, jitter.width = 0.2)) + 
     geom_errorbar(aes(ymin=plotVals2[,4]-ci, ymax=plotVals2[,4]+ci),, position = position_jitterdodge(dodge.width = 0.9, jitter.width = 0.2)) +
+    geom_line(aes(x=timepoint, y=plotVals2[,4]),position = position_jitterdodge(dodge.width = .9, jitter.width = .2)) +
     theme_bw() +
     ylab(paste(s)) + 
     xlab("Timepoint") +
