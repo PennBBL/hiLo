@@ -1,3 +1,5 @@
+library('reshape2')
+
 # load all data
 basePath <- '/home/adrose/dataPrepForHiLoPaper/data/rawData/n1601_'
 # Create a loop to load, and merge all data
@@ -199,6 +201,8 @@ for(z in 1:length(suffixVals)){
   tmp <- read.csv(paste(basePath, i, sep=''))
   print(paste(z,dim(tmp)))
   tmp[which(tmp[e]!=bV),grep(g, names(tmp))] <- NA
+  # Now merge the health exclude values
+  tmp <- merge(tmp, health.values)
   if(z > 4){
     checkGrep <- grep('t1Exclude', names(tmp))
     if(length(checkGrep) > 0 ){
@@ -338,5 +342,74 @@ tmpDatWithCog <- merge(tmpDatWithCog, longClinFacScore, by=c('bblid', 'timepoint
 all.data <- merge(allData, tmpDatWithCog, by=c('bblid', 'scanid'), all=T)
 all.data <- all.data[paste(all.data$bblid, all.data$scanid) %in% paste(allData$bblid, allData$scanid),]
 all.data[all.data==""] <- NA
+## Now see if we can fix those NA timepoints
+na.timepoint.vals <- dcast(data=img.data, bblid~timepoint)
+## Find the subjects with any NA timepoints
+na.subjs <- na.timepoint.vals[which(na.timepoint.vals[,4]==1),]
+# Now find all of our subjects with NA timepoints
+na.vals <- dcast(data=all.data, bblid~timepoint)
+na.subjs.index  <- which(na.vals[,5]==1)
+# Now correct the subjects w/o TP 1 values
+tp.one.vals <- na.vals[which(na.vals[,2]==0 & na.vals[,5]==1),1]
+tp.one.vals <- c(tp.one.vals, na.vals[which(na.vals[,2]==0 & na.vals[,5]==2),1])[-62]
+tp.two.vals <- na.vals[which(na.vals[,2]==1 & na.vals[,5]==1 & na.vals[,3]==0),1]
+tp.two.vals <- append(tp.two.vals, na.vals[which(na.vals[,2]==1 & na.vals[,5]==2 & na.vals[,3]==0),1])
+tp.three.vals <- na.vals[which(na.vals[,2]==1 & na.vals[,5]==1 & na.vals[,3]==1 & na.vals[,4]==0),1]
+tp.three.vals <- append(tp.three.vals, '89115')
+
+# Now we need to go through the subjects and modify the correct tp to the
+# correct tp value
+
+# I am going to do this in a loop, find the minimum scanid value
+# and then modify the appropriate TP value
+table(all.data$timepoint)
+for(b in tp.one.vals){
+    # Find the minimum scanid value
+    scanidVals <- all.data[which(all.data$bblid==b),'scanid']
+    minSID <- min(scanidVals)
+    all.data[which(all.data$bblid==b & all.data$scanid==minSID),'timepoint'] <- 1
+}
+table(all.data$timepoint)
+
+# Now do TP2
+table(all.data$timepoint)
+for(b in tp.two.vals){
+    # Find the next scanid larger than the minimum
+    scanidVals <- all.data[which(all.data$bblid==b),'scanid']
+    if(length(scanidVals)==2){
+      cSID <- max(scanidVals)
+    }
+    if(length(scanidVals)==3){
+      print('foo')
+      cSID <- median(scanidVals)
+    }
+    all.data[which(all.data==b & all.data$scanid==cSID),'timepoint'] <- 2
+}
+table(all.data$timepoint)
+
+# Now do TP3
+table(all.data$timepoint)
+for(b in tp.three.vals){
+    # Find the minimum scanid value
+    scanidVals <- all.data[which(all.data$bblid==b),'scanid']
+    minSID <- max(scanidVals)
+    all.data[which(all.data$bblid==b & all.data$scanid==minSID),'timepoint'] <- 3
+}
+table(all.data$timepoint)
+
+
+# Awesome now we have a more correct tp variable!
+# lets check this first though...
+ch.vals <- dcast(data=all.data, bblid~timepoint)
+
+## Looks like we had a couple of nefarious subjects
+## time to make some manual corrections =(
+bad.bblid <- ch.vals[which(ch.vals[,5]!=0),]
+all.data[which(all.data$bblid==bad.bblid[1,1] & is.na(all.data$timepoint)),'timepoint'] <- 2
+all.data[which(all.data$bblid==bad.bblid[2,1] & is.na(all.data$timepoint)),'timepoint'] <- 2
+all.data[which(all.data$bblid==bad.bblid[3,1] & is.na(all.data$timepoint)),'timepoint'] <- c(1,2)
+all.data$tpvalue <- all.data$timepoint
+all.data <- all.data[,-which(names(all.data)=='timepoint')]
+
 fileName <- paste('/home/adrose/forRuben/data/n2416_imagingDataDump_', Sys.Date(), '.csv', sep='')
 write.csv(all.data, fileName, quote=F, row.names=F, , na="")
