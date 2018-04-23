@@ -202,7 +202,7 @@ for(z in 1:length(suffixVals)){
   print(paste(z,dim(tmp)))
   tmp[which(tmp[e]!=bV),grep(g, names(tmp))] <- NA
   # Now merge the health exclude values
-  tmp <- merge(tmp, health.values)
+  tmp <- merge(tmp, health.values, all=T)
   if(z > 4){
     checkGrep <- grep('t1Exclude', names(tmp))
     if(length(checkGrep) > 0 ){
@@ -343,7 +343,7 @@ all.data <- merge(allData, tmpDatWithCog, by=c('bblid', 'scanid'), all=T)
 all.data <- all.data[paste(all.data$bblid, all.data$scanid) %in% paste(allData$bblid, allData$scanid),]
 all.data[all.data==""] <- NA
 ## Now see if we can fix those NA timepoints
-na.timepoint.vals <- dcast(data=img.data, bblid~timepoint)
+na.timepoint.vals <- dcast(data=all.data, bblid~timepoint)
 ## Find the subjects with any NA timepoints
 na.subjs <- na.timepoint.vals[which(na.timepoint.vals[,4]==1),]
 # Now find all of our subjects with NA timepoints
@@ -356,10 +356,8 @@ tp.two.vals <- na.vals[which(na.vals[,2]==1 & na.vals[,5]==1 & na.vals[,3]==0),1
 tp.two.vals <- append(tp.two.vals, na.vals[which(na.vals[,2]==1 & na.vals[,5]==2 & na.vals[,3]==0),1])
 tp.three.vals <- na.vals[which(na.vals[,2]==1 & na.vals[,5]==1 & na.vals[,3]==1 & na.vals[,4]==0),1]
 tp.three.vals <- append(tp.three.vals, '89115')
-
 # Now we need to go through the subjects and modify the correct tp to the
 # correct tp value
-
 # I am going to do this in a loop, find the minimum scanid value
 # and then modify the appropriate TP value
 table(all.data$timepoint)
@@ -410,6 +408,9 @@ all.data[which(all.data$bblid==bad.bblid[2,1] & is.na(all.data$timepoint)),'time
 all.data[which(all.data$bblid==bad.bblid[3,1] & is.na(all.data$timepoint)),'timepoint'] <- c(1,2)
 all.data$tpvalue <- all.data$timepoint
 all.data <- all.data[,-which(names(all.data)=='timepoint')]
-
+## Now load the cognitive non age regressed data
+cog.data.two <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/n2416ClinicalDemoPsycho/CNB_Factor_Scores_GO1-GO2-GO3_NON-AGE-REGRESSED_wdates.csv')
+all.data.two <- merge(all.data, cog.data.two, all=T)
+all.data.two <- all.data.two[complete.cases(all.data.two$scanid),] 
 fileName <- paste('/home/adrose/forRuben/data/n2416_imagingDataDump_', Sys.Date(), '.csv', sep='')
-write.csv(all.data, fileName, quote=F, row.names=F, , na="")
+write.csv(all.data.two, fileName, quote=F, row.names=F, , na="")
