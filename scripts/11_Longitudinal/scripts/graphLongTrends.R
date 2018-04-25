@@ -196,10 +196,10 @@ true.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/n2416ClinicalDemoP
 all.data <- all.data[all.data$bblid %in% true.data$bblid,]
 ## Now lets make our plots
 summaryMetrics <- c('mprage_jlf_vol_TBV', 'mprage_jlf_vol_TBGM', 'mprage_jlf_vol_TBWM', 'mprage_jlf_ct_MeanCT','mprage_jlf_gmd_MeanGMD', 'pcasl_jlf_cbf_MeanWholeBrainCBF', 'rest_jlf_reho_MeanReho', 'rest_jlf_alff_MeanALFF','NAR_F1_Exec_Comp_Cog_Accuracy', 'NAR_F2_Social_Cog_Accuracy', 'NAR_F3_Memory_Accuracy', 'NAR_F1_Slow_Speed', 'NAR_F2_Fast_Speed', 'NAR_F3_Memory_Speed', 'NAR_F1_Social_Cognition_Efficiency', 'NAR_F2_Complex_Reasoning_Efficiency', 'NAR_F3_Executive_Efficiency', 'NAR_F4_Memory_Efficiency', 'Psychosis')
+minVal <- c(800000, 500000, 300000,2.5,.7,25,.05,200,-8,-8,-8,-8,-8,-8,-8,-8,-8,-8,-1)
+maxVal <- c(1610000,1000000,700000,4.5,.95,110,.3,1000,3,3,3,3,3,3,3,3,3,3,7.5)
 pdf('ageXAxisWithpncGrpPsychosisCl.pdf', height=20, width=28)
 options(digits=7)
-minVal <- c(800000, 500000, 300000,2.5,.7,25,.05,200,-2,-2,-2,-2,-2,-2,-2,-2,-2,-2,-1)
-maxVal <- c(1610000,1000000,700000,4.5,.95,110,.3,1000,2,2,2,2,2,2,2,2,2,2,7.5)
 index <- 1
 for(i in summaryMetrics){
   colVal <- grep(i, names(all.data))

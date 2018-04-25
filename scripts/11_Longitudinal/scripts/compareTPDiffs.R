@@ -156,6 +156,7 @@ write.csv(outMatAll, "outputAgreementValues.csv", quote=F, row.names=T)
 ## We are also going to expand our summary metrics to include the imaging summary values
 summaryMetrics <- c('F1_Exec_Comp_Cog_Accuracy', 'F2_Social_Cog_Accuracy', 'F3_Memory_Accuracy', 'F1_Slow_Speed', 'F2_Memory_Speed', 'F3_Fast_Speed', 'F1_Social_Cognition_Efficiency', 'F2_Complex_Reasoning_Efficiency', 'F3_Memory_Efficiency', 'F4_Executive_Efficiency', 'Psychosis', 'Depression', 'Mania', 'Overall_Psychopathology_SIMPLE', 'Depression_SIMPLE', 'Mania_SIMPLE')
 all.data <- freeze
+all.data$pncGrpPsych <- factor(all.data$pncGrpPsych, levels=c("Persister", "Resilient", "Emergent", "TD", "Flux", ""))
 for(s in summaryMetrics){
   columnValue <- grep(s, names(all.data))
     if(length(columnValue)>1){
@@ -171,7 +172,7 @@ for(s in summaryMetrics){
 ## for each of our clinical labels
 summaryMetrics <- c('F1_Exec_Comp_Cog_Accuracy', 'F2_Social_Cog_Accuracy', 'F3_Memory_Accuracy', 'F1_Slow_Speed', 'F2_Memory_Speed', 'F3_Fast_Speed', 'F1_Social_Cognition_Efficiency', 'F2_Complex_Reasoning_Efficiency', 'F3_Memory_Efficiency', 'F4_Executive_Efficiency', 'Psychosis', 'Depression', 'Mania', 'Overall_Psychopathology_SIMPLE', 'Depression_SIMPLE', 'Mania_SIMPLE')
 options(digits=7)
-pdf("tpVsSummaryFactorScoresMetric.pdf")
+pdf("tpVsSummaryFactorScoresMetric.pdf", width=18, height=16)
 for(s in summaryMetrics){
   columnValue <- grep(s, names(all.data))
   if(length(columnValue)>1){
@@ -183,9 +184,9 @@ for(s in summaryMetrics){
   plotVals <- summarySE(toPlot, measurevar=s, groupvars=c('timepoint', 'pncGrpPsych'), na.rm=T)
   plotVals <- plotVals[-which(plotVals$pncGrpPsych=='Flux'),]
   tmpPlot <- ggplot(plotVals, aes(x=as.factor(timepoint), y=plotVals[,4], shape=factor(pncGrpPsych), col=factor(pncGrpPsych))) + 
-    geom_point(size=5, position = position_jitterdodge(dodge.width = .9, jitter.width = .2)) +
-    geom_errorbar(aes(ymin=plotVals[,4]-ci, ymax=plotVals[,4]+ci), position = position_jitterdodge(dodge.width = .9, jitter.width = .2)) +
-    geom_line(aes(x=timepoint, y=plotVals[,4]),position = position_jitterdodge(dodge.width = .9, jitter.width = .2)) +
+    geom_point(size=5, position=position_dodge(width=0.5)) +
+    geom_errorbar(aes(ymin=plotVals[,4]-ci, ymax=plotVals[,4]+ci), position=position_dodge(width=0.5)) +
+    geom_line(aes(x=timepoint, y=plotVals[,4]), position=position_dodge(width=0.5)) +
     theme_bw() +
     ylab(paste(s)) +
     scale_x_discrete(limits = c("1","2","3"), expand=c(0,.5)) +
@@ -238,7 +239,7 @@ for(s in summaryMetrics){
 minVal <- c(1100000, 550000,375000, 2.5, .77,35, .1, 300)
 maxVal <- c(1300000,850000,575000,4.5,.85,65,.2,650)
 index <- 1
-pdf("tpVsSummaryImagingScoresMetric.pdf", width=20, height=20)
+pdf("tpVsSummaryImagingScoresMetric.pdf", width=24, height=16)
 for(s in summaryMetrics){
   columnValue <- grep(s, names(all.data))
   if(length(columnValue)>1){
@@ -250,9 +251,9 @@ for(s in summaryMetrics){
   plotVals1 <- summarySE(toPlot[which(toPlot$Gender==1),], measurevar=s, groupvars=c('timepoint', 'pncGrpPsych'), na.rm=T)
   plotVals1 <- plotVals1[-which(plotVals1$pncGrpPsych=='Flux'),]
   tmpPlot1 <- ggplot(plotVals1, aes(x=as.factor(timepoint), y=plotVals1[,4], shape=factor(pncGrpPsych), col=factor(pncGrpPsych))) + 
-    geom_point(size=5, position = position_jitterdodge(dodge.width = 0.9, jitter.width = 0.2)) + 
-    geom_errorbar(aes(ymin=plotVals1[,4]-ci, ymax=plotVals1[,4]+ci),, position = position_jitterdodge(dodge.width = 0.9, jitter.width = 0.2)) +
-    geom_line(aes(x=timepoint, y=plotVals1[,4]),position = position_jitterdodge(dodge.width = .9, jitter.width = .2)) +
+    geom_point(size=5, position=position_dodge(width=0.5)) + 
+    geom_errorbar(aes(ymin=plotVals1[,4]-ci, ymax=plotVals1[,4]+ci), position=position_dodge(width=0.5)) +
+    geom_line(aes(x=timepoint, y=plotVals1[,4]),position=position_dodge(width=0.5)) +
     theme_bw() +
     ylab(paste(s)) + 
     xlab("Timepoint") +
@@ -263,9 +264,9 @@ for(s in summaryMetrics){
   plotVals2 <- summarySE(toPlot[which(toPlot$Gender==2),], measurevar=s, groupvars=c('timepoint', 'pncGrpPsych'), na.rm=T)
   plotVals2 <- plotVals2[-which(plotVals2$pncGrpPsych=='Flux'),]
   tmpPlot2 <- ggplot(plotVals2, aes(x=as.factor(timepoint), y=plotVals2[,4], shape=factor(pncGrpPsych), col=factor(pncGrpPsych))) + 
-    geom_point(size=5, position = position_jitterdodge(dodge.width = 0.9, jitter.width = 0.2)) + 
-    geom_errorbar(aes(ymin=plotVals2[,4]-ci, ymax=plotVals2[,4]+ci),, position = position_jitterdodge(dodge.width = 0.9, jitter.width = 0.2)) +
-    geom_line(aes(x=timepoint, y=plotVals2[,4]),position = position_jitterdodge(dodge.width = .9, jitter.width = .2)) +
+    geom_point(size=5, position=position_dodge(width=0.5)) + 
+    geom_errorbar(aes(ymin=plotVals2[,4]-ci, ymax=plotVals2[,4]+ci),position=position_dodge(width=0.5)) +
+    geom_line(aes(x=timepoint, y=plotVals2[,4]),position=position_dodge(width=0.5)) +
     theme_bw() +
     ylab(paste(s)) + 
     xlab("Timepoint") +
