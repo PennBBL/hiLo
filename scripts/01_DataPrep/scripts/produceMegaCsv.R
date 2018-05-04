@@ -342,6 +342,10 @@ tmpDatWithCog <- merge(tmpDatWithCog, longClinFacScore, by=c('bblid', 'timepoint
 all.data <- merge(allData, tmpDatWithCog, by=c('bblid', 'scanid'), all=T)
 all.data <- all.data[paste(all.data$bblid, all.data$scanid) %in% paste(allData$bblid, allData$scanid),]
 all.data[all.data==""] <- NA
+## Now add the correct demographic values
+long.demo.vals <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/n2416ClinicalDemoPsycho/n2416_demographics_20170310.csv')
+all.data <- merge(long.demo.vals, all.data, by=c('bblid', 'scanid'), suffixes = c("",".IncompleteVals"))
+all.data <- all.data[,-grep("IncompleteVals", names(all.data))]
 ## Now see if we can fix those NA timepoints
 na.timepoint.vals <- dcast(data=all.data, bblid~timepoint)
 ## Find the subjects with any NA timepoints
