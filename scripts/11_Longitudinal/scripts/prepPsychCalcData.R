@@ -73,3 +73,22 @@ write.csv(toWrite, "forTpotPsychosisVarSelect.csv", quote=F, row.names=F)
 
 ## Here is the tpot call I will use on my local machine
 ## tpot forTpotPsychosisVarSelect.csv -is , -target y -mode classification -scoring roc_auc -v 2 -cf forTpotPsych/
+
+## Now I want to predict these labels based on the trajectory of these values
+## This will have to be done across timepoint 1 and 2
+## This is going to be done in a for loop, and will likley take some time
+## FIrst thing we need to do is isolate timepoints 1 and 2
+all.data.tu <- all.data[which(all.data$bblid %in% all.data$bblid[which(all.data$tpvalue==2)]),]
+all.data.tu <- all.data.tu[which(all.data.tu$tpvalue!=3),]
+
+## Now I need to go through every column
+all.data.traj <- all.data.tu
+loop.values <- c(grep('_jlf', names(all.data.tu)), grep('jhutract', names(all.data.tu)))
+## Now for each of these imaging modalities go through and find a growth rate
+all.data.out <- all.data.traj
+for(q in loop.values){
+
+  for(b in unique(all.data.traj$bblid)){
+    ## Now I need 
+  }
+}
