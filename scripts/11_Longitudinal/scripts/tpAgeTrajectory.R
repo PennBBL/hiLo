@@ -25,11 +25,13 @@ for(i in summaryMetrics){
     colVal <- colVal[7]
   }
   toPlot <- all.data[complete.cases(all.data[,colVal]),]
+  toPlot <- toPlot[which(toPlot$bblid %in% names(which(table(toPlot$bblid)>0))),]
   toPlot <- toPlot[-which(toPlot$goassessDxpmr7=="TD"),]
+  toPlot <- toPlot[which(toPlot$scanageMonths/12<21.1),]
   toPlot$pncGrpPsych <- factor(toPlot$pncGrpPsych)
   pasta.plot.one <- ggplot(toPlot[which(toPlot$sex==1),], aes(x=scanageMonths/12, y=toPlot[which(toPlot$sex==1),colVal])) +
     geom_point() +
-    geom_smooth(method='lm') +
+    geom_smooth(method='gam', formula= y ~ s(x, k=4)) +
     ylab(i) +
     theme_bw() +
     theme(legend.position="bottom") +
@@ -38,7 +40,7 @@ for(i in summaryMetrics){
     facet_grid(.~tpvalue)
 pasta.plot.two <- ggplot(toPlot[which(toPlot$sex==2),], aes(x=scanageMonths/12, y=toPlot[which(toPlot$sex==2),colVal])) +
     geom_point() +
-    geom_smooth(method='lm') +
+    geom_smooth(method='gam', formula= y ~ s(x, k=4)) +
     ylab(i) +
     theme_bw() +
     ggtitle("Female") +
@@ -46,6 +48,9 @@ pasta.plot.two <- ggplot(toPlot[which(toPlot$sex==2),], aes(x=scanageMonths/12, 
     coord_cartesian(ylim=c(minVal[index], maxVal[index])) +
     facet_grid(.~tpvalue)
   multiplot(pasta.plot.one,pasta.plot.two, cols=2)
+  # Now run an anova testing age ~ tp differences
+  tmpMod <- lm(toPlot[,colVal] ~ tpvalue * s(scanageMonths, k=4), data=toPlot)
+  print(c(i, summary(tmpMod)$coefficients['tpvalue:scanageMonths',]))
   index <- index + 1
 }
 dev.off()
