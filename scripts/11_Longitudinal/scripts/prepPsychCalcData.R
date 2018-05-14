@@ -7,7 +7,7 @@
 
 ## Load library(s)
 source('/home/adrose/hiLo/scripts/01_DataPrep/functions/functions.R')
-install_load('psych', 'mi', 'ForImp','methods', 'doParallel')
+install_load('psych', 'mi', 'ForImp','methods', 'doParallel', 'pROC')
 
 ## Declare any functions
 regressOutAge <- function(valuesToBeRegressed, ageColumn, sexColumn){
@@ -58,6 +58,8 @@ cog.data[,3:30] <- output
 
 ## Now we need to isolate to our labels of interest
 all.data.tu <- all.data[intersect(which(all.data$tpvalue==1),which(all.data$pncGrpPsychosisCl=="Persister" | all.data$pncGrpPsychosisCl=="Resilient")),]
+## Now prepare the demographic data
+demo.data <- all.data.tu[,c('bblid', 'sex', 'race', 'envSES', 'scanageMonths')]
 cog.data.out <- cog.data[cog.data$bblid %in% tmp.index,]
 clin.data.impute.out <- clin.data.impute[clin.data.impute.out$bblid %in% tmp.index,]
 
@@ -68,9 +70,18 @@ age.sex.bblid <- all.data.tu[,c(1,1649,1645)]
 
 # Now combine sex and age to our clinical and cog data and then age regress these variables
 cog.data.out <- merge(age.sex.bblid, cog.data.out)
-cog.data.out[,4:32] <- apply(cog.data.out, 2, function(x) regressOutAge(x, cog.data.out$scanageMonths, cog.data.out$sex))
+cog.data.out[,5:32] <- apply(cog.data.out[,5:32], 2, function(x) regressOutAge(x, cog.data.out$scanageMonths, cog.data.out$sex))
+
+# Now age regress our clinical data 
 clin.data.impute.out <- merge(age.sex.bblid, clin.data.impute.out)
 clin.data.impute.out[,4:114] <- apply(clin.data.impute.out[,4:114], 2, function(x) regressOutAge(x, clin.data.impute.out$scanageMonths, clin.data.impute.out$sex))
+
+# Now combine these two to create a data set with age regressed cog data 
+# and nonAR clinical data
+cog.and.clin <- merge(age.sex.bblid, cog.data.out)
+cog.and.clin <- merge(cog.and.clin, demo.data)
+cog.and.clin <- merge(cog.and.clin, clin.data.impute.out)
+
 
 ## Now isolate our variables of interest
 vars.of.interest <- c(217:228, 685:696, 815:828, 1205:1216, 1535:1630, 1634:1643, 1651, 1710:1712)
@@ -84,11 +95,23 @@ tmp.index <- merge(cog.data.out, all.data.tu, by='bblid')
 cog.data.out$y <- 0
 cog.data.out$y[which(tmp.index$pncGrpPsychosisCl=='Resilient')] <- 1
 write.csv(cog.data.out, "forTpotCogPsych.csv", quote=F, row.names=F)
+
+# Same thing for clinical
 tmp.index <- merge(clin.data.impute.out, all.data.tu, by='bblid')
 clin.data.impute.out$y <- 0
 clin.data.impute.out$y[which(tmp.index$pncGrpPsychosisCl=='Resilient')] <- 1
 write.csv(clin.data.impute.out, "forTpotClinPsych.csv", quote=F, row.names=F)
 
+# Et cetra
+tmp.index <- merge(demo.data, all.data.tu, by='bblid')
+demo.data$y <- 0
+demo.data$y[which(tmp.index$pncGrpPsychosisCl=='Resilient')] <- 1
+write.csv(demo.data, "demoData.csv", quote=F, row.names=F)
+
+tmp.index <- merge(cog.and.clin, all.data.tu, by='bblid')
+cog.and.clin$y <- 0
+cog.and.clin$y[which(tmp.index$pncGrpPsychosisCl=='Resilient')] <- 1
+write.csv(cog.and.clin, "cogClinDemo.csv", quote=F, row.names=F)
 
 ## Here is the tpot call I will use on my local machine
 ## tpot forTpotPsychosis.csv -is , -target y -mode classification -scoring roc_auc -v 2 -cf forTpotPsych/
@@ -97,13 +120,13 @@ write.csv(clin.data.impute.out, "forTpotClinPsych.csv", quote=F, row.names=F)
 all.data.tu$y <- 0
 all.data.tu$y[which(all.data.tu$pncGrpPsychosisCl=='Resilient')] <- 1
 img.names <- c(grep('_jlf', names(all.data.tu)), grep('jhutract', names(all.data.tu)))
-imgVals <- apply(all.data.tu[,img.names], 2, function(x) t.test(x~ all.data.tu$y)$statistic)
-index <- which(abs(imgVals)>1.8)
+imgVals <- apply(all.data.tu[,img.names], 2, function(x) auc(roc(all.data.tu$y~x)))
+index <- which(abs(imgVals)>.55)
 img.index <- img.names[index]
 ## Now do cog and clinical scores
 cog.names <- c(1631:1643, 1703:1711)
-cogVals <- apply(all.data.tu[,cog.names], 2, function(x) t.test(x~ all.data.tu$y)$statistic)
-index <- which(abs(cogVals)>1.7)
+cogVals <- apply(all.data.tu[,cog.names], 2, function(x) auc(roc(all.data.tu$y~x)))
+index <- which(abs(cogVals)>.55)
 cog.index <- cog.names[index]
 
 # Now add the envrinoment score
@@ -111,7 +134,8 @@ out.index <- c(img.index, cog.index, 1651, 1730)
 toWrite <- all.data.tu[,out.index]
 
 # Now explore imputation
-toImpute <- toWrite[,-c(93)]
+toImpute <- toWrite[,-c(251)]
+toImpute <- missing_data.frame(toImpute)
 toImpute <- mi(toImpute, parallel=T, seed=16)
 output <- complete(toImpute, 4)
 output.1 <- output[[1]][,1:92]
@@ -126,21 +150,3 @@ write.csv(toWrite, "forTpotPsychosisVarSelect.csv", quote=F, row.names=F)
 ## Here is the tpot call I will use on my local machine
 ## tpot forTpotPsychosisVarSelect.csv -is , -target y -mode classification -scoring roc_auc -v 2 -cf forTpotPsych/
 
-## Now I want to predict these labels based on the trajectory of these values
-## This will have to be done across timepoint 1 and 2
-## This is going to be done in a for loop, and will likley take some time
-## FIrst thing we need to do is isolate timepoints 1 and 2
-all.data.tu <- all.data[which(all.data$bblid %in% all.data$bblid[which(all.data$tpvalue==2)]),]
-all.data.tu <- all.data.tu[which(all.data.tu$tpvalue!=3),]
-
-## Now I need to go through every column
-all.data.traj <- all.data.tu
-loop.values <- c(grep('_jlf', names(all.data.tu)), grep('jhutract', names(all.data.tu)))
-## Now for each of these imaging modalities go through and find a growth rate
-all.data.out <- all.data.traj
-for(q in loop.values){
-
-  for(b in unique(all.data.traj$bblid)){
-    ## Now I need 
-  }
-}
