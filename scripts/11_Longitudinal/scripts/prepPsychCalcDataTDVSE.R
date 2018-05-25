@@ -27,10 +27,10 @@ ers.data <- read.csv("/home/tymoore/Risk_Calculator_FULL.csv")
 ers.data <- ers.data[,1:15]
 ## Quickly grab an index for bblid's to use
 ## Now we need to isolate to our labels of interest
-tmp.index <- all.data[intersect(which(all.data$tpvalue==1),which(all.data$pncGrpPsychosisCl=="Persister" | all.data$pncGrpPsychosisCl=="Resilient")),'bblid']
-tmp.index2 <- all.data[intersect(which(all.data$tpvalue==1),which(all.data$pncGrpPsychosisCl=="Persister" | all.data$pncGrpPsychosisCl=="Resilient")),'scanid']
+tmp.index <- all.data[intersect(which(all.data$tpvalue==1),which(all.data$pncGrpPsychosisCl=="TD" | all.data$pncGrpPsychosisCl=="Emergent")),'bblid']
+tmp.index2 <- all.data[intersect(which(all.data$tpvalue==1),which(all.data$pncGrpPsychosisCl=="TD" | all.data$pncGrpPsychosisCl=="Emergent")),'scanid']
 output <- cbind(tmp.index, tmp.index2)
-write.csv(output, "psVsResistSubj.csv", quote=F, row.names=F)
+write.csv(output, "tdVsEmergSubj.csv", quote=F, row.names=F)
 cog.data <- read.csv('/home/tymoore/n9498_cnb_zscores_all_frar_20161215.csv')
 cog.data <- cog.data[,c(1:28,47,48)]
 clin.data <- read.csv('/home/tymoore/GOASSESS_ITEMWISE.csv', na.strings=c("NA","NaN", " ", '.'))
@@ -62,7 +62,7 @@ output <- (output.1 + output.2 + output.3 + output.4 + output.5 + output.6 + out
 cog.data[,3:30] <- output
 
 ## Now we need to isolate to our labels of interest
-all.data.tu <- all.data[intersect(which(all.data$tpvalue==1),which(all.data$pncGrpPsychosisCl=="Persister" | all.data$pncGrpPsychosisCl=="Resilient")),]
+all.data.tu <- all.data[intersect(which(all.data$tpvalue==1),which(all.data$pncGrpPsychosisCl=="TD" | all.data$pncGrpPsychosisCl=="Emergent")),]
 ## Now prepare the demographic data
 demo.data <- all.data.tu[,c('bblid', 'sex', 'race', 'envSES', 'scanageMonths')]
 cog.data.out <- cog.data[cog.data$bblid %in% tmp.index,-2]
@@ -81,8 +81,6 @@ cog.data.out[,4:31] <- apply(cog.data.out[,4:31], 2, function(x) regressOutAge(x
 clin.data.impute.out <- merge(age.sex.bblid, clin.data.impute.out)
 clin.data.impute.out[,4:114] <- apply(clin.data.impute.out[,4:114], 2, function(x) regressOutAge(x, clin.data.impute.out$scanageMonths, clin.data.impute.out$sex))
 
-
-
 # Now combine these two to create a data set with age regressed cog data 
 # and nonAR clinical data
 cog.and.clin <- merge(age.sex.bblid, cog.data.out)
@@ -93,44 +91,44 @@ cog.and.clin <- merge(cog.and.clin, clin.data.impute.out)
 vars.of.interest <- c(217:228, 685:696, 815:826, 1205:1216, 1535:1546, 1559:1570, 1583:1630)
 toWrite <- all.data.tu[,vars.of.interest]
 toWrite$y <- 0
-toWrite$y[which(all.data.tu$pncGrpPsychosisCl=='Resilient')] <- 1
+toWrite$y[which(all.data.tu$pncGrpPsychosisCl=='Emergent')] <- 1
 toWrite <- toWrite[complete.cases(toWrite),]
 write.csv(toWrite, "forTpotImg.csv", quote=F, row.names=F)
 
 # Now write the cog data
 tmp.index <- merge(cog.data.out, all.data.tu, by='bblid')
 cog.data.out$y <- 0
-cog.data.out$y[which(tmp.index$pncGrpPsychosisCl=='Resilient')] <- 1
+cog.data.out$y[which(tmp.index$pncGrpPsychosisCl=='Emergent')] <- 1
 write.csv(cog.data.out, "forTpotCogPsych.csv", quote=F, row.names=F)
 
 # Same thing for clinical
 tmp.index <- merge(clin.data.impute.out, all.data.tu, by='bblid')
 clin.data.impute.out$y <- 0
-clin.data.impute.out$y[which(tmp.index$pncGrpPsychosisCl=='Resilient')] <- 1
+clin.data.impute.out$y[which(tmp.index$pncGrpPsychosisCl=='Emergent')] <- 1
 write.csv(clin.data.impute.out, "forTpotClinPsych.csv", quote=F, row.names=F)
 
 ## Now do ers data
 tmp.index <- merge(ers.data, all.data.tu, by='bblid')
 ers.data$y <- 0
-ers.data$y[which(tmp.index$pncGrpPsychosisCl=='Resilient')] <- 1
+ers.data$y[which(tmp.index$pncGrpPsychosisCl=='Emergent')] <- 1
 write.csv(ers.data, "forTpotErsPsych.csv", quote=F, row.names=F)
 
 # Et cetra
 tmp.index <- merge(demo.data, all.data.tu, by='bblid')
 demo.data$y <- 0
-demo.data$y[which(tmp.index$pncGrpPsychosisCl=='Resilient')] <- 1
+demo.data$y[which(tmp.index$pncGrpPsychosisCl=='Emergent')] <- 1
 write.csv(demo.data, "demoData.csv", quote=F, row.names=F)
 
 tmp.index <- merge(cog.and.clin, all.data.tu, by='bblid')
 cog.and.clin$y <- 0
-cog.and.clin$y[which(tmp.index$pncGrpPsychosisCl=='Resilient')] <- 1
+cog.and.clin$y[which(tmp.index$pncGrpPsychosisCl=='Emergent')] <- 1
 write.csv(cog.and.clin, "cogClinDemo.csv", quote=F, row.names=F)
 
 ## Now do imaging and cog and clin factor scores
 vars.of.interest <- c(217:228, 685:696, 815:826, 1205:1216, 1535:1546, 1559:1570, 1583:1643, 1710:1712, 1651)
 toWrite <- all.data.tu[,vars.of.interest]
 toWrite$y <- 0
-toWrite$y[which(all.data.tu$pncGrpPsychosisCl=='Resilient')] <- 1
+toWrite$y[which(all.data.tu$pncGrpPsychosisCl=='Emergent')] <- 1
 toWrite <- toWrite[complete.cases(toWrite),]
 write.csv(toWrite, "forTpotAll.csv", quote=F, row.names=F)
 q()
