@@ -5,7 +5,7 @@
 ## No differences will be taken
 
 ## Load library(s)
-install_load('ggplot2', 'reshape2')
+install_load('ggplot2', 'reshape2', 'plyr')
 
 ## Declare functions
 regressOutAge <- function(valuesToBeRegressed, ageColumn){
@@ -241,9 +241,10 @@ createGGPlotImage <- function(dataFrame, plotTitle, minValue, maxValue){
 
 ## Now create a function which will plot all of our values
 createGGPlotImage2 <- function(dataFrame, plotTitle, minValue, maxValue){
+  dataFrame$group <- revalue(dataFrame$group, c("High ERS // High Psychosis"="High Psychosis // Adverse","High ERS // Low Psychosis"="Low PS // Adverse","Low ERS // High Psychosis"="High PS // Benign","Low ERS // Low Psychosis"="Low PS // Benign"))
   plotToReturn <- ggplot(dataFrame, aes(y=value, x=ROI, group=group)) +
       geom_line(aes(linetype=group,color=group), size=1.5) +
-      geom_point(aes(shape=group, color=group), size=1.5) +
+      geom_point(aes(shape=group, color=group), size=2.5) +
       geom_errorbar(aes(x=ROI, ymin=value-se, ymax=value+se, color=group)) + 
       scale_y_continuous(limits=c(minValue, maxValue), 
                            breaks=round(seq(minValue, maxValue,.25), digits=2)) +
@@ -251,9 +252,9 @@ createGGPlotImage2 <- function(dataFrame, plotTitle, minValue, maxValue){
       ylab("Effect Size") +
       geom_hline(aes(yintercept=0), linetype="solid", colour="black", size=0.5) +
       scale_colour_manual(name = "group",
-                          values=c("High ERS // High Psychosis"="orange","High ERS // Low Psychosis"="light blue","Low ERS // High Psychosis"="red","Low ERS // Low Psychosis"="blue")) +
-      scale_linetype_manual(name = "group", values = c("High ERS // High Psychosis"="dotted","High ERS // Low Psychosis"="dotted","Low ERS // High Psychosis"="solid","Low ERS // Low Psychosis"="solid")) +
-      scale_shape_manual(name="group", values=c("High ERS // High Psychosis"="18","High ERS // Low Psychosis"="18","Low ERS // High Psychosis"="17","Low ERS // Low Psychosis"="9")) +
+                          values=c("High Psychosis // Adverse"="orange","Low PS // Adverse"="light blue","High PS // Benign"="red","Low PS // Benign"="blue")) +
+      scale_linetype_manual(name = "group", values = c("High Psychosis // Adverse"="solid","Low PS // Adverse"="solid","High PS // Benign"="solid","Low PS // Benign"="solid")) +
+      scale_shape_manual(name="group", values=c("High Psychosis // Adverse"="18","Low PS // Adverse"="18","High PS // Benign"="17","Low PS // Benign"="9")) +
       theme_bw() +
       theme(legend.position="top") +
       theme(text=element_text(size=20), axis.text.x = element_text(angle = 45, hjust = 1, face="bold"), 
@@ -503,8 +504,8 @@ output.data.frame$lobe[output.data.frame$lobe==9] <- "WM Lobe"
 ## Now isolate our individual modalities and produce our pretty names
 lobes.to.iter <- c("Basal Ganglia","Limbic","Frontal Orbital","Frontal Dorsal","Temporal","Parietal","Occipital","Cerebellum")
 modalities <- c('vol', 'gmd','cbf', 'tr','alff', 'reho')
-min.val <- c(-.7,-.5,-.5,-.6,-.5,-.5)
-max.val <- c(.8,.5,.6,.9,.8,.7)
+min.val <- c(-.7,-.7,-.5,-.6,-.5,-.5)
+max.val <- c(.8,.7,.6,.9,.6,.6)
 index <- 1
 for(m in modalities){
   tmp.data <- output.data.frame[which(output.data.frame$modality==m),]

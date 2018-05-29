@@ -29,7 +29,8 @@ ers.data <- ers.data[,1:15]
 ## Now we need to isolate to our labels of interest
 tmp.index <- all.data[intersect(which(all.data$tpvalue==1),which(all.data$pncGrpPsychosisCl=="Persister" | all.data$pncGrpPsychosisCl=="Resilient")),'bblid']
 tmp.index2 <- all.data[intersect(which(all.data$tpvalue==1),which(all.data$pncGrpPsychosisCl=="Persister" | all.data$pncGrpPsychosisCl=="Resilient")),'scanid']
-output <- cbind(tmp.index, tmp.index2)
+tmp.index3 <- all.data[intersect(which(all.data$tpvalue==1),which(all.data$pncGrpPsychosisCl=="Persister" | all.data$pncGrpPsychosisCl=="Resilient")),'pncGrpPsychosisCl']
+output <- cbind(tmp.index, tmp.index2, tmp.index3)
 write.csv(output, "psVsResistSubj.csv", quote=F, row.names=F)
 cog.data <- read.csv('/home/tymoore/n9498_cnb_zscores_all_frar_20161215.csv')
 cog.data <- cog.data[,c(1:28,47,48)]
