@@ -7,10 +7,10 @@ allData <- read.csv(paste(basePath, 'antsCtVol_jlfVol.csv', sep=''))
 allData <- allData[,-grep('Cerebral_White_Matter', names(allData))]
 allData[which(allData$t1Exclude==1),grep('mprage_jlf_vol_', names(allData))] <- NA
 
-suffixVals <- c('jlfCt.csv','jlfGMD.csv','jlfCc.csv','jlfCbf-Impute.csv','jlfTR.csv','jlfRD.csv','jlfAD.csv','jlfFA.csv','jlfAlff.csv','jlfReho.csv','jhuTRTracts.csv','jhuRDTracts.csv','jhuADTracts.csv','jhuFATracts.csv')
-exclusionVals <- c('t1Exclude', 't1Exclude', 't1Exclude', 'pcaslExclude', 'dti64Exclude', 'dti64Exclude', 'dti64Exclude', 'dti64Exclude','restExclude', 'restExclude','dti64Exclude','dti64Exclude','dti64Exclude','dti64Exclude')
-grepVals <- c('mprage_jlf_', 'mprage_jlf_', 'mprage_jlf', 'pcasl_jlf', 'dti_jlf', 'dti_jlf', 'dti_jlf', 'dti_jlf', 'rest_jlf', 'rest_jlf', 'dti_dtitk_', 'dti_dtitk_', 'dti_dtitk_', 'dti_dtitk_')
-binaryVal <- c(0,0,0,0,0,0,0,0,0,0,0,0,0,0)
+suffixVals <- c('jlfCt.csv','jlfGMD.csv','jlfCc.csv','jlfCbf-Impute.csv','jlfTR.csv','jlfRD.csv','jlfAD.csv','jlfFA.csv','jlfAlff.csv','jlfReho.csv','jhuTRTracts.csv','jhuRDTracts.csv','jhuADTracts.csv','jhuFATracts.csv','jhuTRLabels.csv', 'jhuRDLabels.csv','jhuADLabels.csv','jhuFALabels.csv')
+exclusionVals <- c('t1Exclude', 't1Exclude', 't1Exclude', 'pcaslExclude', 'dti64Exclude', 'dti64Exclude', 'dti64Exclude', 'dti64Exclude','restExclude', 'restExclude','dti64Exclude','dti64Exclude','dti64Exclude','dti64Exclude','dti64Exclude','dti64Exclude','dti64Exclude','dti64Exclude')
+grepVals <- c('mprage_jlf_', 'mprage_jlf_', 'mprage_jlf', 'pcasl_jlf', 'dti_jlf', 'dti_jlf', 'dti_jlf', 'dti_jlf', 'rest_jlf', 'rest_jlf', 'dti_dtitk_', 'dti_dtitk_', 'dti_dtitk_', 'dti_dtitk_', 'dti_dtitk_', 'dti_dtitk_', 'dti_dtitk_', 'dti_dtitk_')
+binaryVal <- c(0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0)
 for(z in 1:length(suffixVals)){
   # Now apply the exclusion
   i <- suffixVals[z] 
@@ -156,7 +156,7 @@ demo.data <- merge(demo.data, race.vals, by=intersect(names(demo.data), names(ra
 demo.data <- merge(demo.data, ses.vals, by=intersect(names(demo.data), names(ses.vals)))
 all.data <- merge(demo.data, allData, by=intersect(names(demo.data), names(allData)), all=T)
 all.data <- all.data[all.data$bblid %in% allData$bblid,]
-fileName <- paste('/home/adrose/forRuben/data/n1601_imagingDataDump_', Sys.Date(), '.csv', sep='')
+fileName <- paste('/home/adrose/forRuben/data/tmp/n1601_imagingDataDump_', Sys.Date(), '.csv', sep='')
 write.csv(all.data, fileName, quote=F, row.names=F)
 
 # Now limit it to only the subjects who we use in the hi Lo analysis
@@ -176,7 +176,7 @@ scanid.index <- data.values$scanid[acceptable.subjs]
 bblid.index <- bblid.index[bblid.index %in% health.values$bblid[which(health.values$incidentalExclude==0)]]
 bblid.index <- bblid.index[bblid.index %in% volume.data$bblid[which(volume.data$t1Exclude==0)]]
 all.data.hilo <- all.data[all.data$bblid %in% bblid.index,]
-fileName <- paste('/home/adrose/forRuben/data/n1601_hiLoDataDump_', Sys.Date(), '.csv', sep='')
+fileName <- paste('/home/adrose/forRuben/data/tmp/n1601_hiLoDataDump_', Sys.Date(), '.csv', sep='')
 write.csv(all.data.hilo, fileName, quote=F, row.names=F, na="")
 
 #### Now do the n2416 data
@@ -335,7 +335,7 @@ tmpDatWithCog <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/ageReg2416/vol
 tmpDatWithTP <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/n2416ClinicalDemoPsycho/n2416_pnc_protocol_validation_params_status_20170105.csv')
 tmpDatWithCog <- merge(tmpDatWithCog, tmpDatWithTP)
 tmpDatWithCog <- tmpDatWithCog[,c(1:29, 189)]
-longLabels <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/n2416ClinicalDemoPsycho/pnc_diagnosis_categorical_20170526.csv')
+longLabels <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/n2416ClinicalDemoPsycho/pnc_diagnosis_categorical-all_20170526.csv')
 longClinFacScore <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/n2416ClinicalDemoPsycho/longFacScore.csv')
 tmpDatWithCog <- merge(tmpDatWithCog, longLabels, all=T)
 tmpDatWithCog <- merge(tmpDatWithCog, longClinFacScore, by=c('bblid', 'timepoint'))
@@ -416,5 +416,5 @@ all.data <- all.data[,-which(names(all.data)=='timepoint')]
 cog.data.two <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/n2416ClinicalDemoPsycho/CNB_Factor_Scores_GO1-GO2-GO3_NON-AGE-REGRESSED_wdates.csv')
 all.data.two <- merge(all.data, cog.data.two, all=T)
 all.data.two <- all.data.two[complete.cases(all.data.two$scanid),] 
-fileName <- paste('/home/adrose/forRuben/data/n2416_imagingDataDump_', Sys.Date(), '.csv', sep='')
+fileName <- paste('/home/adrose/forRuben/data/tmp/n2416_imagingDataDump_', Sys.Date(), '.csv', sep='')
 write.csv(all.data.two, fileName, quote=F, row.names=F, , na="")
