@@ -116,6 +116,43 @@ for(p in 1:length(initVals)){
 # Now prepare the entire fil
 allOut <- cbind(vol.lobes, allVals)
 
+## Now I need to do DGM lobular values
+lobarVals <- rep(c(1,2),7)
+dgmVals <- c(77:80,82:83,89:90,95:100)
+tmpVolVals <- allData[,dgmVals]
+tmpOut <- NULL
+for(v in names(table(lobarVals))){
+  sumVal <- apply(tmpVolVals[, which(lobarVals == v)],1,function(x) sum(x, na.rm = T))
+  tmpOut <- cbind(tmpOut, sumVal)
+}
+vol.lobes.dgm <- tmpOut
+
+## Now go through all of our modalities with DGM values
+## and calculate the L and R DGM values
+initVal <- list()
+initVal[[1]] <- c(321,322,323,323,326,327,330,331,332,333,334,335,336,337)
+initVal[[2]] <- c(555,556,557,558,560,561,564,565,566,567,568,569,570,571)
+initVal[[3]] <- c(682,683,684,685,687,688,691,692,693,694,695,696,697,698)
+initVal[[4]] <- c(1202,1203,1204,1205,1206,1207,1210,1211,1212,1213,1214,1215,1216,1217)
+initVal[[5]] <- c(1319,1320,1321,1322,1323,1324,1327,1328,1329,1330,1331,1332,1333,1334)
+allValsDGM <- NULL
+for(p in 1:length(initVal)){
+  tmp.dat <- allData[,initVal[[p]]]
+  tmpOut <- NULL
+  for(v in names(table(lobarVals))){
+    tmp.dat.2 <- tmp.dat[,which(lobarVals==v)]
+    tmp.dat.vol <- tmpVolVals[,which(lobarVals==v)]
+    tmpOutVals <- NULL
+    for(z in 1:1601){
+      sqw <- weighted.mean(tmp.dat.2[z,], tmp.dat.vol[z,], na.rm=T)
+      tmpOutVals <- append(tmpOutVals, sqw)
+    }
+    tmpOut <- cbind(tmpOut, tmpOutVals)
+  }
+  allValsDGM <- cbind(allValsDGM, tmpOut)
+}
+allOutDGM <- cbind(vol.lobes.dgm, allValsDGM)
+
 # Now prepare the column names
 templatVals <- c("%MODALITY%_jlfLobe_%MEASURE%_R_Limbic_Lobe",
 "%MODALITY%_jlfLobe_%MEASURE%_L_Limbic_Lobe",
@@ -139,6 +176,21 @@ colnames(allOut)[49:60] <- gsub(gsub(templatVals, pattern="%MODALITY%", replacem
 colnames(allOut)[61:72] <- gsub(gsub(templatVals, pattern="%MODALITY%", replacement=modVal[6]), pattern="%MEASURE%", replacement=measureVal[6])
 colnames(allOut)[73:84] <- gsub(gsub(templatVals, pattern="%MODALITY%", replacement=modVal[7]), pattern="%MEASURE%", replacement=measureVal[7])
 colnames(allOut)[85:96] <- gsub(gsub(templatVals, pattern="%MODALITY%", replacement=modVal[8]), pattern="%MEASURE%", replacement=measureVal[8])
+
+## Now do our DGM lobes
+templatVals <- c("%MODALITY%_jlfLobe_%MEASURE%_R_DGM_Lobe",
+"%MODALITY%_jlfLobe_%MEASURE%_L_DGM_Lobe")
+modVal <- c("mprage","mprage", "pcasl", "dti", "rest", "rest")
+measureVal <- c("vol","gmd","cbf", "tr", "alff", "reho")
+colnames(allOutDGM)[1:2] <- gsub(gsub(templatVals, pattern="%MODALITY%", replacement=modVal[1]), pattern="%MEASURE%", replacement=measureVal[1])
+colnames(allOutDGM)[3:4] <- gsub(gsub(templatVals, pattern="%MODALITY%", replacement=modVal[2]), pattern="%MEASURE%", replacement=measureVal[2])
+colnames(allOutDGM)[5:6] <- gsub(gsub(templatVals, pattern="%MODALITY%", replacement=modVal[3]), pattern="%MEASURE%", replacement=measureVal[3])
+colnames(allOutDGM)[7:8] <- gsub(gsub(templatVals, pattern="%MODALITY%", replacement=modVal[4]), pattern="%MEASURE%", replacement=measureVal[4])
+colnames(allOutDGM)[9:10] <- gsub(gsub(templatVals, pattern="%MODALITY%", replacement=modVal[5]), pattern="%MEASURE%", replacement=measureVal[5])
+colnames(allOutDGM)[11:12] <- gsub(gsub(templatVals, pattern="%MODALITY%", replacement=modVal[6]), pattern="%MEASURE%", replacement=measureVal[6])
+
+## Now combine all of our lobe values into one matrix
+allOut <- cbind(allOut[,1:12],allOutDGM[,1:2],allOut[,13:24],allOut[,25:36],allOutDGM[,3:4],allOut[,37:38],allOut[,49:60],allOutDGM[,5:6],allOut[,61:72],allOutDGM[,5:6],allOut[,73:84], allOutDGM[,7:8],allOut[,85:96],allOutDGM[,9:10],allOut[,85:96], allOutDGM[,11:12])
 
 # Now attach it to all of the imaging data
 allData <- cbind(allData, allOut)
@@ -299,6 +351,43 @@ for(p in 1:length(initVals)){
 # Now prepare the entire fil
 allOut <- cbind(vol.lobes, allVals)
 
+## Now I need to do DGM lobular values
+lobarVals <- rep(c(1,2),7)
+dgmVals <- c(88:91,93:94,100:101,106:111)
+tmpVolVals <- allData[,dgmVals]
+tmpOut <- NULL
+for(v in names(table(lobarVals))){
+  sumVal <- apply(tmpVolVals[, which(lobarVals == v)],1,function(x) sum(x, na.rm = T))
+  tmpOut <- cbind(tmpOut, sumVal)
+}
+vol.lobes.dgm <- tmpOut
+
+## Now go through all of our modalities with DGM values
+## and calculate the L and R DGM values
+initVal <- list()
+initVal[[1]] <- c(332,333,334,335,337,338,341,342,343,344,345,346,347,348)
+initVal[[2]] <- c(566,567,568,569,571,572,575,576,577,578,579,580,581,582)
+initVal[[3]] <- c(693,694,695,696,698,699,702,703,704,705,706,707,708,709)
+initVal[[4]] <- c(1213,1214,1215,1216,1217,1218,1221,1222,1223,1224,1225,1226,1227,1228)
+initVal[[5]] <- c(1330,1331,1332,1333,1334,1335,1338,1339,1340,1341,1342,1343,1344,1335)
+allValsDGM <- NULL
+for(p in 1:length(initVal)){
+  tmp.dat <- allData[,initVal[[p]]]
+  tmpOut <- NULL
+  for(v in names(table(lobarVals))){
+    tmp.dat.2 <- tmp.dat[,which(lobarVals==v)]
+    tmp.dat.vol <- tmpVolVals[,which(lobarVals==v)]
+    tmpOutVals <- NULL
+    for(z in 1:2416){
+      sqw <- weighted.mean(tmp.dat.2[z,], tmp.dat.vol[z,], na.rm=T)
+      tmpOutVals <- append(tmpOutVals, sqw)
+    }
+    tmpOut <- cbind(tmpOut, tmpOutVals)
+  }
+  allValsDGM <- cbind(allValsDGM, tmpOut)
+}
+allOutDGM <- cbind(vol.lobes.dgm, allValsDGM)
+
 # Now prepare the column names
 templatVals <- c("%MODALITY%_jlfLobe_%MEASURE%_R_Limbic_Lobe",
 "%MODALITY%_jlfLobe_%MEASURE%_L_Limbic_Lobe",
@@ -322,6 +411,21 @@ colnames(allOut)[49:60] <- gsub(gsub(templatVals, pattern="%MODALITY%", replacem
 colnames(allOut)[61:72] <- gsub(gsub(templatVals, pattern="%MODALITY%", replacement=modVal[6]), pattern="%MEASURE%", replacement=measureVal[6])
 colnames(allOut)[73:84] <- gsub(gsub(templatVals, pattern="%MODALITY%", replacement=modVal[7]), pattern="%MEASURE%", replacement=measureVal[7])
 colnames(allOut)[85:96] <- gsub(gsub(templatVals, pattern="%MODALITY%", replacement=modVal[8]), pattern="%MEASURE%", replacement=measureVal[8])
+
+## Now do our DGM lobes
+templatVals <- c("%MODALITY%_jlfLobe_%MEASURE%_R_DGM_Lobe",
+"%MODALITY%_jlfLobe_%MEASURE%_L_DGM_Lobe")
+modVal <- c("mprage","mprage", "pcasl", "dti", "rest", "rest")
+measureVal <- c("vol","gmd","cbf", "tr", "alff", "reho")
+colnames(allOutDGM)[1:2] <- gsub(gsub(templatVals, pattern="%MODALITY%", replacement=modVal[1]), pattern="%MEASURE%", replacement=measureVal[1])
+colnames(allOutDGM)[3:4] <- gsub(gsub(templatVals, pattern="%MODALITY%", replacement=modVal[2]), pattern="%MEASURE%", replacement=measureVal[2])
+colnames(allOutDGM)[5:6] <- gsub(gsub(templatVals, pattern="%MODALITY%", replacement=modVal[3]), pattern="%MEASURE%", replacement=measureVal[3])
+colnames(allOutDGM)[7:8] <- gsub(gsub(templatVals, pattern="%MODALITY%", replacement=modVal[4]), pattern="%MEASURE%", replacement=measureVal[4])
+colnames(allOutDGM)[9:10] <- gsub(gsub(templatVals, pattern="%MODALITY%", replacement=modVal[5]), pattern="%MEASURE%", replacement=measureVal[5])
+colnames(allOutDGM)[11:12] <- gsub(gsub(templatVals, pattern="%MODALITY%", replacement=modVal[6]), pattern="%MEASURE%", replacement=measureVal[6])
+
+## Now combine all of our lobe values into one matrix
+allOut <- cbind(allOut[,1:12],allOutDGM[,1:2],allOut[,13:24],allOut[,25:36],allOutDGM[,3:4],allOut[,37:38],allOut[,49:60],allOutDGM[,5:6],allOut[,61:72],allOutDGM[,5:6],allOut[,73:84], allOutDGM[,7:8],allOut[,85:96],allOutDGM[,9:10],allOut[,85:96], allOutDGM[,11:12])
 
 # Now attach it to all of the imaging data
 allData <- cbind(allData, allOut)
