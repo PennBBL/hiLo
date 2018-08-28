@@ -1,4 +1,5 @@
 library('reshape2')
+source('../functions/functions.R')
 
 # load all data
 basePath <- '/home/adrose/dataPrepForHiLoPaper/data/rawData/n1601_'
@@ -190,12 +191,82 @@ colnames(allOutDGM)[9:10] <- gsub(gsub(templatVals, pattern="%MODALITY%", replac
 colnames(allOutDGM)[11:12] <- gsub(gsub(templatVals, pattern="%MODALITY%", replacement=modVal[6]), pattern="%MEASURE%", replacement=measureVal[6])
 
 ## Now combine all of our lobe values into one matrix
-allOut <- cbind(allOut[,1:12],allOutDGM[,1:2],allOut[,13:24],allOut[,25:36],allOutDGM[,3:4],allOut[,37:38],allOut[,49:60],allOutDGM[,5:6],allOut[,61:72],allOutDGM[,5:6],allOut[,73:84], allOutDGM[,7:8],allOut[,85:96],allOutDGM[,9:10],allOut[,85:96], allOutDGM[,11:12])
+allOut <- cbind(allOut[,1:12],allOutDGM[,1:2],allOut[,13:24],allOut[,25:36],allOutDGM[,3:4],allOut[,37:48],allOut[,49:60],allOutDGM[,5:6],allOut[,61:72],allOutDGM[,7:8],allOut[,73:84],allOutDGM[,9:10],allOut[,85:96], allOutDGM[,11:12])
 
 # Now attach it to all of the imaging data
 allData <- cbind(allData, allOut)
 allOut <- cbind(allData$bblid, allData$scanid, allOut)
 #write.csv(allOut, "~/tmpVals.csv", quote=F, row.names=F, na="")
+
+## Now do the hi lo labels
+# First isolate the volume regions
+volVals <- grep('mprage_jlf_vol_', names(allData))
+tmpVolVals <- allData[, volVals]
+## Now create an array with the lobe indicies
+tmp <- colnames(tmpVolVals)
+dim(tmp) <- c(143,1)
+lobarValues <- apply(tmp, 1, findLobe)
+# Now go through and calculate our volume for each of these values
+tmpOut <- NULL
+for(v in names(table(lobarValues))[1:9]){
+  sumVal <- apply(tmpVolVals[,which(lobarValues == v)], 1, function(x) sum(x, na.rm=T))
+  sumVal[sumVal==0] <- NA
+  tmpOut <- cbind(tmpOut, sumVal)
+}
+vol.lobes <- tmpOut
+
+# Now do it for all other regions w/o subcortical areas
+grepVals <- c('mprage_jlf_gmd_','mprage_jlf_ct_', 'mprage_jlf_cortcon_', 'pcasl_jlf_cbf_', 'dti_jlf_tr_', 'rest_jlf_alff_', 'rest_jlf_reho_')
+allVals <- NULL
+for(i in grepVals){
+  # Now declare our dataset, and find the ROI's to use
+  tmpData <- grep(i, names(allData))
+  tmpData <- allData[,tmpData]
+  tmp <- colnames(tmpData)
+  dim(tmp) <- c(length(tmp), 1)
+  lobarValues <- apply(tmp, 1, findLobe)
+  lobarValuesNames  <- head(names(table(lobarValues)), -1)
+  print(lobarValuesNames)
+  ## Now we need to go through each lobar value
+  ## and find the weighted mean across all of the respective regions
+  tmpOut <- NULL
+  for(v in lobarValuesNames){
+    tmp.dat.2 <- tmpData[,which(lobarValues==v)]
+    tmpVolVals2 <- tmpVolVals[,which(lobarValues==v)]
+    tmpOutVals <- NULL
+    for(z in 1:1601){
+      sqw <- weighted.mean(tmp.dat.2[z,], tmpVolVals2[z,], na.rm=T)
+      tmpOutVals <- append(tmpOutVals, sqw)
+    }
+    tmpOut <- cbind(tmpOut, tmpOutVals)
+  }
+  allVals <- cbind(allVals, tmpOut)
+}
+allOut <- cbind(vol.lobes, allVals)
+## Now name our columns
+# Now prepare the column names
+templatVals <- c("%MODALITY%_jlfHiLoLobe_%MEASURE%_Basal_Ganglia",
+"%MODALITY%_jlfHiLoLobe_%MEASURE%_Limbic",
+"%MODALITY%_jlfHiLoLobe_%MEASURE%_Frontal_Orbital",
+"%MODALITY%_jlfHiLoLobe_%MEASURE%_Frontal_Dorsal",
+"%MODALITY%_jlfHiLoLobe_%MEASURE%_Temporal",
+"%MODALITY%_jlfHiLoLobe_%MEASURE%_Parietal",
+"%MODALITY%_jlfHiLoLobe_%MEASURE%_Occipital",
+"%MODALITY%_jlfHiLoLobe_%MEASURE%_Cerebellum",
+"%MODALITY%_jlfHiLoLobe_%MEASURE%_White_Matter")
+modVal <- c("mprage", "mprage", "mprage", "mprage", "pcasl", "dti", "rest", "rest")
+measureVal <- c("vol", "gmd", "ct", "cortcon", "cbf", "tr", "alff", "reho")
+colnames(allOut)[1:9] <- gsub(gsub(templatVals, pattern="%MODALITY%", replacement=modVal[1]), pattern="%MEASURE%", replacement=measureVal[1])
+colnames(allOut)[10:17] <- gsub(gsub(templatVals, pattern="%MODALITY%", replacement=modVal[2]), pattern="%MEASURE%", replacement=measureVal[2])[1:8]
+colnames(allOut)[18:23] <- gsub(gsub(templatVals, pattern="%MODALITY%", replacement=modVal[3]), pattern="%MEASURE%", replacement=measureVal[3])[2:7]
+colnames(allOut)[24:28] <- gsub(gsub(templatVals, pattern="%MODALITY%", replacement=modVal[4]), pattern="%MEASURE%", replacement=measureVal[4])[2:6]
+colnames(allOut)[29:36] <- gsub(gsub(templatVals, pattern="%MODALITY%", replacement=modVal[5]), pattern="%MEASURE%", replacement=measureVal[5])[-8]
+colnames(allOut)[37:45] <- gsub(gsub(templatVals, pattern="%MODALITY%", replacement=modVal[6]), pattern="%MEASURE%", replacement=measureVal[6])
+colnames(allOut)[46:53] <- gsub(gsub(templatVals, pattern="%MODALITY%", replacement=modVal[7]), pattern="%MEASURE%", replacement=measureVal[7])[-9]
+colnames(allOut)[54:61] <- gsub(gsub(templatVals, pattern="%MODALITY%", replacement=modVal[8]), pattern="%MEASURE%", replacement=measureVal[8])[-9]
+
+# Now attach these to the entire data frame
+allData <- cbind(allData, allOut)
 
 # Now attach the cognitive data
 modal.scores <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/cogData2017/20170308/CNB_Factor_Scores_GO1-GO2-GO3.csv',header=TRUE)
@@ -430,6 +501,73 @@ allOut <- cbind(allOut[,1:12],allOutDGM[,1:2],allOut[,13:24],allOut[,25:36],allO
 # Now attach it to all of the imaging data
 allData <- cbind(allData, allOut)
 allOut <- cbind(allData$bblid, allData$scanid, allOut)
+
+## Now do the hi lo labels
+# First isolate the volume regions
+volVals <- grep('mprage_jlf_vol_', names(allData))
+tmpVolVals <- allData[, volVals]
+## Now create an array with the lobe indicies
+tmp <- colnames(tmpVolVals)
+dim(tmp) <- c(143,1)
+lobarValues <- apply(tmp, 1, findLobe)
+# Now go through and calculate our volume for each of these values
+tmpOut <- NULL
+for(v in names(table(lobarValues))[1:9]){
+  sumVal <- apply(tmpVolVals[,which(lobarValues == v)], 1, function(x) sum(x, na.rm=T))
+  sumVal[sumVal==0] <- NA
+  tmpOut <- cbind(tmpOut, sumVal)
+}
+vol.lobes <- tmpOut
+
+# Now do it for all other modalities 
+grepVals <- c('mprage_jlf_gmd_','mprage_jlf_ct_', 'mprage_jlf_cortcon_', 'pcasl_jlf_cbf_', 'dti64_jlf_tr_', 'rest_jlf_alff_', 'rest_jlf_reho_')
+allVals <- NULL
+for(i in grepVals){
+  # Now declare our dataset, and find the ROI's to use
+  tmpData <- grep(i, names(allData))
+  tmpData <- allData[,tmpData]
+  tmp <- colnames(tmpData)
+  dim(tmp) <- c(length(tmp), 1)
+  lobarValues <- apply(tmp, 1, findLobe)
+  lobarValuesNames  <- head(names(table(lobarValues)), -1)
+  print(lobarValuesNames)
+  ## Now we need to go through each lobar value
+  ## and find the weighted mean across all of the respective regions
+  tmpOut <- NULL
+  for(v in lobarValuesNames){
+    tmp.dat.2 <- tmpData[,which(lobarValues==v)]
+    tmpVolVals2 <- tmpVolVals[,which(lobarValues==v)]
+    tmpOutVals <- NULL
+    for(z in 1:2416){
+      sqw <- weighted.mean(tmp.dat.2[z,], tmpVolVals2[z,], na.rm=T)
+      tmpOutVals <- append(tmpOutVals, sqw)
+    }
+    tmpOut <- cbind(tmpOut, tmpOutVals)
+  }
+  allVals <- cbind(allVals, tmpOut)
+}
+allOut <- cbind(vol.lobes, allVals)
+## Now name our columns
+# Now prepare the column names
+templatVals <- c("%MODALITY%_jlfHiLoLobe_%MEASURE%_Basal_Ganglia",
+"%MODALITY%_jlfHiLoLobe_%MEASURE%_Limbic",
+"%MODALITY%_jlfHiLoLobe_%MEASURE%_Frontal_Orbital",
+"%MODALITY%_jlfHiLoLobe_%MEASURE%_Frontal_Dorsal",
+"%MODALITY%_jlfHiLoLobe_%MEASURE%_Temporal",
+"%MODALITY%_jlfHiLoLobe_%MEASURE%_Parietal",
+"%MODALITY%_jlfHiLoLobe_%MEASURE%_Occipital",
+"%MODALITY%_jlfHiLoLobe_%MEASURE%_Cerebellum",
+"%MODALITY%_jlfHiLoLobe_%MEASURE%_White_Matter")
+modVal <- c("mprage", "mprage", "mprage", "mprage", "pcasl", "dti", "rest", "rest")
+measureVal <- c("vol", "gmd", "ct", "cortcon", "cbf", "tr", "alff", "reho")
+colnames(allOut)[1:9] <- gsub(gsub(templatVals, pattern="%MODALITY%", replacement=modVal[1]), pattern="%MEASURE%", replacement=measureVal[1])
+colnames(allOut)[10:17] <- gsub(gsub(templatVals, pattern="%MODALITY%", replacement=modVal[2]), pattern="%MEASURE%", replacement=measureVal[2])[1:8]
+colnames(allOut)[18:23] <- gsub(gsub(templatVals, pattern="%MODALITY%", replacement=modVal[3]), pattern="%MEASURE%", replacement=measureVal[3])[2:7]
+colnames(allOut)[24:28] <- gsub(gsub(templatVals, pattern="%MODALITY%", replacement=modVal[4]), pattern="%MEASURE%", replacement=measureVal[4])[2:6]
+colnames(allOut)[29:36] <- gsub(gsub(templatVals, pattern="%MODALITY%", replacement=modVal[5]), pattern="%MEASURE%", replacement=measureVal[5])[-8]
+colnames(allOut)[37:45] <- gsub(gsub(templatVals, pattern="%MODALITY%", replacement=modVal[6]), pattern="%MEASURE%", replacement=measureVal[6])
+colnames(allOut)[46:53] <- gsub(gsub(templatVals, pattern="%MODALITY%", replacement=modVal[7]), pattern="%MEASURE%", replacement=measureVal[7])[-9]
+colnames(allOut)[54:61] <- gsub(gsub(templatVals, pattern="%MODALITY%", replacement=modVal[8]), pattern="%MEASURE%", replacement=measureVal[8])[-9]
 
 # Now attach the cognitive data
 # Grab the cognitive data from the already prepped data 
