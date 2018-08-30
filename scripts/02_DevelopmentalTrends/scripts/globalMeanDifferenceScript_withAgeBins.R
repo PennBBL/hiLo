@@ -15,6 +15,7 @@ cbf.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLR/cbfData.csv'
 gmd.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLR/gmdData.csv')
 ct.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLR/ctData.csv')
 cc.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLR/ccData.csv')
+sa.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLR/saData.csv')
 reho.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLR/rehoData.csv')
 alff.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLR/alffData.csv')
 ad.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLR/jlfADData.csv')
@@ -28,6 +29,7 @@ vol.data <- addAgeBin(vol.data, vol.data$ageAtGo1Scan, 167, 215, 216)
 cbf.data <- addAgeBin(cbf.data, cbf.data$ageAtGo1Scan, 167, 215, 216)
 gmd.data <- addAgeBin(gmd.data, gmd.data$ageAtGo1Scan, 167, 215, 216)
 ct.data <- addAgeBin(ct.data, ct.data$ageAtGo1Scan, 167, 215, 216)
+sa.data <- addAgeBin(sa.data, sa.data$ageAtGo1Scan, 167, 215, 216)
 cc.data <- addAgeBin(cc.data, cc.data$ageAtGo1Scan, 167, 215, 216)
 reho.data <- addAgeBin(reho.data, reho.data$ageAtGo1Scan, 167, 215, 216)
 alff.data <- addAgeBin(alff.data, alff.data$ageAtGo1Scan, 167, 215, 216)
@@ -78,6 +80,12 @@ cc.data.1 <- rbind(cc.data.1, returnStandardizedGenderMeansCT(cc.data, 'mprage_j
 cc.data.1 <- rbind(cc.data.1, returnStandardizedGenderMeansCT(cc.data, 'mprage_jlf_cortcon', '', 'Early Adulthood'))
 cc.data.1$ageBin <- factor(cc.data.1$ageBin, levels=c('Early Adulthood','Adolescence','Childhood'))
 
+# Now onto SA
+sa.data.1 <- returnStandardizedGenderMeansCT(sa.data, 'mprage_jlf_sa', '', 'Childhood')
+sa.data.1 <- rbind(sa.data.1, returnStandardizedGenderMeansCT(sa.data, 'mprage_jlf_sa', '', 'Adolescence'))
+sa.data.1 <- rbind(sa.data.1, returnStandardizedGenderMeansCT(sa.data, 'mprage_jlf_sa', '', 'Early Adulthood'))
+sa.data.1$ageBin <- factor(sa.data.1$ageBin, levels=c('Early Adulthood','Adolescence','Childhood'))
+
 # Wait there is more... now do all of the DTI GM regions
 # Start with AD
 ad.data.1 <- returnStandardizedGenderMeans(ad.data, 'dti_jlf_ad', '', 'Childhood')
@@ -103,6 +111,7 @@ cbfPlot <- createGGPlotImage(cbf.data.1, 'CBF', -.9, .8, .2)
 gmdPlot <- createGGPlotImage(gmd.data.1, 'GMD', -.8, .9, .2)
 ctPlot <- createGGPlotImage(ct.data.1, 'CT', -.9, .8, .2)
 ccPlot <- createGGPlotImage(cc.data.1, 'Cortical Contrast', -1, 1, .2)
+saPlot <- createGGPlotImage(sa.data.1, 'SA', -1, 1, .2)
 rehoPlot <- createGGPlotImage(reho.data.1, 'ReHo', -.8, .8, .2)
 alffPlot <- createGGPlotImage(alff.data.1, 'ALFF', -.7, .9, .2)
 adPlot <- createGGPlotImage(ad.data.1, 'Axial Diffusitivity', -1.2, .8, .2)
@@ -121,6 +130,7 @@ cbfPlot
 gmdPlot
 ctPlot
 ccPlot
+saPlot
 rehoPlot
 alffPlot
 adPlot

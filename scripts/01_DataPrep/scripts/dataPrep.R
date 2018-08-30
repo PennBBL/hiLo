@@ -32,6 +32,7 @@ cbf.data <- cbf.data[complete.cases(cbf.data),]
 gmd.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/rawData/n1601_jlfGMD.csv')
 ct.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/rawData/n1601_jlfCt.csv')
 cc.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/rawData/n1601_jlfCc.csv')
+sa.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/rawData/n1601_jlfSa.csv')
 reho.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/rawData/n1601_jlfReho.csv')
 alff.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/rawData/n1601_jlfAlff.csv')
 md.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/rawData/n1601_jlfTR.csv')
@@ -60,10 +61,10 @@ bblid.index.fa <- bblid.index
 bblid.index <- bblid.index[bblid.index %in% volume.data$bblid[which(volume.data$t1Exclude==0)]]
 
 # Now create a for loop to do everything for our GM values
-dataVals <- c('volume.data', 'cbf.data', 'gmd.data', 'ct.data', 'reho.data', 'alff.data', 'md.data', 'cc.data', 'fa.data', 'ad.data', 'rd.data', 'fa.label', 'tr.label', 'fa.tracts')
-outNames <- c('volumeData.csv', 'cbfData.csv', 'gmdData.csv', 'ctData.csv', 'rehoData.csv', 'alffData.csv', 'jlfTRData.csv', 'ccData.csv', 'jlfFAData.csv', 'jlfADData.csv', 'jlfRDData.csv', 'jhuFALabel.csv', 'jhuTRLabel.csv', 'jhuFATracts.csv')
-modalNames <- c('mprage_jlf_vol_', 'pcasl_jlf_cbf', 'mprage_jlf_gmd', 'mprage_jlf_ct', 'rest_jlf_reho', 'rest_jlf_alff', 'dti_jlf_tr', 'mprage_jlf_cortcon', 'dti_jlf_fa', 'dti_jlf_ad', 'dti_jlf_rd', 'dti_dtitk_jhulabel','dti_dtitk_jhulabel', 'dti_dtitk_jhutract_fa')
-excludeVals <- c('t1Exclude', 'pcaslExclude', 't1Exclude', 't1Exclude', 'restExclude', 'restExclude', 'dti64Exclude', 't1Exclude','dti64Exclude', 'dti64Exclude', 'dti64Exclude', 'dti64Exclude', 'dti64Exclude', 'dti64Exclude')
+dataVals <- c('volume.data', 'cbf.data', 'gmd.data', 'ct.data', 'sa.data', 'reho.data', 'alff.data', 'md.data', 'cc.data', 'fa.data', 'ad.data', 'rd.data', 'fa.label', 'tr.label', 'fa.tracts')
+outNames <- c('volumeData.csv', 'cbfData.csv', 'gmdData.csv', 'ctData.csv', 'saData.csv','rehoData.csv', 'alffData.csv', 'jlfTRData.csv', 'ccData.csv', 'jlfFAData.csv', 'jlfADData.csv', 'jlfRDData.csv', 'jhuFALabel.csv', 'jhuTRLabel.csv', 'jhuFATracts.csv')
+modalNames <- c('mprage_jlf_vol_', 'pcasl_jlf_cbf', 'mprage_jlf_gmd', 'mprage_jlf_ct', 'mprage_jlf_sa','rest_jlf_reho', 'rest_jlf_alff', 'dti_jlf_tr', 'mprage_jlf_cortcon', 'dti_jlf_fa', 'dti_jlf_ad', 'dti_jlf_rd', 'dti_dtitk_jhulabel','dti_dtitk_jhulabel', 'dti_dtitk_jhutract_fa')
+excludeVals <- c('t1Exclude', 'pcaslExclude', 't1Exclude', 't1Exclude', 't1Exclude','restExclude', 'restExclude', 'dti64Exclude', 't1Exclude','dti64Exclude', 'dti64Exclude', 'dti64Exclude', 'dti64Exclude', 'dti64Exclude', 'dti64Exclude')
 outputMeanLR <- "/home/adrose/dataPrepForHiLoPaper/data/meanLR/"
 outputAgeReg <- "/home/adrose/dataPrepForHiLoPaper/data/ageReg/"
 outputMeanLRAgeReg <- "/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeReg/"
@@ -84,10 +85,10 @@ for(i in 1:length(dataVals)){
   outNR <- paste(outputNoReg, outNames[i], sep='')
 
   # Now apply our immediete restrictions
-  if(i < 12){
+  if(i < 13){
     tmpData <- tmpData[tmpData$bblid %in% bblid.index,]
   }
-  if(i > 11){
+  if(i > 12){
     tmpData <- tmpData[tmpData$bblid %in% bblid.index.fa,]
   }
   tmpData <- tmpData[which(tmpData[excludeVals[i]]!=1), ]
@@ -99,10 +100,10 @@ for(i in 1:length(dataVals)){
   write.csv(tmpData, outNR, quote=F, row.names=F)
 
   # produce our avgLR
-  if(i < 12){
+  if(i < 13){
     tmpLR <- averageLeftAndRight(tmpData)
   }  
-  if(i > 11){
+  if(i > 12){
     tmpLR <- averageLeftAndRight1(tmpData)
   }
 
@@ -124,10 +125,10 @@ for(i in 1:length(dataVals)){
   write.csv(tmpMR, outAgeNMMod, quote=F, row.names=F)  
 
   # Now produce the meaned across hemisphere and modality regressed values  
-  if(i < 12){
+  if(i < 13){
     tmpAR <- averageLeftAndRight(tmpAR)
   }  
-  if(i > 11){
+  if(i > 12){
     tmpAR <- averageLeftAndRight1(tmpAR)
   }
 
@@ -170,10 +171,10 @@ for(i in 1:length(dataVals)){
   outMod <- paste(outputMeanLRAgeRegModReg, outNames[i], sep='')
 
   # Now apply our immediete restrictions
-  if(i < 12){
+  if(i < 13){
     tmpData <- tmpData[tmpData$bblid %in% bblid.index,]
   }
-  if(i > 11){
+  if(i > 12){
     tmpData <- tmpData[tmpData$bblid %in% bblid.index.fa,]
   }
   tmpData <- tmpData[which(tmpData[excludeVals[i]]!=1), ]
@@ -184,11 +185,11 @@ for(i in 1:length(dataVals)){
   tmpData$ageAtGo1Scan <- data.values$ageAtGo1Scan[match(tmpData$bblid, data.values$bblid)]
 
   # produce our avgLR
-  if(i < 12){
+  if(i < 13){
     tmpLR <- averageLeftAndRight(tmpData)
     tmpLR <- regressOutQuality(dataFrame=tmpLR, modalityName=modalNames[i], qualityName=qaVals[i])
   }  
-  if(i > 11){
+  if(i > 12){
     tmpLR <- averageLeftAndRight1(tmpData)
     tmpLR <- regressOutQuality(dataFrame=tmpLR, modalityName=modalNames[i], qualityName=qaVals[i])
   }
@@ -210,10 +211,10 @@ for(i in 1:length(dataVals)){
   tmpMR <- regressWithinModality(tmpMR, modalNames[i])
   write.csv(tmpMR, outAgeNMMod, quote=F, row.names=F)
 
-  if(i < 12){
+  if(i < 13){
     tmpAR <- averageLeftAndRight(tmpAR)
   }  
-  if(i > 11){
+  if(i > 12){
     tmpAR <- averageLeftAndRight1(tmpAR)
   }
 

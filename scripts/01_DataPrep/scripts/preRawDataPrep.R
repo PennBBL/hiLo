@@ -14,6 +14,7 @@ jlfCC <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/preRaw2017/n1601CCVals
 jlfGmd <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/preRaw2017/n1601_jlfAtroposIntersectionGMD_20170410.csv')
 meanGmd <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/preRaw2017/averageGMD.csv')
 gmdFactor <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/preRaw2017/GMD_Factor.csv')
+saVals <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/preRaw2017/n1601_jlfAtroposIntersectionSA_20180830.csv')
 t1QA <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/preRaw2017/n1601_t1QaData_20170306.csv')
 
 # Now merge all of the t1 data
@@ -40,6 +41,9 @@ write.csv(ctData, '/home/adrose/dataPrepForHiLoPaper/data/rawData/n1601_jlfCt.cs
 ccData <- merge(t1QA, jlfCC, by=c('bblid', 'scanid'))
 write.csv(ccData, '/home/adrose/dataPrepForHiLoPaper/data/rawData/n1601_jlfCc.csv', quote=F, row.names=F)
 
+# Now do SA
+saData <- merge(t1QA, saVals)
+write.csv(saData, '/home/adrose/dataPrepForHiLoPaper/data/rawData/n1601_jlfSa.csv', quote=F, row.names=F)
 
 # Now lets do all of the cbf data 
 cbfData <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/preRaw2017/n1601_jlfAntsCTIntersectionPcaslValues_20170403.csv')
