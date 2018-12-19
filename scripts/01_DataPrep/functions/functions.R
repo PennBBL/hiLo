@@ -665,3 +665,65 @@ regressOutAgeNoQAMGI <- function(valuesToBeRegressed, ageColumn){
   newValues <- lm(valuesToBeRegressed ~ age + ageSqu + ageCub)$residuals#+ ageSqu + ageCub + quality)$residuals
   return(newValues)
 }
+
+
+## Now create a function to mean left and right hemisphere values
+## This should only be used for the volume metrics and is a lazy solution 
+averageLeftAndRightVol <- function(dataFrame){
+  # Now get the right data
+  dataFrame.right <- dataFrame[, grep('_R_', names(dataFrame))]
+  dataFrame.tmp <- dataFrame[, -grep('_R_', names(dataFrame))]
+  if(!identical(integer(0),grep('_right', names(dataFrame.tmp)))){
+  dataFrame.right <- cbind(dataFrame.right, dataFrame.tmp[, grep('_right', names(dataFrame.tmp))])
+  dataFrame.tmp <- dataFrame.tmp[,-grep('_right', names(dataFrame.tmp))]
+  }
+  if(!identical(integer(0),grep('_rh_', names(dataFrame.tmp)))){
+  dataFrame.right <- cbind(dataFrame.right, dataFrame.tmp[, grep('_rh_', names(dataFrame.tmp))])
+  dataFrame.tmp <- dataFrame.tmp[,-grep('_rh_', names(dataFrame.tmp))]
+  }  
+  if(dim(dataFrame.tmp)[2] == 0){
+  dataFrame.tmp <- dataFrame
+  dataFrame.right <- dataFrame.tmp[, grep('_rh_', names(dataFrame.tmp))]
+  dataFrame.tmp <- dataFrame.tmp[,-grep('_rh_', names(dataFrame.tmp))]
+  }  
+  # First do the left data
+  dataFrame.left <- dataFrame.tmp[, grep('_L_', names(dataFrame.tmp))]
+  dataFrame.tmp <- dataFrame.tmp[, -grep('_L_', names(dataFrame.tmp))]
+  if(!identical(integer(0),grep('_left', names(dataFrame.tmp)))){
+  dataFrame.left <- cbind(dataFrame.left, dataFrame.tmp[, grep('_left', names(dataFrame.tmp))])
+  dataFrame.tmp <- dataFrame.tmp[,-grep('_left', names(dataFrame.tmp))]
+  }
+  if(!identical(integer(0),grep('_lh_', names(dataFrame.tmp)))){
+  dataFrame.left <- cbind(dataFrame.left, dataFrame.tmp[, grep('_lh_', names(dataFrame.tmp))])
+  dataFrame.tmp <- dataFrame.tmp[,-grep('_lh_', names(dataFrame.tmp))]
+  }
+  if(dim(dataFrame.tmp)[2] == 0){
+  dataFrame.tmp <- dataFrame
+  dataFrame.left <- dataFrame.tmp[, grep('_lh', names(dataFrame.tmp))]
+  dataFrame.tmp <- dataFrame.tmp[,-grep('_lh_', names(dataFrame.tmp))]
+  dataFrame.tmp <- dataFrame.tmp[,-grep('_rh_', names(dataFrame.tmp))]
+  } 
+  # Now combine the data frames
+  dataFrame.meaned <- (dataFrame.left + dataFrame.right)
+
+  # Now remove the left and right indeices from the names of the meaned data frame
+  colnames(dataFrame.meaned) <- gsub(pattern='_L_', replacement = '_', x = colnames(dataFrame.meaned), fixed = TRUE)
+  colnames(dataFrame.meaned) <- gsub(pattern='_R_', replacement = '_', x = colnames(dataFrame.meaned), fixed = TRUE)
+  colnames(dataFrame.meaned) <- gsub(pattern='_left', replacement = '', x = colnames(dataFrame.meaned), fixed = TRUE)
+  colnames(dataFrame.meaned) <- gsub(pattern='_right', replacement = '', x = colnames(dataFrame.meaned), fixed = TRUE)
+  colnames(dataFrame.meaned) <- gsub(pattern='_rh_', replacement = '_', x = colnames(dataFrame.meaned), fixed = TRUE)
+  colnames(dataFrame.meaned) <- gsub(pattern='_lh_', replacement = '_', x = colnames(dataFrame.meaned), fixed = TRUE)
+  # Now rm the left and right values and append the meaned values
+  indexToRm <- grep('_L_', names(dataFrame))
+  indexToRm <- append(indexToRm, grep('_R_', names(dataFrame)))
+  indexToRm <- append(indexToRm, grep('_left', names(dataFrame)))
+  indexToRm <- append(indexToRm, grep('_right', names(dataFrame)))
+  indexToRm <- append(indexToRm, grep('_rh_', names(dataFrame)))
+  indexToRm <- append(indexToRm, grep('_lh_', names(dataFrame)))
+  # Now prep the output 
+  output <- dataFrame[,-indexToRm]
+  # Now combine our average values
+  output <- cbind(output, dataFrame.meaned)
+  # Now return the output
+  return(output)
+}

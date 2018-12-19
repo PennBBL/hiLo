@@ -110,7 +110,7 @@ for(i in grep.pat){
   tmp <- names(x)[grep(i, names(x))]
   xTmpW <- x[,c(char.vec, tmp)]
   xTmpW <- melt(xTmpW, id.vars=char.vec)
-  mod <- lmerTest::lmer(value ~ (ageBin+sex+perfBin+variable)^2 + (1|bblid), data=xTmpW, REML=FALSE)
+  mod <- lmerTest::lmer(value ~ (ageBin+sex+perfBin+variable)^3 + (1|bblid), data=xTmpW, REML=FALSE)
   tmp <- anova(mod,ddf="Kenward-Roger")
   write.csv(tmp, paste(i,".csv", sep=''), quote=F, row.names=F)
   ## Here see if we have a signivficant main effect of performance bin
@@ -146,17 +146,21 @@ xTmpW <- melt(xTmpW, id.vars=char.vec)
 name.vec <- names(table(xTmpW$variable))
 lobe.vec <- NULL
 for(i in (names(table(xTmpW$variable)))){lobe.vec <- append(lobe.vec, findLobe(i))}
-out.vals <- NULL
+out.All <- matrix(nrow=15, ncol=0)
 for(i in 1:9){
   to.include <- name.vec[which(lobe.vec==i)]
   ## Now run the model for the included regions
   mod.tmp <- lmerTest::lmer(value ~ (ageBin+sex+perfBin+variable)^4 + (1|bblid), data=xTmpW[which(xTmpW$variable %in% to.include),], REML=FALSE)
   ## Now write the output values
-  write.csv(anova(mod.tmp,ddf="Kenward-Roger"), paste("volumeAnova", i, ".csv", sep=''), quote=F, row.names=T)
-  sum.out <- summary(mod.tmp)$coefficients
-  write.csv(sum.out, paste("volumeSummary", i,".csv", sep=''), quote=F, row.names=T)
+  anova.vals <- anova(mod.tmp,ddf="Kenward-Roger")
+  write.csv(anova.vals, paste("volumeAnova", i, ".csv", sep=''), quote=F, row.names=T)
+  out.vals <- anova.vals[,c('F.value', 'Pr(>F)')]
+  colnames(out.vals) <- paste(i, colnames(out.vals), sep='_')
+  out.All <- cbind(out.All, out.vals)
+  #sum.out <- summary(mod.tmp)$coefficients
+  #write.csv(sum.out, paste("volumeSummary", i,".csv", sep=''), quote=F, row.names=T)
 }
-
+write.csv(out.All, "allSigLobeROIFValsVol.csv", quote=F, row.names=F)
 #########################################################################
 # Run TR vals
 #########################################################################
@@ -169,16 +173,48 @@ xTmpW <- melt(xTmpW, id.vars=char.vec)
 name.vec <- names(table(xTmpW$variable))
 lobe.vec <- NULL
 for(i in (names(table(xTmpW$variable)))){lobe.vec <- append(lobe.vec, findLobe(i))}
-for(i in c(3,4,5,6,7,9)){
+out.All <- matrix(nrow=15, ncol=0)
+for(i in c(1,2,3,4,5,6,7,8,9)){
   to.include <- name.vec[which(lobe.vec==i)]
   ## Now run the model for the included regions
   mod.tmp <- lmerTest::lmer(value ~ (ageBin+sex+perfBin+variable)^4 + (1|bblid), data=xTmpW[which(xTmpW$variable %in% to.include),], REML=FALSE)
   ## Now write the output values
-  write.csv(anova(mod.tmp,ddf="Kenward-Roger"), paste("trAnova", i, ".csv", sep='')), quote=F, row.names=T)
+  anova.vals <- anova(mod.tmp,ddf="Kenward-Roger")
+  write.csv(anova.vals, paste("trAnova", i, ".csv", sep=''), quote=F, row.names=T)
+  out.vals <- anova.vals[,c('F.value', 'Pr(>F)')]
+  colnames(out.vals) <- paste(i, colnames(out.vals), sep='_')
+  out.All <- cbind(out.All, out.vals)
   sum.out <- summary(mod.tmp)$coefficients
   write.csv(sum.out, paste("trSummary", i,".csv", sep=''), quote=F, row.names=T)
 }
-
+write.csv(out.All, "allSigLobeROIFValsTr.csv", quote=F, row.names=F)
+#########################################################################
+# Run CBF vals
+#########################################################################
+char.vec <- c("bblid","sex","ageAtScan1", "race2","perfBin","ageBin")
+xTR <- averageLeftAndRight(dataFrame=x)
+roi.names <- names(xTR)[c(740:802)]
+xTmpW <- xTR[,c(char.vec,roi.names)]
+xTmpW <- melt(xTmpW, id.vars=char.vec)
+## Now go through all of our significant lobes and run a LMER for each, within each
+name.vec <- names(table(xTmpW$variable))
+lobe.vec <- NULL
+for(i in (names(table(xTmpW$variable)))){lobe.vec <- append(lobe.vec, findLobe(i))}
+out.All <- matrix(nrow=15, ncol=0)
+for(i in c(1,2,3,4,5,6,7,9)){
+  to.include <- name.vec[which(lobe.vec==i)]
+  ## Now run the model for the included regions
+  mod.tmp <- lmerTest::lmer(value ~ (ageBin+sex+perfBin+variable)^4 + (1|bblid), data=xTmpW[which(xTmpW$variable %in% to.include),], REML=FALSE)
+  ## Now write the output values
+  anova.vals <- anova(mod.tmp,ddf="Kenward-Roger")
+  write.csv(anova.vals, paste("trAnova", i, ".csv", sep=''), quote=F, row.names=T)
+  out.vals <- anova.vals[,c('F.value', 'Pr(>F)')]
+  colnames(out.vals) <- paste(i, colnames(out.vals), sep='_')
+  out.All <- cbind(out.All, out.vals)
+  sum.out <- summary(mod.tmp)$coefficients
+  write.csv(sum.out, paste("cbfSummary", i,".csv", sep=''), quote=F, row.names=T)
+}
+write.csv(out.All, "allSigLobeROIFValsCBF.csv", quote=F, row.names=F)
 #########################################################################
 # Run Reho vals
 #########################################################################
@@ -189,18 +225,23 @@ xTmpW <- xTR[,c(char.vec,roi.names)]
 xTmpW <- melt(xTmpW, id.vars=char.vec)
 ## Now go through all of our significant lobes and run a LMER for each, within each
 name.vec <- names(table(xTmpW$variable))
-lobe.vec <- NULL
+lobe.vec <- matrix(nrow=15, ncol=0)
 for(i in (names(table(xTmpW$variable)))){lobe.vec <- append(lobe.vec, findLobe(i))}
-for(i in c(4,6)){
+out.All <- matrix(nrow=15, ncol=0)
+for(i in c(1,2,3,4,5,6,7,8)){
   to.include <- name.vec[which(lobe.vec==i)]
   ## Now run the model for the included regions
   mod.tmp <- lmerTest::lmer(value ~ (ageBin+sex+perfBin+variable)^4 + (1|bblid), data=xTmpW[which(xTmpW$variable %in% to.include),], REML=FALSE)
   ## Now write the output values
-  write.csv(anova(mod.tmp,ddf="Kenward-Roger"), paste("rehoAnova", i, ".csv", sep=''), quote=F, row.names=T)
+  anova.vals <- anova(mod.tmp,ddf="Kenward-Roger")
+  write.csv(anova.vals, paste("rehoAnova", i, ".csv", sep=''), quote=F, row.names=T)
+  out.vals <- anova.vals[,c('F.value', 'Pr(>F)')]
+  colnames(out.vals) <- paste(i, colnames(out.vals), sep='_')
+  out.All <- cbind(out.All, out.vals)
   sum.out <- summary(mod.tmp)$coefficients
   write.csv(sum.out, paste("rehoSummary", i, ".csv",sep=''), quote=F, row.names=T)
 }
-
+write.csv(out.All, "allSigLobeROIFValsReho.csv", quote=F, row.names=F)
 #########################################################################
 # Run ALFF vals
 #########################################################################
@@ -211,14 +252,20 @@ xTmpW <- xTR[,c(char.vec,roi.names)]
 xTmpW <- melt(xTmpW, id.vars=char.vec)
 ## Now go through all of our significant lobes and run a LMER for each, within each
 name.vec <- names(table(xTmpW$variable))
-lobe.vec <- NULL
+lobe.vec <- matrix(nrow=15, ncol=0)
 for(i in (names(table(xTmpW$variable)))){lobe.vec <- append(lobe.vec, findLobe(i))}
-for(i in c(3,4,6)){
+out.All <- matrix(nrow=15, ncol=0)
+for(i in c(1,2,3,4,5,6,7,8)){
   to.include <- name.vec[which(lobe.vec==i)]
   ## Now run the model for the included regions
   mod.tmp <- lmerTest::lmer(value ~ (ageBin+sex+perfBin+variable)^4 + (1|bblid), data=xTmpW[which(xTmpW$variable %in% to.include),], REML=FALSE)
   ## Now write the output values
-  write.csv(anova(mod.tmp,ddf="Kenward-Roger"), paste("alffAnova", i, ".csv", sep=''), quote=F, row.names=T)
+  anova.vals <- anova(mod.tmp,ddf="Kenward-Roger")
+  write.csv(anova.vals, paste("alffAnova", i, ".csv", sep=''), quote=F, row.names=T)
+  out.vals <- anova.vals[,c('F.value', 'Pr(>F)')]
+  colnames(out.vals) <- paste(i, colnames(out.vals), sep='_')
+  out.All <- cbind(out.All, out.vals)
   sum.out <- summary(mod.tmp)$coefficients
   write.csv(sum.out, paste("alffSummary", i,  ".csv",sep=''), quote=F, row.names=T)
 }
+write.csv(out., "allSigLobeROIFValsAlff.csv", quote=F, row.names=F)
