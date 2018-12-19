@@ -16,6 +16,7 @@ all.data <- merge(all.data, tr.data, by=intersect(names(all.data), names(tr.data
 all.data <- merge(all.data, fa.data)
 all.data <- merge(all.data, alff.data)
 all.data <- merge(all.data, reho.data)
+all.data2 <- merge(vol.data, reho.data)
 
 runTpotOnAll <- function(x, y, nFold=10, grepID){
   # The first thing we have to do is split our data into 10 folds
@@ -59,14 +60,18 @@ runTpotOnAll <- function(x, y, nFold=10, grepID){
   return(output)
 }
 
-dataNames <- c('vol.data','cbf.data','gmd.data','tr.data','fa.data','all.data', 'reho.data', 'alff.data')
+## Set up a parallel backend
+cl <- makeCluster(32)
+registerDoParallel(cl)
+
+dataNames <- c('vol.data','cbf.data','gmd.data','tr.data','fa.data','all.data', 'reho.data', 'alff.data', 'all.data2')
 #dataNames <- c('fa.data', 'all.data')
-outName <- c('vol', 'cbf', 'gmd', 'tr', 'fa', 'all.data', 'reho', 'alff')
+outName <- c('vol', 'cbf', 'gmd', 'tr', 'fa', 'all.data', 'reho', 'alff', 'all.data2')
 #outName <- c('fa', 'all.data')
-grepValue <- c(rep('_jlf_', 7), '_jlf_')
+grepValue <- c(rep('_jlf_', 7), '_jlf_', '_jlf_')
 #grepValue <- c('_jlf_', '_jlf_')
-allR <- NULL
-for(q in seq(1,25)){
+allR <- foreach (q=1:250, .combine='rbind',.packages=c('foreach', 'doParallel', 'glmnet','psych','reshape2', 'caret','MASS', 'methods', 'ggplot2', 'rpart'),.export=ls(envir=globalenv())) %dopar%{
+  outMat <- matrix(NA, ncol=5, nrow=length(dataNames))
   for(i in 1:length(dataNames)){
     tmpDat <- get(dataNames[i])
     tmpDat <- tmpDat[which(tmpDat$sex==1),]
@@ -81,10 +86,9 @@ for(q in seq(1,25)){
     cvICC <- ICC(cbind(predVals[[1]], tmpDatY))$results[4,2]
     cvRMSE <- sqrt(mean((tmpDatY-predVals[[1]])^2))
     outRow <- c(i, q, corVal, dim(tmpDatX)[1], dim(tmpDatX)[2])
-    allR <- rbind(allR, outRow)
-    #write.csv(allR, 'tmpAllRValsNOVS2.csv', quote=F, row.names=F)
+    outMat[i,] <- outRow
   }
-  print(q)
+  print(outMat)
 }
 orig <- allR
 allR <- as.data.frame(allR)
@@ -94,7 +98,7 @@ outMedian <- round(apply(allR, 2, median), digits=2)
 outMin <- round(apply(allR, 2, min), digits=2)
 outMax <- round(apply(allR, 2, max), digits=2)
 outSD <- round(apply(allR, 2, sd), digits=3)
-output <- cbind(orig[1:8,4], orig[1:8,5], outMean[2:9], outMedian[2:9], outMin[2:9], outMax[2:9], outSD[2:9])
+output <- cbind(orig[1:9,4], orig[1:9,5], outMean[2:10], outMedian[2:10], outMin[2:10], outMax[2:10], outSD[2:10])
 write.csv(output, 'tmpAllRValsMaleAR.csv', quote=F, row.names=F)
 ## Now plot these values
 rownames(output) <- NULL
@@ -113,6 +117,56 @@ outplot <- ggplot(output, aes(x=modal, y=Mean)) +
 pdf("maleCVRSquaredVals.pdf")
 print(outplot)
 dev.off()  
+
+## Now create a null distribution
+allRN <- foreach (q=1:100, .combine='rbind',.packages=c('foreach', 'doParallel', 'glmnet','psych','reshape2', 'caret','MASS', 'methods', 'ggplot2', 'rpart'),.export=ls(envir=globalenv())) %dopar%{
+  outMat <- matrix(NA, ncol=5, nrow=length(dataNames))
+  for(i in 1:length(dataNames)){
+    tmpDat <- get(dataNames[i])
+    tmpDat <- tmpDat[which(tmpDat$sex==1),]
+    tmpDatX <- tmpDat[,grep(grepValue[i], names(tmpDat))]
+    tmpDatY <- tmpDat$F1_Exec_Comp_Cog_Accuracy[sample(nrow(tmpDat))]
+    out.data <- cbind(tmpDatY, tmpDatX)
+    # Now write the csv for the mbp notebook
+    out.name <- paste("./maleData/", i, "_maleData.csv", sep='')
+    write.csv(out.data, out.name, quote=F, row.names=F)
+    predVals <- runTpotOnAll(tmpDatX, tmpDatY, 10, grepValue[i])
+    corVal <- cor(predVals[[1]], tmpDatY)^2
+    cvICC <- ICC(cbind(predVals[[1]], tmpDatY))$results[4,2]
+    cvRMSE <- sqrt(mean((tmpDatY-predVals[[1]])^2))
+    outRow <- c(i, q, corVal, dim(tmpDatX)[1], dim(tmpDatX)[2])
+    outMat[i,] <- outRow
+  }
+  print(outMat)
+}
+
+## Now plot the null vs the real ditribution
+origN <- allRN
+allRN <- as.data.frame(allRN)
+allRN <- dcast(V2 ~ V1, data=allRN, value.var='V3')
+outMean <- round(apply(allRN, 2, mean), digits=2)
+outMedian <- round(apply(allRN, 2, median), digits=2)
+outMin <- round(apply(allRN, 2, min), digits=2)
+outMax <- round(apply(allRN, 2, max), digits=2)
+outSD <- round(apply(allRN, 2, sd), digits=3)
+outputN <- cbind(orig[1:8,4], orig[1:8,5], outMean[2:9], outMedian[2:9], outMin[2:9], outMax[2:9], outSD[2:9])
+
+## Create a histogram of null vs real r-squared values for each domain
+allR$real <- 'Real'
+allRN$real <- 'Fake'
+toPlot <- rbind(allR, allRN)
+toPlot <- melt(toPlot, id.vars=c('V2', 'real'))
+# Now fix the names of the modalities
+toPlot$variable <- as.character(toPlot$variable)
+for(i in 1:length(outName)){
+  ## Now find and change names of the new variables
+  toPlot[which(toPlot$variable==i),'variable'] <- outName[i]
+}
+
+out.plot.male <- ggplot(toPlot, aes(x=value, group=real, fill=real)) +
+  geom_histogram(data=subset(toPlot,real=='Real')) +
+  geom_histogram(data=subset(toPlot,real=='Fake')) +
+  facet_grid(variable ~ .)
 
 # Now do this for females
 allR <- NULL
@@ -163,6 +217,9 @@ outplot <- ggplot(output, aes(x=modal, y=Mean)) +
 pdf("femaleCVRSquaredVals.pdf")
 print(outplot)
 dev.off()
+
+## Now kill the cluster
+stopCluster(cl)
 
 ## Down here produce the beta weights from one final model for all w/in and across ridge reg models
 pdf('stirImport.pdf', height=20, width=60)
