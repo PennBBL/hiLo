@@ -114,6 +114,7 @@ for(p in 1:length(initVals)){
   }
   allVals <- cbind(allVals, tmpOut)
 }
+
 # Now prepare the entire fil
 allOut <- cbind(vol.lobes, allVals)
 
@@ -496,7 +497,7 @@ colnames(allOutDGM)[9:10] <- gsub(gsub(templatVals, pattern="%MODALITY%", replac
 colnames(allOutDGM)[11:12] <- gsub(gsub(templatVals, pattern="%MODALITY%", replacement=modVal[6]), pattern="%MEASURE%", replacement=measureVal[6])
 
 ## Now combine all of our lobe values into one matrix
-allOut <- cbind(allOut[,1:12],allOutDGM[,1:2],allOut[,13:24],allOut[,25:36],allOutDGM[,3:4],allOut[,37:38],allOut[,49:60],allOutDGM[,5:6],allOut[,61:72],allOutDGM[,5:6],allOut[,73:84], allOutDGM[,7:8],allOut[,85:96],allOutDGM[,9:10],allOut[,85:96], allOutDGM[,11:12])
+allOut <- cbind(allOut[,1:12],allOutDGM[,1:2],allOut[,13:24],allOut[,25:36],allOutDGM[,3:4],allOut[,37:38],allOut[,49:60],allOutDGM[,5:6],allOut[,61:72],allOutDGM[,7:8],allOut[,73:84], allOutDGM[,9:10],allOut[,85:96], allOutDGM[,11:12])
 
 # Now attach it to all of the imaging data
 allData <- cbind(allData, allOut)
@@ -568,6 +569,9 @@ colnames(allOut)[29:36] <- gsub(gsub(templatVals, pattern="%MODALITY%", replacem
 colnames(allOut)[37:45] <- gsub(gsub(templatVals, pattern="%MODALITY%", replacement=modVal[6]), pattern="%MEASURE%", replacement=measureVal[6])
 colnames(allOut)[46:53] <- gsub(gsub(templatVals, pattern="%MODALITY%", replacement=modVal[7]), pattern="%MEASURE%", replacement=measureVal[7])[-9]
 colnames(allOut)[54:61] <- gsub(gsub(templatVals, pattern="%MODALITY%", replacement=modVal[8]), pattern="%MEASURE%", replacement=measureVal[8])[-9]
+
+# Now attach it to all of the imaging data
+allData <- cbind(allData, allOut)
 
 # Now attach the cognitive data
 # Grab the cognitive data from the already prepped data 
