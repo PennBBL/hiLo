@@ -37,7 +37,7 @@ rd.modal.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLR/jlfRDDa
 tr.modal.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLR/jlfTRData.csv')
 vol.modal.data.age.reg <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeReg/volumeData.csv')
 cbf.modal.data.age.reg <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeReg/cbfData.csv')
-gmd.modal.data.age.reg <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeReg/gmdData.csv')
+gmd.modal.data.age.reg <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeReg/curveData.csv')
 ct.modal.data.age.reg <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeReg/ctData.csv')
 sa.modal.data.age.reg <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeReg/saData.csv')
 cc.modal.data.age.reg <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeReg/ccData.csv')
@@ -97,7 +97,7 @@ rd.modal.data.age.reg$ageBin <- 'Age Regressed'
 tr.modal.data.age.reg$ageBin <- 'Age Regressed'
 
 # Now create a static perf bin variable
-tmpDF <- vol.modal.data
+tmpDF <- vol.modal.data.age.reg
 tmpDF <- returnPerfBin(tmpDF)
 outCol <- tmpDF[,c('bblid','scanid','perfBin')]
 colnames(outCol)[3] <- paste('perfCol', 1, sep='')
@@ -130,7 +130,7 @@ adol.gmd <- doEverythingEver(gmd.modal.data, 'mprage_jlf_gmd', 168, 215, 'Adoles
 adult.gmd <- doEverythingEver(gmd.modal.data, 'mprage_jlf_gmd', 216, 999, 'Early Adulthood', cerebellum=F,optionalRace=NULL)
 all.gmd <- rbind(child.gmd, adol.gmd, adult.gmd)
 # Now do age regressed
-age.reg.gmd <- doEverythingEver(gmd.modal.data.age.reg, 'mprage_jlf_gmd', 0, 999, 'Age Regressed', cerebellum=F,optionalRace=NULL)
+age.reg.gmd <- doEverythingEver(gmd.modal.data.age.reg, 'mprage_jlf_curl', 0, 999, 'Age Regressed', cerebellum=F,optionalRace=NULL)
 
 # Now try CT - disclaimer I don't think this will pass organizeLobe and other bs
 child.ct <- doEverythingEverCT(ct.modal.data, 'mprage_jlf_ct', 0, 167, 'Childhood',optionalRace=NULL)
@@ -184,7 +184,7 @@ age.reg.tr <- doEverythingEver(tr.modal.data.age.reg, 'dti_jlf_tr', 0, 167, 'Age
 # Now plot dis shiiizzz
 volPlot <- createGGPlotImage(all.vol, 'Volume Hi-Lo JLF Data', -1, 1.8, .2)
 cbfPlot <- createGGPlotImage(all.cbf, 'CBF Hi-Lo JLF Data', -1, 1, .2)
-gmdPlot <- createGGPlotImage(all.gmd, 'GMD Hi-Lo JLF Data', -.8, 1.4, .2)
+gmdPlot <- createGGPlotImage(all.gmd, 'CURL Hi-Lo JLF Data', -.8, 1.4, .2)
 ctPlot <- createGGPlotImage(all.ct, 'CT Hi-Lo JLF Data', -.8, 1.6, .2)
 ccPlot <- createGGPlotImage(all.cc, 'CC Hi-Lo JLF Data', -1, 1.4, .2)
 saPlot <- createGGPlotImage(all.sa, 'SA Hi-Lo JLF Data', -1, 1.8, .2)
@@ -194,7 +194,7 @@ trPlot <- createGGPlotImage(all.tr, 'TR Hi-Lo JLF Data', -1.6, 1.4, .2)
 volPlotAgeReg <- createGGPlotImage(age.reg.vol, 'Volume Hi-Lo JLF Data Age Reg', -1, 1, .2)
 volPlotAgeRegCort <- createGGPlotImage(age.reg.vol.cort, 'Volume Hi-Lo JLF Data Age Reg', -1, 1, .2)
 cbfPlotAgeReg <- createGGPlotImage(age.reg.cbf, 'CBF Hi-Lo JLF Data Age Reg', -1, 1, .2)
-gmdPlotAgeReg <- createGGPlotImage(age.reg.gmd, 'GMD Hi-Lo JLF Data Age Reg', -1, 1, .2)
+gmdPlotAgeReg <- createGGPlotImage(age.reg.gmd, 'CURL Hi-Lo JLF Data Age Reg', -1, 1, .2)
 ctPlotAgeReg <- createGGPlotImage(age.reg.ct, 'CT Hi-Lo JLF Data Age Reg', -1, 1, .2)
 saPlotAgeReg <- createGGPlotImage(age.reg.sa, 'SA Hi-Lo JLF Data Age Reg', -1, 1, .2)
 ccPlotAgeReg <- createGGPlotImage(age.reg.cc, 'CC Hi-Lo JLF Data Age Reg', -1, 1, .2)
