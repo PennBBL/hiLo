@@ -12,6 +12,7 @@ antsVol <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/preRaw/t1/n1601_ants
 jlfCt <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/preRaw2017/n1601_jlfAtroposIntersectionCT_20170331.csv')
 jlfCC <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/preRaw2017/n1601CCVals.csv')
 jlfGmd <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/preRaw2017/n1601_jlfAtroposIntersectionGMD_20170410.csv')
+jlfCurv <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/n2416DataPreRaw/n2416_jlf_curlvals.csv')
 meanGmd <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/preRaw2017/averageGMD.csv')
 gmdFactor <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/preRaw2017/GMD_Factor.csv')
 saVals <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/preRaw2017/n1601_jlfAtroposIntersectionSA_20180830.csv')
@@ -41,10 +42,37 @@ write.csv(ctData, '/home/adrose/dataPrepForHiLoPaper/data/rawData/n1601_jlfCt.cs
 ccData <- merge(t1QA, jlfCC, by=c('bblid', 'scanid'))
 write.csv(ccData, '/home/adrose/dataPrepForHiLoPaper/data/rawData/n1601_jlfCc.csv', quote=F, row.names=F)
 
+# Now do curv
+curvData <- merge(t1QA, jlfCurv)
+write.csv(curvData, '/home/adrose/dataPrepForHiLoPaper/data/rawData/n1601_jlfCurve.csv', quote=F, row.names=F)
+
 # Now do SA
 saData <- merge(t1QA, saVals)
 write.csv(saData, '/home/adrose/dataPrepForHiLoPaper/data/rawData/n1601_jlfSa.csv', quote=F, row.names=F)
 
+## Now do freesurfer data
+fsVol <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/preRaw2017/n1601_freesurferVol_20180828.csv')
+fsVol <- fsVol[,-1]
+fsVol2 <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/preRaw2017/n1601_freesurferAsegVol_20180828.csv')
+fsVol2 <- fsVol2[,-1]
+fsCt <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/preRaw2017/n1601_freesurferCt_08282018.csv')
+fsCt <- fsCt[,-1]
+fsSa <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/preRaw2017/n1601_freesurferSurfaceArea_20180828.csv')
+fsSa <- fsSa[,-1]
+
+# now do vol
+fsVol <- merge(fsVol, fsVol2)
+fsVol <- merge(t1QA, fsVol)
+write.csv(fsVol, '/home/adrose/dataPrepForHiLoPaper/data/rawData/n1601_fsVol.csv', quote=F, row.names=F)
+
+# Now do CT
+fsCT <- merge(t1QA, fsCt)
+write.csv(fsCT, '/home/adrose/dataPrepForHiLoPaper/data/rawData/n1601_fsCt.csv', quote=F, row.names=F)
+
+# Now do SA
+fsSA <- merge(t1QA, fsSa)
+write.csv(fsSA, '/home/adrose/dataPrepForHiLoPaper/data/rawData/n1601_fsSa.csv', quote=F, row.names=F)
+q()
 # Now lets do all of the cbf data 
 cbfData <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/preRaw2017/n1601_jlfAntsCTIntersectionPcaslValues_20170403.csv')
 cbfData[cbfData<20] <- NA
