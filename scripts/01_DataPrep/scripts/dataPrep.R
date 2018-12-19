@@ -26,6 +26,8 @@ volume.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/rawData/n1601_an
 volume.data <- volume.data[,-grep('Cerebral_White_Matter', names(volume.data))]
 volume.data <- volume.data[,-grep("4th_Ventricle", names(volume.data))]
 volume.data <- merge(modal.scores, volume.data, by='bblid')
+curve.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/rawData/n1601_jlfCurve.csv')
+curve.data <- curve.data[,-c(14,15,27,30,31,32,33,42,43,44,48,49,160,161)]
 cbf.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/rawData/n1601_jlfCbf-Impute.csv')
 cbf.data <- cbf.data[,-grep('Cerebral_White_Matter', names(cbf.data))]
 cbf.data <- cbf.data[complete.cases(cbf.data),]
@@ -61,10 +63,10 @@ bblid.index.fa <- bblid.index
 bblid.index <- bblid.index[bblid.index %in% volume.data$bblid[which(volume.data$t1Exclude==0)]]
 
 # Now create a for loop to do everything for our GM values
-dataVals <- c('volume.data', 'cbf.data', 'gmd.data', 'ct.data', 'sa.data', 'reho.data', 'alff.data', 'md.data', 'cc.data', 'fa.data', 'ad.data', 'rd.data', 'fa.label', 'tr.label', 'fa.tracts')
-outNames <- c('volumeData.csv', 'cbfData.csv', 'gmdData.csv', 'ctData.csv', 'saData.csv','rehoData.csv', 'alffData.csv', 'jlfTRData.csv', 'ccData.csv', 'jlfFAData.csv', 'jlfADData.csv', 'jlfRDData.csv', 'jhuFALabel.csv', 'jhuTRLabel.csv', 'jhuFATracts.csv')
-modalNames <- c('mprage_jlf_vol_', 'pcasl_jlf_cbf', 'mprage_jlf_gmd', 'mprage_jlf_ct', 'mprage_jlf_sa','rest_jlf_reho', 'rest_jlf_alff', 'dti_jlf_tr', 'mprage_jlf_cortcon', 'dti_jlf_fa', 'dti_jlf_ad', 'dti_jlf_rd', 'dti_dtitk_jhulabel','dti_dtitk_jhulabel', 'dti_dtitk_jhutract_fa')
-excludeVals <- c('t1Exclude', 'pcaslExclude', 't1Exclude', 't1Exclude', 't1Exclude','restExclude', 'restExclude', 'dti64Exclude', 't1Exclude','dti64Exclude', 'dti64Exclude', 'dti64Exclude', 'dti64Exclude', 'dti64Exclude', 'dti64Exclude')
+dataVals <- c('volume.data', 'cbf.data', 'curve.data', 'ct.data', 'sa.data', 'reho.data', 'alff.data', 'md.data', 'cc.data', 'fa.data', 'ad.data', 'rd.data', 'fa.label', 'tr.label', 'fa.tracts', 'curve.data')
+outNames <- c('volumeData.csv', 'cbfData.csv', 'curveData.csv', 'ctData.csv', 'saData.csv','rehoData.csv', 'alffData.csv', 'jlfTRData.csv', 'ccData.csv', 'jlfFAData.csv', 'jlfADData.csv', 'jlfRDData.csv', 'jhuFALabel.csv', 'jhuTRLabel.csv', 'jhuFATracts.csv', 'curveData.csv')
+modalNames <- c('mprage_jlf_vol_', 'pcasl_jlf_cbf', 'mprage_jlf_curl', 'mprage_jlf_ct', 'mprage_jlf_sa','rest_jlf_reho', 'rest_jlf_alff', 'dti_jlf_tr', 'mprage_jlf_cortcon', 'dti_jlf_fa', 'dti_jlf_ad', 'dti_jlf_rd', 'dti_dtitk_jhulabel','dti_dtitk_jhulabel', 'dti_dtitk_jhutract_fa', 'mprage_jlf_curve_')
+excludeVals <- c('t1Exclude', 'pcaslExclude', 't1Exclude', 't1Exclude', 't1Exclude','restExclude', 'restExclude', 'dti64Exclude', 't1Exclude','dti64Exclude', 'dti64Exclude', 'dti64Exclude', 'dti64Exclude', 'dti64Exclude', 'dti64Exclude','t1Exclude')
 outputMeanLR <- "/home/adrose/dataPrepForHiLoPaper/data/meanLR/"
 outputAgeReg <- "/home/adrose/dataPrepForHiLoPaper/data/ageReg/"
 outputMeanLRAgeReg <- "/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeReg/"
