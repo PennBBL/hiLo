@@ -82,6 +82,7 @@ organizeWM1ROINames <- function(dataFrame){
     for(lobe.index in pattern.locations){
       lobe.group <- findInterval(pattern.match.variable, index.key)
       outputDataFrame$lobe[lobe.index] <- lobe.group
+      outputDataFrame$ROI_readable[lobe.index] <- outputDataFrame$ROI[lobe.index]
     }
   }
   # Now change all of the names based on the index
