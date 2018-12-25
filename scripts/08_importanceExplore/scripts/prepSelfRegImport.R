@@ -31,7 +31,7 @@ for(i in 1:length(dataNames)){
   ## Now train a ridge reg model
   modelFit <- lm(tmpDatY~tmpDatX)
   coef.vals <- coef(modelFit)[-1]
-  to.store <- cbind(rownames(coef.vals), coef.vals, rep(outName[i], length(coef.vals)))
+  to.store <-  cbind(rownames(cbind(coef.vals, rep(outName[i], length(coef.vals)))), coef.vals, rep(outName[i], length(coef.vals)))
   output.values <- rbind(output.values, to.store)
 }
 ## Now write the output
@@ -49,7 +49,7 @@ for(i in 1:length(dataNames)){
   ## Now train a ridge reg model
   modelFit <- lm(tmpDatY~tmpDatX)
   coef.vals <- coef(modelFit)[-1]
-  to.store <- cbind(rownames(coef.vals), coef.vals, rep(outName[i], length(coef.vals)))
+  to.store <-  cbind(rownames(cbind(coef.vals, rep(outName[i], length(coef.vals)))), coef.vals, rep(outName[i], length(coef.vals)))
   output.values <- rbind(output.values, to.store)
 }
 ## Now write the output

@@ -40,7 +40,7 @@ for(i in 1:length(dataNames)){
   lambdaVal <- fit.cv$lambda[which(fit.cv$cvm==min(fit.cv$cvm))]
   modelFit <- glmnet(x=tmpDatX, y=tmpDatY, alpha=0, lambda=lambdaVal)
   coef.vals <- coef(modelFit)[-1,]
-  to.store <- cbind(rownames(coef.vals), coef.vals, rep(outName[i], length(coef.vals)))
+  to.store <- cbind(rownames(cbind(coef.vals, rep(outName[i], length(coef.vals)))), coef.vals, rep(outName[i], length(coef.vals)))
   output.values <- rbind(output.values, to.store)
 }
 ## Now write the output
@@ -53,17 +53,15 @@ output.values <- NULL
 for(i in 1:length(dataNames)){
   tmpDat <- get(dataNames[i])
   tmpDat <- tmpDat[which(tmpDat$sex==2),]
-  tmpDatX <- tmpDat[,grep(grepValue[i], names(tmpDat))]
+  tmpDatX <- as.matrix(tmpDat[,grep(grepValue[i], names(tmpDat))])
   tmpDatY <- tmpDat$F1_Exec_Comp_Cog_Accuracy
-  ## Now run relief F on these guys
-  tmpDatY2<- tmpDatY
-  tmpDatY2[tmpDatY2>0.2397024] <- 1
-  tmpDatY2[tmpDatY2<=0.2397024] <- 0
-  neighbor.idx.observed <- find.neighbors(tmpDatX, tmpDatY2, k = 0, method = RF.method)
-  results.list <- stir(tmpDatX, neighbor.idx.observed, k = k, metric = metric, method = RF.method)
-  t_sorted_multisurf <- results.list$OriRelief$relief.score
-  t_sorted_multisurf <- cbind(rownames(results.list$STIR_T), t_sorted_multisurf, rep(outName[i], dim(tmpDatX)[2]))
-  output.values <- rbind(output.values, t_sorted_multisurf)
+  ## Now train a ridge reg model
+  fit.cv <- cv.glmnet(x=tmpDatX, y=tmpDatY, alpha=0,nfolds=10)
+  lambdaVal <- fit.cv$lambda[which(fit.cv$cvm==min(fit.cv$cvm))]
+  modelFit <- glmnet(x=tmpDatX, y=tmpDatY, alpha=0, lambda=lambdaVal)
+  coef.vals <- coef(modelFit)[-1,]
+  to.store <- cbind(rownames(cbind(coef.vals, rep(outName[i], length(coef.vals)))), coef.vals, rep(outName[i], length(coef.vals)))
+  output.values <- rbind(output.values, to.store)
 }
 ## Now write the output
 rownames(output.values) <- NULL
