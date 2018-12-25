@@ -1,7 +1,8 @@
 ## This script will be used to compare all of the impotance metrics for the hi lo project
 
 ## Load library(s)
-install_load('ggplot2')
+install_load('ggplot2', 'GGally')
+source('../functions/functions.R')
 ## The first thing we have to do is produce all of the importance metrics
 ## Little bash fandangling
 system("for i in `ls prep*R` ; do Rscript ${i} ; done")
@@ -35,3 +36,13 @@ all.data <- merge(all.data, relifImp, by='ROI_readable')
 all.data <- merge(all.data, ridgeImp, by='ROI_readable')
 all.data <- merge(all.data, sregImp, by='ROI_readable')
 
+## Now add a modality vairbale to the data
+all.data$modality <- NA
+all.data$modality[1:60] <- 'TR'
+all.data$modality[61:120] <- 'GMD'
+all.data$modality[121:180] <- 'VOL'
+all.data$modality[181:236] <- 'CBF'
+all.data$modality[237:296] <- 'ALFF'
+all.data$modality[297:356] <- 'REHO'
+all.data$modality <- factor(all.data$modality)
+ggpairs(data=all.data,columns=c(2,4:7),ggplot2::aes(colour=modality))
