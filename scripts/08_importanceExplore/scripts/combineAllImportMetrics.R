@@ -38,11 +38,15 @@ all.data <- merge(all.data, sregImp, by='ROI_readable')
 
 ## Now add a modality vairbale to the data
 all.data$modality <- NA
-all.data$modality[1:60] <- 'TR'
-all.data$modality[61:120] <- 'GMD'
-all.data$modality[121:180] <- 'VOL'
-all.data$modality[181:236] <- 'CBF'
-all.data$modality[237:296] <- 'ALFF'
-all.data$modality[297:356] <- 'REHO'
+all.data$modality[1:26] <- 'FA'
+all.data$modality[27:86] <- 'TR'
+all.data$modality[87:146] <- 'GMD'
+all.data$modality[147:206] <- 'VOL'
+all.data$modality[207:262] <- 'CBF'
+all.data$modality[263:322] <- 'ALFF'
+all.data$modality[323:382] <- 'REHO'
 all.data$modality <- factor(all.data$modality)
+
+pdf('testOut.pdf', height=20, width=20)
 ggpairs(data=all.data,columns=c(2,4:7),ggplot2::aes(colour=modality))
+dev.off()
