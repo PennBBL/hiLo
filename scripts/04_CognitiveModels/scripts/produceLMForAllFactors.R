@@ -120,6 +120,7 @@ dev.off()
 vol.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/ageReg/volumeData.csv')
 vol.data <- vol.data[,-grep('mprage_jlf_vol_ICV', names(vol.data))]
 vol.data <- vol.data[,-grep('_Lobe_WM', names(vol.data))]
+vol.data <- vol.data[,-grep('Cerebellum_White_Matter', names(vol.data))]
 cbf.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/ageReg/cbfData.csv')
 cbf.data <- cbf.data[,-grep('_Lobe_WM', names(cbf.data))]
 gmd.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/ageReg/gmdData.csv')
@@ -144,7 +145,7 @@ fact.vals <- names(vol.data)[4:16]
 # Now write the loop
 for(w in fact.vals){
   fac.vals <- w
-  output <- matrix(NA, 126, 12)
+  output <- matrix(NA, 124, 12)
   rownames(output) <- c(gsub(x=names(vol.data)[grep('_jlf_', colnames(vol.data))], pattern='mprage_jlf_vol_', replacement=''))
   colnames(output) <- c(paste(data.vals, 'Male'), paste(data.vals, 'Female'))
   for(g in 1){
