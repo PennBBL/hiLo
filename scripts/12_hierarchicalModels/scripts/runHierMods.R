@@ -102,7 +102,7 @@ write.csv(to.write, "anovaSumGlobalMEM.csv", quote=F)
 # STage 1 and Stage 2 use different data*
 #########################################################################
 grep.pat <- c("mprage_jlfHiLoLobe_vol", "mprage_jlfHiLoLobe_gmd", "pcasl_jlfHiLoLobe_cbf", "dti_jlfHiLoLobe_tr_","dti_dtitk_jhutract_fa","rest_jlfHiLoLobe_reho", "rest_jlfHiLoLobe_alff")
-char.vec <- c("bblid","sex","ageAtScan1", "race2","perfBin","ageBin")
+char.vec <- c("bblid","sex","ageAtScan1", "race2","perfBin","ageBin", "F1_Exec_Comp_Cog_Accuracy")
 siglobes <- NULL
 for(i in grep.pat){
   mod.pat <- strSplitMatrixReturn(charactersToSplit=i, splitCharacter='_')[,3]
@@ -110,7 +110,7 @@ for(i in grep.pat){
   tmp <- names(x)[grep(i, names(x))]
   xTmpW <- x[,c(char.vec, tmp)]
   xTmpW <- melt(xTmpW, id.vars=char.vec)
-  mod <- lmerTest::lmer(value ~ (ageBin+sex+perfBin+variable)^3 + (1|bblid), data=xTmpW, REML=FALSE)
+  mod <- lmerTest::lmer(value ~ (ageAtScan1+sex+F1_Exec_Comp_Cog_Accuracy+variable)^2 + (1|bblid), data=xTmpW, REML=TRUE)
   tmp <- anova(mod,ddf="Kenward-Roger")
   write.csv(tmp, paste(i,".csv", sep=''), quote=F, row.names=F)
   ## Here see if we have a signivficant main effect of performance bin
