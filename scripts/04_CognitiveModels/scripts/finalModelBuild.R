@@ -1,6 +1,19 @@
 source('/home/adrose/hiLo/scripts/04_CognitiveModels/functions/functions.R')
 install_load('foreach', 'doParallel', 'glmnet','psych','reshape2', 'caret','MASS', 'methods', 'ggplot2')
 
+# Source functions and what not
+returnPerfBin <- function(data) {
+  
+  data$F1_Exec_Comp_Cog_Accuracy
+  quantiles <- quantile(data$F1_Exec_Comp_Cog_Accuracy, c(0,.34,.67,1))
+  
+  data$perfBin <- 0
+  data$perfBin[which(data$F1_Exec_Comp_Cog_Accuracy < quantiles[2])] <- 3
+  data$perfBin[which(data$F1_Exec_Comp_Cog_Accuracy >= quantiles[2] &
+                          data$F1_Exec_Comp_Cog_Accuracy <= quantiles[3])] <- 1
+  data$perfBin[which(data$F1_Exec_Comp_Cog_Accuracy > quantiles[3])] <- 1
+  return(data)
+}
 
 # Now run variable selection with the modality regressed variables and see if this alters our selection at all
 vol.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeReg/volumeData.csv')
@@ -68,7 +81,7 @@ for(g in 1:2){
     # Produce the selection count 
     selectN <- returnSelectionN(dataFrame=get(data.step[z])[tmpDFIndex[[1]],], grepID=dataGrepNames[z], genderID = g, nCor=30, iterationCount=1000)
     write.csv(selectN, paste(g,z,'selectVals.csv', sep=''), quote=F, row.names=T)
-    selectN <- read.csv(paste(g,z,'selectVals.csv', sep=''))
+    #selectN <- read.csv(paste(g,z,'selectVals.csv', sep=''))
     selectN[,1] <- as.character(selectN[,1])
     rownames(selectN) <- selectN[,1]
     # Now get all of the R^2 values
@@ -91,3 +104,49 @@ dev.off()
 write.csv(allRVals, 'finalFitStats.csv', quote=F)
 write.csv(modelVals, 'finalModelVals.csv', quote=F)
 write.csv(cvRVals, 'finalCVFitStats.csv', quote=F)
+
+# Now look into classification
+# Now try the step wise austin heirarchy model building 
+dataNames <- c('vol.data', 'cbf.data', 'gmd.data', 'tr.data', 'all.data')
+data.step <- c('vol.data.step', 'cbf.data.step', 'gmd.data.step', 'tr.data.step', 'all.data.var.select')
+dataGrepNames <- c('mprage_jlf_vol_', 'pcasl_jlf_cbf_', 'mprage_jlf_gmd_','dti_jlf_tr_', '_jlf_')
+allRVals <- NULL
+modelVals <- NULL
+cvRVals <- NULL
+pdf('outCVTrends.pdf')
+for(g in 1:2){
+  for(z in 1:5){
+    tmpDF <- get(dataNames[z])
+    tmpDF <- tmpDF[which(tmpDF$sex==g),]
+    tmpDF <- returnPerfBin(tmpDF)
+    tmpDFIndex <- createFolds(y=tmpDF$F1_Exec_Comp_Cog_Accuracy, k=5, list=T, returnTrain=T)
+    tmpDFTest <- tmpDF[-tmpDFIndex[[1]],]
+    tmpDF <- tmpDF[tmpDFIndex[[1]],]
+    save(tmpDFIndex, file=paste(g,z,'TrainIndex.RData', sep=''))
+    tmp.col <- grep(dataGrepNames[z], names(tmpDF))
+    tmp.values <- scale(tmpDF[,tmp.col])[,1:length(tmp.col)]
+    tmp.out <- scale(tmpDF$F1_Exec_Comp_Cog_Accuracy)
+    tmp.out <- tmp.out[complete.cases(tmpDF[,tmp.col])]
+    tmp.values <- tmp.values[complete.cases(tmpDF[,tmp.col]),]
+    # Produce the selection count 
+    selectN <- returnSelectionN(dataFrame=get(data.step[z])[tmpDFIndex[[1]],], grepID=dataGrepNames[z], genderID = g, nCor=30, iterationCount=1000)
+    write.csv(selectN, paste(g,z,'selectVals.csv', sep=''), quote=F, row.names=T)
+    #selectN <- read.csv(paste(g,z,'selectVals.csv', sep=''))
+    selectN[,1] <- as.character(selectN[,1])
+    rownames(selectN) <- selectN[,1]
+    # Now get all of the R^2 values
+    modelOut <- buildAustinModel(selectN, predVals=tmp.values, outVals=tmp.out, breakValue=1.1, nIters=dim(selectN)[1], stepSize=1)
+    print(plot(modelOut[[2]], main=data.step[z], ylab='CV R-Squared'))
+    allRVals <- rbind(allRVals, modelOut[[2]][which(modelOut[[2]]==max(modelOut[[2]]))])
+    modelVals <- rbind(modelVals, modelOut[[3]][which(modelOut[[2]]==max(modelOut[[2]]))])
+    # Now get the CV R-squared value again
+    tmpModel <- lm(as.formula(paste('F1_Exec_Comp_Cog_Accuracy ~', modelOut[[3]][which(modelOut[[2]]==max(modelOut[[2]]))])), data=tmpDF)
+    trainX <- as.matrix(tmpModel$model[,2:dim(tmpModel$model)[2]])
+    trainY <- tmpModel$model[,1]
+    fit.cv <- cv.glmnet(x=trainX, y=trainY, alpha=0, lambda=10^seq(3, -2, by = -.1), nfolds=10, family="binomial")
+    lambdaVal <- fit.cv$lambda[which(fit.cv$cvm==min(fit.cv$cvm))]
+    modelFit <- glmnet(x=trainX, y=trainY, alpha=0, lambda=lambdaVal, family="binomial")
+    newValues <- cor(tmpDFTest$F1_Exec_Comp_Cog_Accuracy, predict(modelFit, as.matrix(tmpDFTest[,colnames(tmpDFTest) %in% colnames(trainX)])))^2
+    cvRVals <- rbind(cvRVals, cbind(g, z, newValues))
+  }
+}
