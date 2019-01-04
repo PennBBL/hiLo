@@ -8,14 +8,15 @@ install_load('foreach', 'doParallel', 'glmnet','psych','reshape2', 'caret','MASS
 
 ## Load the data
 vol.data <- read.csv('~/dataPrepForHiLoPaper/data/meanLRVolandAgeReg/volumeData.csv')
+vol.data <- vol.data[,-which(names(vol.data)=='mprage_jlf_vol_ICV')]
 cbf.data <- read.csv('~/dataPrepForHiLoPaper/data/meanLRVolandAgeReg/cbfData.csv')
-cbf.data$pcasl_jlf_cbf_MeanGM <- cbf.data$pcaslMeanGMValue
+#cbf.data$pcasl_jlf_cbf_MeanGM <- cbf.data$pcaslMeanGMValue
 gmd.data <- read.csv('~/dataPrepForHiLoPaper/data/meanLRVolandAgeReg/gmdData.csv')
 tr.data <- read.csv('~/dataPrepForHiLoPaper/data/meanLRVolandAgeReg/jlfTRData.csv')
 alff.data <- read.csv('~/dataPrepForHiLoPaper/data/meanLRVolandAgeReg/alffData.csv')
 reho.data <- read.csv('~/dataPrepForHiLoPaper/data/meanLRVolandAgeReg/rehoData.csv')
-fa.data <- read.csv('~/dataPrepForHiLoPaper/data/meanLRVolandAgeReg/jhuFATracts.csv')
-colnames(fa.data) <- gsub(x=colnames(fa.data), pattern='jhutract', replacement='jlf')
+fa.data <- read.csv('~/dataPrepForHiLoPaper/data/meanLRVolandAgeReg/jhuFALabel.csv')
+colnames(fa.data) <- gsub(x=colnames(fa.data), pattern='jhulabel', replacement='jlf')
 all.data <- merge(vol.data, cbf.data, by=intersect(names(vol.data), names(cbf.data)))
 all.data <- merge(all.data, gmd.data, by=intersect(names(all.data), names(gmd.data)))
 all.data <- merge(all.data, tr.data, by=intersect(names(all.data), names(tr.data)))
@@ -33,13 +34,13 @@ output.values <- NULL
 for(i in 1:length(dataNames)){
   tmpDat <- get(dataNames[i])
   tmpDat <- tmpDat[which(tmpDat$sex==1),]
-  tmpDatX <- as.matrix(tmpDat[,grep(grepValue[i], names(tmpDat))])
+  tmpDatX <- scale(as.matrix(tmpDat[,grep(grepValue[i], names(tmpDat))]))
   tmpDatY <- tmpDat$F1_Exec_Comp_Cog_Accuracy
   ## Now train a ridge reg model
   fit.cv <- cv.glmnet(x=tmpDatX, y=tmpDatY, alpha=0,nfolds=10)
   lambdaVal <- fit.cv$lambda[which(fit.cv$cvm==min(fit.cv$cvm))]
   modelFit <- glmnet(x=tmpDatX, y=tmpDatY, alpha=0, lambda=lambdaVal)
-  coef.vals <- coef(modelFit)[-1,]
+  coef.vals <- scale(coef(modelFit)[-1,])
   to.store <- cbind(rownames(cbind(coef.vals, rep(outName[i], length(coef.vals)))), coef.vals, rep(outName[i], length(coef.vals)))
   output.values <- rbind(output.values, to.store)
 }
@@ -53,13 +54,13 @@ output.values <- NULL
 for(i in 1:length(dataNames)){
   tmpDat <- get(dataNames[i])
   tmpDat <- tmpDat[which(tmpDat$sex==2),]
-  tmpDatX <- as.matrix(tmpDat[,grep(grepValue[i], names(tmpDat))])
+  tmpDatX <- scale(as.matrix(tmpDat[,grep(grepValue[i], names(tmpDat))]))
   tmpDatY <- tmpDat$F1_Exec_Comp_Cog_Accuracy
   ## Now train a ridge reg model
   fit.cv <- cv.glmnet(x=tmpDatX, y=tmpDatY, alpha=0,nfolds=10)
   lambdaVal <- fit.cv$lambda[which(fit.cv$cvm==min(fit.cv$cvm))]
   modelFit <- glmnet(x=tmpDatX, y=tmpDatY, alpha=0, lambda=lambdaVal)
-  coef.vals <- coef(modelFit)[-1,]
+  coef.vals <- scale(coef(modelFit)[-1,])
   to.store <- cbind(rownames(cbind(coef.vals, rep(outName[i], length(coef.vals)))), coef.vals, rep(outName[i], length(coef.vals)))
   output.values <- rbind(output.values, to.store)
 }

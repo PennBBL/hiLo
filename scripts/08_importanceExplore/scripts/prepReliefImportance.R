@@ -14,8 +14,8 @@ gmd.data <- read.csv('~/dataPrepForHiLoPaper/data/meanLRVolandAgeReg/gmdData.csv
 tr.data <- read.csv('~/dataPrepForHiLoPaper/data/meanLRVolandAgeReg/jlfTRData.csv')
 alff.data <- read.csv('~/dataPrepForHiLoPaper/data/meanLRVolandAgeReg/alffData.csv')
 reho.data <- read.csv('~/dataPrepForHiLoPaper/data/meanLRVolandAgeReg/rehoData.csv')
-fa.data <- read.csv('~/dataPrepForHiLoPaper/data/meanLRVolandAgeReg/jhuFATracts.csv')
-colnames(fa.data) <- gsub(x=colnames(fa.data), pattern='jhutract', replacement='jlf')
+fa.data <- read.csv('~/dataPrepForHiLoPaper/data/meanLRVolandAgeReg/jhuFALabel.csv')
+colnames(fa.data) <- gsub(x=colnames(fa.data), pattern='jhulabel', replacement='jlf')
 all.data <- merge(vol.data, cbf.data, by=intersect(names(vol.data), names(cbf.data)))
 all.data <- merge(all.data, gmd.data, by=intersect(names(all.data), names(gmd.data)))
 all.data <- merge(all.data, tr.data, by=intersect(names(all.data), names(tr.data)))
@@ -33,7 +33,7 @@ output.values <- NULL
 for(i in 1:length(dataNames)){
   tmpDat <- get(dataNames[i])
   tmpDat <- tmpDat[which(tmpDat$sex==1),]
-  tmpDatX <- tmpDat[,grep(grepValue[i], names(tmpDat))]
+  tmpDatX <- scale(tmpDat[,grep(grepValue[i], names(tmpDat))])
   tmpDatY <- tmpDat$F1_Exec_Comp_Cog_Accuracy
   ## Now run relief F on these guys
   tmpDatY2<- tmpDatY
@@ -41,7 +41,7 @@ for(i in 1:length(dataNames)){
   tmpDatY2[tmpDatY2<=0.2397024] <- 0
   neighbor.idx.observed <- find.neighbors(tmpDatX, tmpDatY2, k = 0, method = RF.method)
   results.list <- stir(tmpDatX, neighbor.idx.observed, k = k, metric = metric, method = RF.method)
-  t_sorted_multisurf <- results.list$OriRelief$relief.score
+  t_sorted_multisurf <- results.list$STIR_T$t.stat
   t_sorted_multisurf <- cbind(rownames(results.list$STIR_T), t_sorted_multisurf, rep(outName[i], dim(tmpDatX)[2]))
   output.values <- rbind(output.values, t_sorted_multisurf)
 }
@@ -63,7 +63,7 @@ for(i in 1:length(dataNames)){
   tmpDatY2[tmpDatY2<=0.2397024] <- 0
   neighbor.idx.observed <- find.neighbors(tmpDatX, tmpDatY2, k = 0, method = RF.method)
   results.list <- stir(tmpDatX, neighbor.idx.observed, k = k, metric = metric, method = RF.method)
-  t_sorted_multisurf <- results.list$OriRelief$relief.score
+  t_sorted_multisurf <- results.list$STIR_T$t.stat
   t_sorted_multisurf <- cbind(rownames(results.list$STIR_T), t_sorted_multisurf, rep(outName[i], dim(tmpDatX)[2]))
   output.values <- rbind(output.values, t_sorted_multisurf)
 }

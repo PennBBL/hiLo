@@ -10,8 +10,8 @@ gmd.data <- read.csv('~/dataPrepForHiLoPaper/data/meanLRVolandAgeReg/gmdData.csv
 tr.data <- read.csv('~/dataPrepForHiLoPaper/data/meanLRVolandAgeReg/jlfTRData.csv')
 alff.data <- read.csv('~/dataPrepForHiLoPaper/data/meanLRVolandAgeReg/alffData.csv')
 reho.data <- read.csv('~/dataPrepForHiLoPaper/data/meanLRVolandAgeReg/rehoData.csv')
-fa.data <- read.csv('~/dataPrepForHiLoPaper/data/meanLRVolandAgeReg/jhuFATracts.csv')
-colnames(fa.data) <- gsub(x=colnames(fa.data), pattern='jhutract', replacement='jlf')
+fa.data <- read.csv('~/dataPrepForHiLoPaper/data/meanLRVolandAgeReg/jhuFALabel.csv')
+colnames(fa.data) <- gsub(x=colnames(fa.data), pattern='jhulabel', replacement='jlf')
 all.data <- merge(vol.data, cbf.data, by=intersect(names(vol.data), names(cbf.data)))
 all.data <- merge(all.data, gmd.data, by=intersect(names(all.data), names(gmd.data)))
 all.data <- merge(all.data, tr.data, by=intersect(names(all.data), names(tr.data)))
@@ -35,14 +35,14 @@ to.write <- NULL
 for(i in 1:length(dataNames)){
   tmpDat <- get(dataNames[i])
   tmpDat <- tmpDat[which(tmpDat$sex==1),]
-  tmpDatX <- tmpDat[,grep(grepValue[i], names(tmpDat))]
+  tmpDatX <- scale(tmpDat[,grep(grepValue[i], names(tmpDat))])
   tmpDatY <- tmpDat$F1_Exec_Comp_Cog_Accuracy
   trainData <- data.frame(tmpDatY,tmpDatX)
   mtry <- sqrt(ncol(tmpDatX))
   tunegrid <- expand.grid(.mtry=mtry)
   rf_default <- train(tmpDatY~., data=trainData, method="rf", tuneGrid=tunegrid, trControl=control)
   tmpMod <- randomForest(x=tmpDatX, y=tmpDatY, mtry=rf_default$bestTune$mtry, importance=T)
-  out.vals <- cbind(rownames(tmpMod$importance), tmpMod$importance[,1],rep(outName[i], length(tmpMod$importance[,1])))
+  out.vals <- cbind(rownames(tmpMod$importance), scale(tmpMod$importance[,1]),rep(outName[i], length(tmpMod$importance[,1])))
   to.write <- rbind(to.write, out.vals)
   print(paste("Done with", outName[i]))
 }
@@ -55,7 +55,7 @@ to.write <- NULL
 for(i in 1:length(dataNames)){
   tmpDat <- get(dataNames[i])
   tmpDat <- tmpDat[which(tmpDat$sex==2),]
-  tmpDatX <- tmpDat[,grep(grepValue[i], names(tmpDat))]
+  tmpDatX <- scale(tmpDat[,grep(grepValue[i], names(tmpDat))])
   tmpDatY <- tmpDat$F1_Exec_Comp_Cog_Accuracy
   trainData <- data.frame(tmpDatY,tmpDatX)
   mtry <- sqrt(ncol(tmpDatX))
