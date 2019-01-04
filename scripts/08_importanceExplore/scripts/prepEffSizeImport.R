@@ -71,7 +71,9 @@ doEverythingEver <- function(df, modalityGrepPattern, lowerAge.e, upperAge.e, ag
 fa.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeReg/jhuFALabel.csv')
 colnames(fa.data)[85] <- 'dti_dtitk_jhulabel_fa_rlic'
 fa.data$ageBin <- 'Age Regressed'
-fa.data.age.reg <- doEverythingEver(fa.data, 'dti_dtitk_jhulabel_fa', 0, 167, 'Age Regressed')[,c('ROI_readable','zScoreDifference','sex')]
+fa.data.age.reg <- doEverythingEver(fa.data, 'dti_dtitk_jhulabel_fa', 0, 167, 'Age Regressed')[,c('ROI','zScoreDifference','sex')]
+fa.data.age.reg$ROI <- paste('dti_dtitk_jlf_fa_', fa.data.age.reg$ROI, sep='')
+colnames(fa.data.age.reg)[1] <- 'ROI_readable'
 
 output <- rbind(output, fa.data.age.reg)
 write.csv(output, "effSizeImp.csv", quote=F, row.names=F)
