@@ -21,6 +21,7 @@ tr.data$dti_jlf_tr_MeanTR <- apply(tr.data[,grep('dti_jlf_tr_', names(tr.data))]
 all.data <- merge(vol.data, cbf.data, by=intersect(names(vol.data), names(cbf.data)))
 all.data <- merge(all.data, gmd.data, by=intersect(names(all.data), names(gmd.data)))
 all.data <- merge(all.data, tr.data, by=intersect(names(all.data), names(tr.data)))
+all.data <- merge(all.data, cc.data)
 
 ## This script is going to be used to build ridge regression models in a cv'ed manner
 ## The important aspect is the twice 10 fold cross validation.
@@ -158,7 +159,7 @@ for(g in 1:2){
     # Now build the model
     # Now get all of the R^2 values
     if(z < 5){
-      modelOut <- buildAustinModel(selectN, predVals=tmp.values, outVals=tmp.out, breakValue=1, nIters=dim(selectN)[1], stepSize=5)
+      modelOut <- buildAustinModel(selectN, predVals=tmp.values, outVals=tmp.out, breakValue=1.1, nIters=dim(selectN)[1], stepSize=5)
     }
     if(z==5){
       modelOut <- buildAustinModel(selectN, predVals=tmp.values, outVals=tmp.out, breakValue=1, nIters=dim(selectN)[1], stepSize=10)
@@ -168,3 +169,4 @@ for(g in 1:2){
   }
 }
 dev.off()
+
