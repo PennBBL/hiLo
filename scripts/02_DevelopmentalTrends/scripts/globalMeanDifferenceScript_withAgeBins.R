@@ -13,6 +13,7 @@ install_load('plyr', 'ggplot2', 'reshape2', 'grid', 'gridExtra', 'labeling', 'da
 vol.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLR/volumeData.csv')
 cbf.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLR/cbfData.csv')
 gmd.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLR/gmdData.csv')
+curve.data <-read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLR/curveData.csv')
 ct.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLR/ctData.csv')
 cc.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLR/ccData.csv')
 sa.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLR/saData.csv')
@@ -28,6 +29,7 @@ tr.data$dti_jlf_tr_MeanTR <- apply(tr.data[,grep('dti_jlf_tr_', names(tr.data))]
 vol.data <- addAgeBin(vol.data, vol.data$ageAtGo1Scan, 167, 215, 216)
 cbf.data <- addAgeBin(cbf.data, cbf.data$ageAtGo1Scan, 167, 215, 216)
 gmd.data <- addAgeBin(gmd.data, gmd.data$ageAtGo1Scan, 167, 215, 216)
+curve.data <- addAgeBin(curve.data, curve.data$ageAtGo1Scan, 167, 215, 216)
 ct.data <- addAgeBin(ct.data, ct.data$ageAtGo1Scan, 167, 215, 216)
 sa.data <- addAgeBin(sa.data, sa.data$ageAtGo1Scan, 167, 215, 216)
 cc.data <- addAgeBin(cc.data, cc.data$ageAtGo1Scan, 167, 215, 216)
@@ -49,6 +51,12 @@ cbf.data.1 <- returnStandardizedGenderMeans(cbf.data, "pcasl_jlf_cbf", "","Child
 cbf.data.1 <- rbind(cbf.data.1, returnStandardizedGenderMeans(cbf.data, "pcasl_jlf_cbf", "","Adolescence"))
 cbf.data.1 <- rbind(cbf.data.1, returnStandardizedGenderMeans(cbf.data, "pcasl_jlf_cbf", "","Early Adulthood"))
 cbf.data.1$ageBin <- factor(cbf.data.1$ageBin, levels=c('Early Adulthood','Adolescence','Childhood'))
+
+# Now do curve
+curve.data.1 <- returnStandardizedGenderMeans(curve.data, "mprage_jlf_curl", "","Childhood")
+curve.data.1 <- rbind(curve.data.1, returnStandardizedGenderMeans(curve.data, "mprage_jlf_curl", "","Adolescence"))
+curve.data.1 <- rbind(curve.data.1, returnStandardizedGenderMeans(curve.data, "mprage_jlf_curl", "","Early Adulthood"))
+curve.data.1$ageBin <- factor(curve.data.1$ageBin, levels=c('Early Adulthood','Adolescence','Childhood'))
 
 # Now do GMD
 gmd.data.1 <- returnStandardizedGenderMeans(gmd.data, "mprage_jlf_gmd", "","Childhood")
@@ -109,6 +117,7 @@ tr.data.1$ageBin <- factor(tr.data.1$ageBin, levels=c('Early Adulthood','Adolesc
 volumePlot <- createGGPlotImage(volume.data.1, 'Volume', -.8, .9, .2)
 cbfPlot <- createGGPlotImage(cbf.data.1, 'CBF', -.9, .8, .2)
 gmdPlot <- createGGPlotImage(gmd.data.1, 'GMD', -.8, .9, .2)
+curlPlot <- createGGPlotImage(curve.data.1, 'Curl', -.8, .9, .2)
 ctPlot <- createGGPlotImage(ct.data.1, 'CT', -.9, .8, .2)
 ccPlot <- createGGPlotImage(cc.data.1, 'Cortical Contrast', -1, 1, .2)
 saPlot <- createGGPlotImage(sa.data.1, 'SA', -1, 1, .2)
