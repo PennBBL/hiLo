@@ -63,19 +63,33 @@ runTpotOnAll <- function(x, y, nFold=10, grepID){
 ## Set up a parallel backend
 cl <- makeCluster(32)
 registerDoParallel(cl)
-
-dataNames <- c('vol.data','cbf.data','gmd.data','tr.data','fa.data','all.data', 'reho.data', 'alff.data', 'all.data2')
-#dataNames <- c('fa.data', 'all.data')
-outName <- c('vol', 'cbf', 'gmd', 'tr', 'fa', 'all.data', 'reho', 'alff', 'all.data2')
-#outName <- c('fa', 'all.data')
+dataNames <- c('vol.data','cbf.data','gmd.data','tr.data','fa.data','reho.data', 'alff.data')
+outName <- c('vol', 'cbf', 'gmd', 'tr', 'fa', 'reho', 'alff')
 grepValue <- c(rep('_jlf_', 7), '_jlf_', '_jlf_')
-#grepValue <- c('_jlf_', '_jlf_')
-allR <- foreach (q=1:250, .combine='rbind',.packages=c('foreach', 'doParallel', 'glmnet','psych','reshape2', 'caret','MASS', 'methods', 'ggplot2', 'rpart'),.export=ls(envir=globalenv())) %dopar%{
-  outMat <- matrix(NA, ncol=5, nrow=length(dataNames))
-  for(i in 1:length(dataNames)){
-    tmpDat <- get(dataNames[i])
+allIterations <- matrix(NA, nrow=7, ncol=127)
+index <- c(7,21,35,35,21,7,1)
+indexF <- c(1,8,29,64,99,120,127)
+indexE <- c(7,28,63,98,119,126,127)
+row.check <- 1
+col.check <- 1
+for(i in 1:7){
+  to.add <- combn(dataNames,i)
+  allIterations[1:row.check,indexF[i]:indexE[i]] <- to.add
+  row.check <- row.check+1
+  col.check <- col.check+index[i]
+}
+allR <- foreach (q=1:32, .combine='rbind',.packages=c('foreach', 'doParallel', 'glmnet','psych','reshape2', 'caret','MASS', 'methods', 'ggplot2', 'rpart'),.export=ls(envir=globalenv())) %dopar%{
+  outMat <- matrix(NA, ncol=5, nrow=dim(allIterations)[2])
+  for(i in 1:127){
+    out.data <- NULL
+    data.names <- allIterations[,i]
+    data.names <- data.names[!is.na(data.names)]
+    for(w in 1:length(data.names)){
+      if(w==1){tmpDat <- get(data.names[w])}
+      tmpDat <- merge(tmpDat, get(data.names[w]))
+    }
     tmpDat <- tmpDat[which(tmpDat$sex==1),]
-    tmpDatX <- tmpDat[,grep(grepValue[i], names(tmpDat))]
+    tmpDatX <- tmpDat[,grep("_jlf_", names(tmpDat))]
     tmpDatY <- tmpDat$F1_Exec_Comp_Cog_Accuracy
     out.data <- cbind(tmpDatY, tmpDatX)
     # Now write the csv for the mbp notebook
@@ -83,13 +97,14 @@ allR <- foreach (q=1:250, .combine='rbind',.packages=c('foreach', 'doParallel', 
     write.csv(out.data, out.name, quote=F, row.names=F)
     predVals <- runTpotOnAll(tmpDatX, tmpDatY, 10, grepValue[i])
     corVal <- cor(predVals[[1]], tmpDatY)^2
-    cvICC <- ICC(cbind(predVals[[1]], tmpDatY))$results[4,2]
+    #cvICC <- ICC(cbind(predVals[[1]], tmpDatY))$results[4,2]
     cvRMSE <- sqrt(mean((tmpDatY-predVals[[1]])^2))
     outRow <- c(i, q, corVal, dim(tmpDatX)[1], dim(tmpDatX)[2])
     outMat[i,] <- outRow
   }
   print(outMat)
 }
+write.csv(allR, "allIndivRVals.csv", quote=F, row.names=F)
 orig <- allR
 allR <- as.data.frame(allR)
 allR <- dcast(V2 ~ V1, data=allR, value.var='V3')
@@ -98,7 +113,7 @@ outMedian <- round(apply(allR, 2, median), digits=2)
 outMin <- round(apply(allR, 2, min), digits=2)
 outMax <- round(apply(allR, 2, max), digits=2)
 outSD <- round(apply(allR, 2, sd), digits=3)
-output <- cbind(orig[1:9,4], orig[1:9,5], outMean[2:10], outMedian[2:10], outMin[2:10], outMax[2:10], outSD[2:10])
+output <- cbind(orig[1:127,4], orig[1:127,5], outMean[2:128], outMedian[2:128], outMin[2:128], outMax[2:128], outSD[2:128])
 write.csv(output, 'tmpAllRValsMaleAR.csv', quote=F, row.names=F)
 ## Now plot these values
 rownames(output) <- NULL
@@ -108,18 +123,20 @@ output <- cbind(output, modal)
 output <- as.data.frame(output)
 output$Mean <- as.numeric(as.character(output$Mean))
 output$SD <- as.numeric(as.character(output$SD))
-output$modal <- factor(output$modal, levels=modal[c(1:5,7,8,6)])
+output$modal <- apply(allIterations, 2, function(x) paste(x, collapse='_'))
+output <- output[which(output$Mean>.2),]
 outplot <- ggplot(output, aes(x=modal, y=Mean)) +
   geom_bar(stat="identity",position=position_dodge(.9)) +
   geom_errorbar(aes(ymin=Mean-SD, ymax=Mean+SD), width=.2,
                  position=position_dodge(.9)) +
-  coord_cartesian(ylim=c(0, .25)) 
-pdf("maleCVRSquaredVals.pdf")
+  coord_cartesian(ylim=c(.19, .25)) +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1, face="bold"))
+pdf("femaleCVRSquaredVals.pdf", width=20, height=12)
 print(outplot)
 dev.off()  
 
 ## Now create a null distribution
-allRN <- foreach (q=1:100, .combine='rbind',.packages=c('foreach', 'doParallel', 'glmnet','psych','reshape2', 'caret','MASS', 'methods', 'ggplot2', 'rpart'),.export=ls(envir=globalenv())) %dopar%{
+allRN <- foreach (q=1:64, .combine='rbind',.packages=c('foreach', 'doParallel', 'glmnet','psych','reshape2', 'caret','MASS', 'methods', 'ggplot2', 'rpart'),.export=ls(envir=globalenv())) %dopar%{
   outMat <- matrix(NA, ncol=5, nrow=length(dataNames))
   for(i in 1:length(dataNames)){
     tmpDat <- get(dataNames[i])
@@ -149,7 +166,7 @@ outMedian <- round(apply(allRN, 2, median), digits=2)
 outMin <- round(apply(allRN, 2, min), digits=2)
 outMax <- round(apply(allRN, 2, max), digits=2)
 outSD <- round(apply(allRN, 2, sd), digits=3)
-outputN <- cbind(orig[1:8,4], orig[1:8,5], outMean[2:9], outMedian[2:9], outMin[2:9], outMax[2:9], outSD[2:9])
+outputN <- cbind(origN[1:9,4], origN[1:9,5], outMean[2:9], outMedian[2:10], outMin[2:10], outMax[2:10], outSD[2:10])
 
 ## Create a histogram of null vs real r-squared values for each domain
 allR$real <- 'Real'
@@ -169,27 +186,33 @@ out.plot.male <- ggplot(toPlot, aes(x=value, group=real, fill=real)) +
   facet_grid(variable ~ .)
 
 # Now do this for females
-allR <- NULL
-for(q in seq(1,10)){
-  for(i in 1:length(dataNames)){
-    tmpDat <- get(dataNames[i])
+allR <- foreach (q=1:32, .combine='rbind',.packages=c('foreach', 'doParallel', 'glmnet','psych','reshape2', 'caret','MASS', 'methods', 'ggplot2', 'rpart'),.export=ls(envir=globalenv())) %dopar%{
+  outMat <- matrix(NA, ncol=5, nrow=dim(allIterations)[2])
+  for(i in 1:127){
+    out.data <- NULL
+    data.names <- allIterations[,i]
+    data.names <- data.names[!is.na(data.names)]
+    for(w in 1:length(data.names)){
+      if(w==1){tmpDat <- get(data.names[w])}
+      tmpDat <- merge(tmpDat, get(data.names[w]))
+    }
     tmpDat <- tmpDat[which(tmpDat$sex==2),]
-    tmpDatX <- tmpDat[,grep(grepValue[i], names(tmpDat))]
+    tmpDatX <- tmpDat[,grep("_jlf_", names(tmpDat))]
     tmpDatY <- tmpDat$F1_Exec_Comp_Cog_Accuracy
     out.data <- cbind(tmpDatY, tmpDatX)
     # Now write the csv for the mbp notebook
-    out.name <- paste("./femaleData/", i, "_femaleData.csv", sep='')
+    out.name <- paste("./maleData/", i, "_maleData.csv", sep='')
     write.csv(out.data, out.name, quote=F, row.names=F)
     predVals <- runTpotOnAll(tmpDatX, tmpDatY, 10, grepValue[i])
     corVal <- cor(predVals[[1]], tmpDatY)^2
-    cvICC <- ICC(cbind(predVals[[1]], tmpDatY))$results[4,2]
+    #cvICC <- ICC(cbind(predVals[[1]], tmpDatY))$results[4,2]
     cvRMSE <- sqrt(mean((tmpDatY-predVals[[1]])^2))
     outRow <- c(i, q, corVal, dim(tmpDatX)[1], dim(tmpDatX)[2])
-    allR <- rbind(allR, outRow)
-    #write.csv(allR, 'tmpAllRValsNOVS2.csv', quote=F, row.names=F)
+    outMat[i,] <- outRow
   }
-  print(q)
+  print(outMat)
 }
+write.csv(allR, "allIndivRValsFemale.csv", quote=F, row.names=F)
 orig <- allR
 allR <- as.data.frame(allR)
 allR <- dcast(V2 ~ V1, data=allR, value.var='V3')
@@ -197,8 +220,8 @@ outMean <- round(apply(allR, 2, mean), digits=2)
 outMedian <- round(apply(allR, 2, median), digits=2)
 outMin <- round(apply(allR, 2, min), digits=2)
 outMax <- round(apply(allR, 2, max), digits=2)
-outSD <- round(apply(allR, 2, sd), digits=2)
-output <- cbind(orig[1:8,4], orig[1:8,5], outMean[2:9], outMedian[2:9], outMin[2:9], outMax[2:9], outSD[2:9])
+outSD <- round(apply(allR, 2, sd), digits=3)
+output <- cbind(orig[1:127,4], orig[1:127,5], outMean[2:128], outMedian[2:128], outMin[2:128], outMax[2:128], outSD[2:128])
 write.csv(output, 'tmpAllRValsFemaleAR.csv', quote=F, row.names=F)
 ## Now plot these values
 rownames(output) <- NULL
@@ -213,10 +236,60 @@ outplot <- ggplot(output, aes(x=modal, y=Mean)) +
   geom_bar(stat="identity",position=position_dodge(.9)) +
   geom_errorbar(aes(ymin=Mean-SD, ymax=Mean+SD), width=.2,
                  position=position_dodge(.9)) +
-  coord_cartesian(ylim=c(0, .25))
+  coord_cartesian(ylim=c(0, .25)) 
 pdf("femaleCVRSquaredVals.pdf")
 print(outplot)
-dev.off()
+dev.off()  
+
+## Now create a null distribution
+allRN <- foreach (q=1:64, .combine='rbind',.packages=c('foreach', 'doParallel', 'glmnet','psych','reshape2', 'caret','MASS', 'methods', 'ggplot2', 'rpart'),.export=ls(envir=globalenv())) %dopar%{
+  outMat <- matrix(NA, ncol=5, nrow=length(dataNames))
+  for(i in 1:length(dataNames)){
+    tmpDat <- get(dataNames[i])
+    tmpDat <- tmpDat[which(tmpDat$sex==2),]
+    tmpDatX <- tmpDat[,grep(grepValue[i], names(tmpDat))]
+    tmpDatY <- tmpDat$F1_Exec_Comp_Cog_Accuracy[sample(nrow(tmpDat))]
+    out.data <- cbind(tmpDatY, tmpDatX)
+    # Now write the csv for the mbp notebook
+    out.name <- paste("./femaleData/", i, "_femaleData.csv", sep='')
+    write.csv(out.data, out.name, quote=F, row.names=F)
+    predVals <- runTpotOnAll(tmpDatX, tmpDatY, 10, grepValue[i])
+    corVal <- cor(predVals[[1]], tmpDatY)^2
+    cvICC <- ICC(cbind(predVals[[1]], tmpDatY))$results[4,2]
+    cvRMSE <- sqrt(mean((tmpDatY-predVals[[1]])^2))
+    outRow <- c(i, q, corVal, dim(tmpDatX)[1], dim(tmpDatX)[2])
+    outMat[i,] <- outRow
+  }
+  print(outMat)
+}
+
+## Now plot the null vs the real ditribution
+origN <- allRN
+allRN <- as.data.frame(allRN)
+allRN <- dcast(V2 ~ V1, data=allRN, value.var='V3')
+outMean <- round(apply(allRN, 2, mean), digits=2)
+outMedian <- round(apply(allRN, 2, median), digits=2)
+outMin <- round(apply(allRN, 2, min), digits=2)
+outMax <- round(apply(allRN, 2, max), digits=2)
+outSD <- round(apply(allRN, 2, sd), digits=3)
+outputN <- cbind(origN[1:9,4], origN[1:9,5], outMean[2:9], outMedian[2:10], outMin[2:10], outMax[2:10], outSD[2:10])
+
+## Create a histogram of null vs real r-squared values for each domain
+allR$real <- 'Real'
+allRN$real <- 'Fake'
+toPlot <- rbind(allR, allRN)
+toPlot <- melt(toPlot, id.vars=c('V2', 'real'))
+# Now fix the names of the modalities
+toPlot$variable <- as.character(toPlot$variable)
+for(i in 1:length(outName)){
+  ## Now find and change names of the new variables
+  toPlot[which(toPlot$variable==i),'variable'] <- outName[i]
+}
+
+out.plot.female <- ggplot(toPlot, aes(x=value, group=real, fill=real)) +
+  geom_histogram(data=subset(toPlot,real=='Real')) +
+  geom_histogram(data=subset(toPlot,real=='Fake')) +
+  facet_grid(variable ~ .)
 
 ## Now kill the cluster
 stopCluster(cl)
