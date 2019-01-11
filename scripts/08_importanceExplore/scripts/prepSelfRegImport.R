@@ -3,13 +3,13 @@ source('~/hiLo/scripts/04_CognitiveModels/functions/functions.R')
 install_load('foreach', 'doParallel', 'glmnet','psych','reshape2', 'caret','MASS', 'methods', 'ggplot2', 'rpart', 'stir')
 
 ## Load the data
-vol.data <- read.csv('~/dataPrepForHiLoPaper/data/meanLRVolandAgeRegModalReg/volumeData.csv')
-cbf.data <- read.csv('~/dataPrepForHiLoPaper/data/meanLRVolandAgeRegModalReg/cbfData.csv')
-gmd.data <- read.csv('~/dataPrepForHiLoPaper/data/meanLRVolandAgeRegModalReg/gmdData.csv')
-tr.data <- read.csv('~/dataPrepForHiLoPaper/data/meanLRVolandAgeRegModalReg/jlfTRData.csv')
-alff.data <- read.csv('~/dataPrepForHiLoPaper/data/meanLRVolandAgeRegModalReg/alffData.csv')
-reho.data <- read.csv('~/dataPrepForHiLoPaper/data/meanLRVolandAgeRegModalReg/rehoData.csv')
-fa.data <- read.csv('~/dataPrepForHiLoPaper/data/meanLRVolandAgeRegModalReg/jhuFALabel.csv')
+vol.data <- read.csv('~/dataPrepForHiLoPaper/data/meanLRVolandAgeReg/volumeData.csv')
+cbf.data <- read.csv('~/dataPrepForHiLoPaper/data/meanLRVolandAgeReg/cbfData.csv')
+gmd.data <- read.csv('~/dataPrepForHiLoPaper/data/meanLRVolandAgeReg/gmdData.csv')
+tr.data <- read.csv('~/dataPrepForHiLoPaper/data/meanLRVolandAgeReg/jlfTRData.csv')
+alff.data <- read.csv('~/dataPrepForHiLoPaper/data/meanLRVolandAgeReg/alffData.csv')
+reho.data <- read.csv('~/dataPrepForHiLoPaper/data/meanLRVolandAgeReg/rehoData.csv')
+fa.data <- read.csv('~/dataPrepForHiLoPaper/data/meanLRVolandAgeReg/jhuFALabel.csv')
 colnames(fa.data) <- gsub(x=colnames(fa.data), pattern='jhulabel', replacement='jlf')
 all.data <- merge(vol.data, cbf.data, by=intersect(names(vol.data), names(cbf.data)))
 all.data <- merge(all.data, gmd.data, by=intersect(names(all.data), names(gmd.data)))
@@ -23,6 +23,7 @@ dataNames <- c('vol.data','cbf.data','gmd.data','tr.data','fa.data','all.data', 
 outName <- c('vol', 'cbf', 'gmd', 'tr', 'fa', 'all.data', 'reho', 'alff')
 grepValue <- c(rep('_jlf_', 7), '_jlf_')
 output.values <- NULL
+output.var <- NULL
 for(i in 1:length(dataNames)){
   tmpDat <- get(dataNames[i])
   tmpDat <- tmpDat[which(tmpDat$sex==1),]
@@ -30,6 +31,8 @@ for(i in 1:length(dataNames)){
   tmpDatY <- tmpDat$F1_Exec_Comp_Cog_Accuracy
   ## Now train a ridge reg model
   modelFit <- lm(tmpDatY~tmpDatX)
+  out.r <- c(dataNames[i], summary(modelFit)[c('r.squared', 'adj.r.squared')])
+  output.var <- rbind(output.var, out.r)
   coef.vals <- coef(modelFit)[-1]
   to.store <-  cbind(rownames(cbind(coef.vals, rep(outName[i], length(coef.vals)))), coef.vals, rep(outName[i], length(coef.vals)))
   output.values <- rbind(output.values, to.store)
@@ -41,13 +44,16 @@ write.csv(output.values, "selfRegImpMale.csv", quote=F, row.names=F)
 
 ## Now do females
 output.values <- NULL
+output.var <- NULL
 for(i in 1:length(dataNames)){
   tmpDat <- get(dataNames[i])
-  tmpDat <- tmpDat[which(tmpDat$sex==1),]
+  tmpDat <- tmpDat[which(tmpDat$sex==2),]
   tmpDatX <- as.matrix(scale(tmpDat[,grep(grepValue[i], names(tmpDat))]))
   tmpDatY <- tmpDat$F1_Exec_Comp_Cog_Accuracy
   ## Now train a ridge reg model
   modelFit <- lm(tmpDatY~tmpDatX)
+  out.r <- c(dataNames[i], summary(modelFit)[c('r.squared', 'adj.r.squared')])
+  output.var <- rbind(output.var, out.r)
   coef.vals <- coef(modelFit)[-1]
   to.store <-  cbind(rownames(cbind(coef.vals, rep(outName[i], length(coef.vals)))), coef.vals, rep(outName[i], length(coef.vals)))
   output.values <- rbind(output.values, to.store)
