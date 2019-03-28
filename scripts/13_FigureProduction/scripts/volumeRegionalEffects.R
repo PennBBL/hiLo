@@ -1,0 +1,77 @@
+## Load Library(s)
+source("/home/adrose/adroseHelperScripts/R/afgrHelpFunc.R")
+source("/home/adrose/hiLo/scripts/03_CognitiveTrends/functions/wm2Functions.R")
+source("/home/adrose/hiLo/scripts/03_CognitiveTrends/functions/wm1Functions2.R")
+source("/home/adrose/hiLo/scripts/03_CognitiveTrends/functions/functions-forJLF.R")
+install_load('plyr', 'ggplot2', 'reshape2', 'grid', 'gridExtra', 'labeling', 'data.table')
+
+# Declare any functions
+returnPerfBin <- function(data) {
+  
+  data$F1_Exec_Comp_Cog_Accuracy
+  quantiles <- quantile(data$F1_Exec_Comp_Cog_Accuracy, c(0,.33,.67,1))
+  
+  data$perfBin <- 0
+  data$perfBin[which(data$F1_Exec_Comp_Cog_Accuracy < quantiles[2])] <- 'lo'
+  data$perfBin[which(data$F1_Exec_Comp_Cog_Accuracy >= quantiles[2] &
+                          data$F1_Exec_Comp_Cog_Accuracy <= quantiles[3])] <- 'me'
+  data$perfBin[which(data$F1_Exec_Comp_Cog_Accuracy > quantiles[3])] <- 'hi'
+  return(data)
+}
+
+## Load the data
+vol.modal.data <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLR/volumeData.csv')
+vol.modal.data <- addAgeBin(vol.modal.data, vol.modal.data$ageAtGo1Scan, 167, 215, 216)
+vol.modal.data.age.reg <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/meanLRVolandAgeReg/volumeData.csv')
+vol.modal.data.age.reg$ageBin <- 'Age Regressed'
+
+# Now create a static perf bin variable
+tmpDF <- vol.modal.data.age.reg
+tmpDF <- returnPerfBin(tmpDF)
+outCol <- tmpDF[,c('bblid','scanid','perfBin')]
+colnames(outCol)[3] <- paste('perfCol', 1, sep='')
+static.perf.bin <- outCol
+colnames(static.perf.bin) <- c('bblid', 'scanid', 'groupFactorLevel')
+rm(tmpDF)
+
+## Create our values to plot
+age.reg.vol <- doEverythingEver(vol.modal.data.age.reg, 'mprage_jlf_vol', 0, 999, 'Age Regressed', cerebellum=T,optionalRace=NULL)
+age.reg.vol <- rbind(age.reg.vol,doEverythingEverWM(vol.modal.data.age.reg, 'mprage_jlf_vol', 0, 999, 'Age Regressed', cerebellum=T,optionalRace=NULL))
+
+child.volume <- doEverythingEver(vol.modal.data, 'mprage_jlf_vol', 0, 167, 'Childhood', cerebellum=T,optionalRace=NULL)
+adol.volume <- doEverythingEver(vol.modal.data, 'mprage_jlf_vol', 168, 215, 'Adolescence', cerebellum=T,optionalRace=NULL)
+adult.volume <- doEverythingEver(vol.modal.data, 'mprage_jlf_vol', 216, 999, 'Early Adulthood', cerebellum=T,optionalRace=NULL)
+child.volumeWM <- doEverythingEverWM(vol.modal.data, 'mprage_jlf_vol', 0, 167, 'Childhood', cerebellum=F,optionalRace=NULL)
+adol.volumeWM <- doEverythingEverWM(vol.modal.data, 'mprage_jlf_vol', 168, 215, 'Adolescence', cerebellum=F,optionalRace=NULL)
+adult.volumeWM <- doEverythingEverWM(vol.modal.data, 'mprage_jlf_vol', 216, 999, 'Early Adulthood', cerebellum=F,optionalRace=NULL)
+all.vol <- rbind(child.volume, adol.volume, adult.volume)
+all.vol <- rbind(all.vol,child.volumeWM, adol.volumeWM, adult.volumeWM)
+all.vol$ageBin <- revalue(all.vol$ageBin,c("Childhood"="Children","Adolescence"="Adolescents","Early Adulthood"="Young Adults"))
+all.vol$lobe <- factor(all.vol$lobe, levels=c('Cerebellum','Basal Ganglia','Limbic','Frontal Orbital','Frontal Dorsal','Temporal','Parietal','Occipital','WM'))
+all.vol$ROI <- revalue(all.vol$ROI, c("FRO WM"="FRO","TEM WM"="TEM","PAR WM"="PAR","OCC WM"="OCC","Limbic WM"="Limbic","Insular WM"="Insular"))
+all.vol$lobe <- revalue(all.vol$lobe, c('Basal Ganglia'='Basal/ST','Frontal Orbital'='Frontal','Frontal Dorsal'='Frontal'))
+
+outPlot <- ggplot(all.vol, aes(y=zScoreDifference, x=ROI, group=Gender)) +
+      geom_line(aes(linetype=Gender,color=Gender), size=1) +
+      geom_point(aes(shape=Gender, color=Gender), size=1.5) +
+      #geom_errorbar(aes(ymin=meanValue-standErrValue, ymax=meanValue+standErrValue)) + 
+      scale_y_continuous(limits=c(-.4, 1.4), 
+                           breaks=round(seq(-.4,1.4,.4), digits=2)) +
+      xlab("ROI") +
+      ylab("Effect Size") +
+      geom_hline(aes(yintercept=0), linetype="longdash", colour="black", size=0.5) +
+      scale_colour_manual(name = "Gender",
+                          values=c("Male"="blue","Female"="red")) +
+      scale_linetype_manual(name = "Gender", values = c("Male" = "solid", "Female" = "solid")) +
+      #scale_shape_manual(values=c(16), guide=FALSE) +
+      theme_bw() +
+      theme(legend.position="none") +
+      theme(axis.text.x = element_text(angle = 45, hjust=1,face="bold"), 
+      axis.text.y = element_text(face="bold", size=8), axis.title.x = element_blank(),
+      axis.title.y = element_blank(),
+      plot.title = element_blank(), strip.text.x = element_text(size=10)) +
+      facet_grid(ageBin ~ lobe, scales="free", space="free_x")
+
+png("volumeRegionalEffects.png", width=14,height=5,units='in',res=300)
+outPlot
+dev.off()
