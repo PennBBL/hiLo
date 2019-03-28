@@ -54,7 +54,8 @@ colnames(all.data)[c(2,6)] <- c("Cohen's D", "Ridge Coefficient")
 all.data <- all.data[-grep("dti_dtitk_jlf_fa", all.data$ROI_readable),]
 
 ## Now add a little noise to ReHo ridge values so the cor isn't exactlly .6999999
-all.data[which(all.data$modality=='ReHo'),6] <- all.data[which(all.data$modality=='ReHo'),6] + rnorm(length(all.data[which(all.data$modality=='ReHo'),6]), .2 , .1)
+set.seed(00889944)
+#all.data[which(all.data$modality=='ReHo'),6] <- all.data[which(all.data$modality=='ReHo'),6] + rnorm(length(all.data[which(all.data$modality=='ReHo'),6]), .2 , .1)
 
 ## Now declare a function so I can modify the alpha of my density plots
 my_dens <- function(data, mapping, ...) {
@@ -298,8 +299,16 @@ cor_text <- function(data, mapping, alignPercent = 0.6, method = "pearson",
   }
 }
 
+PlotCont = function(data, mapping, ...){
+  print(names(data))
+  print(mapping)  
+  ggplot(data, mapping) + geom_point(..., shape = 19) +
+      geom_smooth(method = "lm") + geom_point(mapping, shape = 19) +
+      geom_smooth(method='lm', aes(color=NULL, group=NULL), color='black')
+}
+
 #pdf('scaleRidgeMal.pdf', width=4, height=4)
-plot1 <- ggpairs(data=all.data,columns=c(2,6),ggplot2::aes(colour=modality,alpha = 0.6), title="Male",upper=list(continuous=wrap(cor_text, sgnf=2)))
+plot1 <- ggpairs(data=all.data,columns=c(2,6),ggplot2::aes(colour=modality,alpha = .6), title="Male",upper=list(continuous=wrap(cor_text, sgnf=2)),lower = list(continuous = PlotCont))
 plot1[2,1] <- plot1[2,1] + scale_x_continuous(limits = c(-1, 1))
 plot1 <- plot1 + theme(text = element_text(size = 12, lineheight = 1, face='bold'))
 
@@ -349,8 +358,8 @@ colnames(all.data)[c(2,6)] <- c("Cohen's D", "Ridge Coefficient")
 ## Now remove FA
 all.data <- all.data[-grep("dti_dtitk_jlf_fa", all.data$ROI_readable),]
 
-pdf('scaleRidgeFem.pdf', width=12, height=6)
-plot2 <- ggpairs(data=all.data,columns=c(2,6),ggplot2::aes(colour=modality, alpha=0.6) ,title="Female",upper=list(continuous=wrap(cor_text, sgnf=2)))
+pdf('scaleRidgeVals.pdf', width=12, height=6)
+plot2 <- ggpairs(data=all.data,columns=c(2,6),ggplot2::aes(colour=modality, alpha=0.6) ,title="Female",upper=list(continuous=wrap(cor_text, sgnf=2)),lower = list(continuous = PlotCont))
 plot2[2,1] <- plot2[2,1] + scale_x_continuous(limits = c(-1, 1))
 plot2[1,1] <- plot2[1,1] + scale_y_continuous(limits = c(0, 6))
 plot2 <- plot2 + theme(text = element_text(size = 12, lineheight = 1, face='bold'))
