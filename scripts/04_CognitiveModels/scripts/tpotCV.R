@@ -60,7 +60,7 @@ runTpotOnAll <- function(x, y, nFold=10, grepID){
 }
 
 ## Set up a parallel backend
-cl <- makeCluster(36)
+cl <- makeCluster(32)
 registerDoParallel(cl)
 dataNames <- c('vol.data','cbf.data','gmd.data','tr.data','reho.data', 'alff.data')
 outName <- c('Volume', 'CBF', 'GMD', 'MD', 'ReHo', 'ALFF','All')
@@ -78,7 +78,7 @@ for(i in 1:6){
   col.check <- col.check+index[i]
 }
 dataNames <- c('vol.data','cbf.data','gmd.data','tr.data','reho.data', 'alff.data','all.data')
-allR <- foreach (q=1:1000, .combine='rbind',.packages=c('foreach', 'doParallel', 'glmnet','psych','reshape2', 'caret','MASS', 'methods', 'ggplot2', 'rpart'),.export=ls(envir=globalenv())) %dopar%{
+allR <- foreach (q=1:100, .combine='rbind',.packages=c('foreach', 'doParallel', 'glmnet','psych','reshape2', 'caret','MASS', 'methods', 'ggplot2', 'rpart'),.export=ls(envir=globalenv())) %dopar%{
   outMat <- matrix(NA, ncol=5, nrow=7)
   for(i in 1:length(dataNames)){
     out.data <- NULL
@@ -133,7 +133,7 @@ print(outplot)
 dev.off()  
 
 ## Now create a null distribution
-allRN <- foreach (q=1:1000, .combine='rbind',.packages=c('foreach', 'doParallel', 'glmnet','psych','reshape2', 'caret','MASS', 'methods', 'ggplot2', 'rpart'),.export=ls(envir=globalenv())) %dopar%{
+allRN <- foreach (q=1:100, .combine='rbind',.packages=c('foreach', 'doParallel', 'glmnet','psych','reshape2', 'caret','MASS', 'methods', 'ggplot2', 'rpart'),.export=ls(envir=globalenv())) %dopar%{
   outMat <- matrix(NA, ncol=5, nrow=length(dataNames))
   for(i in 1:length(dataNames)){
     tmpDat <- get(dataNames[i])
@@ -188,11 +188,11 @@ for(i in 1:length(outName)){
 toPlot$variable <- factor(toPlot$variable, levels=c("Volume", "GMD", "MD", "CBF", "ALFF", "ReHo", "All"))
 
 out.plot.male <- ggplot(toPlot, aes(x=value, group=Outcome, fill=Outcome)) +
-  geom_histogram(data=subset(toPlot,Outcome=='Real'), binwidth=.005) +
-  geom_histogram(data=subset(toPlot,Outcome=='Fake'), binwidth=.005) +
+  geom_density(data=subset(toPlot,Outcome=='Real')) +
+  geom_density(data=subset(toPlot,Outcome=='Fake')) +
   theme_bw() +
   facet_grid(variable ~ .) +
-  coord_cartesian(ylim=c(0,800),xlim=c(-.1,.25)) +
+  coord_cartesian(ylim=c(0,250),xlim=c(-.1,.25)) +
   ggtitle("Male") +
   xlab(bquote('CV R'^2)) + theme(legend.position="none")
 pdf("maleCVRSquaredVals2.pdf", width=8, height=6)
@@ -200,7 +200,7 @@ print(out.plot.male)
 dev.off()  
 
 # Now do this for females
-allR <- foreach (q=1:1000, .combine='rbind',.packages=c('foreach', 'doParallel', 'glmnet','psych','reshape2', 'caret','MASS', 'methods', 'ggplot2', 'rpart'),.export=ls(envir=globalenv())) %dopar%{
+allR <- foreach (q=1:100, .combine='rbind',.packages=c('foreach', 'doParallel', 'glmnet','psych','reshape2', 'caret','MASS', 'methods', 'ggplot2', 'rpart'),.export=ls(envir=globalenv())) %dopar%{
   outMat <- matrix(NA, ncol=5, nrow=7)
   for(i in 1:length(dataNames)){
     out.data <- NULL
@@ -253,7 +253,7 @@ print(outplot)
 dev.off()  
 
 ## Now create a null distribution
-allRN <- foreach (q=1:1000, .combine='rbind',.packages=c('foreach', 'doParallel', 'glmnet','psych','reshape2', 'caret','MASS', 'methods', 'ggplot2', 'rpart'),.export=ls(envir=globalenv())) %dopar%{
+allRN <- foreach (q=1:100, .combine='rbind',.packages=c('foreach', 'doParallel', 'glmnet','psych','reshape2', 'caret','MASS', 'methods', 'ggplot2', 'rpart'),.export=ls(envir=globalenv())) %dopar%{
   outMat <- matrix(NA, ncol=5, nrow=length(dataNames))
   for(i in 1:length(dataNames)){
     tmpDat <- get(dataNames[i])
@@ -304,11 +304,11 @@ for(i in 1:length(outName)){
 toPlot$variable <- factor(toPlot$variable, levels=c("Volume", "GMD", "MD", "CBF", "ALFF", "ReHo", "All"))
 
 out.plot.female <- ggplot(toPlot, aes(x=value, group=Outcome, fill=Outcome)) +
-  geom_histogram(data=subset(toPlot,Outcome=='Real'), binwidth=.005) +
-  geom_histogram(data=subset(toPlot,Outcome=='Fake'), binwidth=.005) +
+  geom_density(data=subset(toPlot,Outcome=='Real')) +
+  geom_density(data=subset(toPlot,Outcome=='Fake')) +
   theme_bw() +
   facet_grid(variable ~ .)  +
-  coord_cartesian(ylim=c(0,800),xlim=c(-.1,.25)) +
+  coord_cartesian(ylim=c(0,250),xlim=c(-.1,.25)) +
   ggtitle("Female") +
   xlab(bquote('CV R'^2)) + theme(legend.position="none") +
   ylab("")
