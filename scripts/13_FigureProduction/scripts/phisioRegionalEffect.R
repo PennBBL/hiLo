@@ -38,6 +38,13 @@ static.perf.bin <- outCol
 colnames(static.perf.bin) <- c('bblid', 'scanid', 'groupFactorLevel')
 rm(tmpDF)
 
+## Now load the performance groups I have sent Ruben in the past
+tmpDF <- read.csv("/home/gur/gursas/GO/perfBinsForRuben.csv")
+tmpDF <- tmpDF[,1:3]
+colnames(tmpDF)[3] <- 'groupFactorLevel'
+tmpDF$groupFactorLevel <- plyr::revalue(factor(tmpDF$groupFactorLevel), c("1"="lo", "2"="me","3"="hi"))
+static.perf.bin <- tmpDF
+
 ## Now create our values to plot
 # start with CBF
 child.cbf <- doEverythingEver(cbf.modal.data, 'pcasl_jlf_cbf', 0, 167, 'Childhood', cerebellum=F,optionalRace=NULL)
@@ -83,7 +90,7 @@ all.al$lobe <- revalue(all.al$lobe, c('Basal Ganglia'='Basal/ST','Frontal Orbita
 
 outPlot <- ggplot(all.cbf, aes(y=zScoreDifference, x=ROI, group=Gender)) +
       geom_line(aes(linetype=Gender,color=Gender), size=1) +
-      geom_point(aes(shape=Gender, color=Gender), size=1.5) +
+      geom_point(aes(shape=Gender, color=Gender), size=2.5) +
       #geom_errorbar(aes(ymin=meanValue-standErrValue, ymax=meanValue+standErrValue)) + 
       scale_y_continuous(limits=c(-.8, .4), 
                            breaks=round(seq(-.4,1.4,.4), digits=2)) +
@@ -93,6 +100,7 @@ outPlot <- ggplot(all.cbf, aes(y=zScoreDifference, x=ROI, group=Gender)) +
       scale_colour_manual(name = "Gender",
                           values=c("Male"="blue","Female"="red")) +
       scale_linetype_manual(name = "Gender", values = c("Male" = "solid", "Female" = "solid")) +
+      scale_shape_manual(name = "Gender", values = c("Male"=16,"Female"=15)) +
       #scale_shape_manual(values=c(16), guide=FALSE) +
       theme_bw() +
       theme(legend.position="none") +
@@ -104,9 +112,9 @@ outPlot <- ggplot(all.cbf, aes(y=zScoreDifference, x=ROI, group=Gender)) +
 
 outPlot2 <- ggplot(all.rh, aes(y=zScoreDifference, x=ROI, group=Gender)) +
       geom_line(aes(linetype=Gender,color=Gender), size=1) +
-      geom_point(aes(shape=Gender, color=Gender), size=1.5) +
+      geom_point(aes(shape=Gender, color=Gender), size=2.5) +
       #geom_errorbar(aes(ymin=meanValue-standErrValue, ymax=meanValue+standErrValue)) + 
-      scale_y_continuous(limits=c(-.9, .6), 
+      scale_y_continuous(limits=c(-.9, .8), 
                            breaks=round(seq(-1.2,1.4,.4), digits=2)) +
       xlab("ROI") +
       ylab("Effect Size") +
@@ -114,6 +122,7 @@ outPlot2 <- ggplot(all.rh, aes(y=zScoreDifference, x=ROI, group=Gender)) +
       scale_colour_manual(name = "Gender",
                           values=c("Male"="blue","Female"="red")) +
       scale_linetype_manual(name = "Gender", values = c("Male" = "solid", "Female" = "solid")) +
+      scale_shape_manual(name = "Gender", values = c("Male"=16,"Female"=15)) +
       #scale_shape_manual(values=c(16), guide=FALSE) +
       theme_bw() +
       theme(legend.position="none") +
@@ -125,9 +134,9 @@ outPlot2 <- ggplot(all.rh, aes(y=zScoreDifference, x=ROI, group=Gender)) +
 
 outPlot3 <- ggplot(all.al, aes(y=zScoreDifference, x=ROI, group=Gender)) +
       geom_line(aes(linetype=Gender,color=Gender), size=1) +
-      geom_point(aes(shape=Gender, color=Gender), size=1.5) +
+      geom_point(aes(shape=Gender, color=Gender), size=2.5) +
       #geom_errorbar(aes(ymin=meanValue-standErrValue, ymax=meanValue+standErrValue)) + 
-      scale_y_continuous(limits=c(-.8, .88), 
+      scale_y_continuous(limits=c(-1, 1.2), 
                            breaks=round(seq(-1.4,1.4,.4), digits=2)) +
       xlab("ROI") +
       ylab("Effect Size") +
@@ -135,6 +144,7 @@ outPlot3 <- ggplot(all.al, aes(y=zScoreDifference, x=ROI, group=Gender)) +
       scale_colour_manual(name = "Gender",
                           values=c("Male"="blue","Female"="red")) +
       scale_linetype_manual(name = "Gender", values = c("Male" = "solid", "Female" = "solid")) +
+      scale_shape_manual(name = "Gender", values = c("Male"=16,"Female"=15)) +
       #scale_shape_manual(values=c(16), guide=FALSE) +
       theme_bw() +
       theme(legend.position="none") +
@@ -158,7 +168,7 @@ dev.off()
 ## Now make a plot with x axis text
 outPlot <- ggplot(all.cbf, aes(y=zScoreDifference, x=ROI, group=Gender)) +
       geom_line(aes(linetype=Gender,color=Gender), size=1) +
-      geom_point(aes(shape=Gender, color=Gender), size=1.5) +
+      geom_point(aes(shape=Gender, color=Gender), size=2.5) +
       #geom_errorbar(aes(ymin=meanValue-standErrValue, ymax=meanValue+standErrValue)) + 
       scale_y_continuous(limits=c(-.4, 1.4), 
                            breaks=round(seq(-.4,1.4,.4), digits=2)) +
@@ -168,6 +178,7 @@ outPlot <- ggplot(all.cbf, aes(y=zScoreDifference, x=ROI, group=Gender)) +
       scale_colour_manual(name = "Gender",
                           values=c("Male"="blue","Female"="red")) +
       scale_linetype_manual(name = "Gender", values = c("Male" = "solid", "Female" = "solid")) +
+      scale_shape_manual(name = "Gender", values = c("Male"=16,"Female"=15)) +
       #scale_shape_manual(values=c(16), guide=FALSE) +
       theme_bw() +
       theme(legend.position="none") +
@@ -179,7 +190,7 @@ outPlot <- ggplot(all.cbf, aes(y=zScoreDifference, x=ROI, group=Gender)) +
 
 library(gtable)
 g <- ggplotGrob(outPlot)
-s <- gtable_filter(g, 'xlab|axis-b', trim=F)  # use trim depending on need
+s <- gtable_filter(g, 'xlab|axis-b|guide', trim=F)  # use trim depending on need
 png("outXAxisValues.png",width=14, height=5, units='in', res=300)
 grid.newpage()
 grid.draw(s)
