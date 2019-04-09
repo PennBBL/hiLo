@@ -78,7 +78,7 @@ for(i in 1:6){
   col.check <- col.check+index[i]
 }
 dataNames <- c('vol.data','cbf.data','gmd.data','tr.data','reho.data', 'alff.data','all.data')
-allR <- foreach (q=1:1000, .combine='rbind',.packages=c('foreach', 'doParallel', 'glmnet','psych','reshape2', 'caret','MASS', 'methods', 'ggplot2', 'rpart'),.export=ls(envir=globalenv())) %dopar%{
+allR <- foreach (q=1:2000, .combine='rbind',.packages=c('foreach', 'doParallel', 'glmnet','psych','reshape2', 'caret','MASS', 'methods', 'ggplot2', 'rpart'),.export=ls(envir=globalenv())) %dopar%{
   outMat <- matrix(NA, ncol=5, nrow=7)
   for(i in 1:length(dataNames)){
     out.data <- NULL
@@ -133,7 +133,7 @@ print(outplot)
 dev.off()  
 
 ## Now create a null distribution
-allRN <- foreach (q=1:1000, .combine='rbind',.packages=c('foreach', 'doParallel', 'glmnet','psych','reshape2', 'caret','MASS', 'methods', 'ggplot2', 'rpart'),.export=ls(envir=globalenv())) %dopar%{
+allRN <- foreach (q=1:2000, .combine='rbind',.packages=c('foreach', 'doParallel', 'glmnet','psych','reshape2', 'caret','MASS', 'methods', 'ggplot2', 'rpart'),.export=ls(envir=globalenv())) %dopar%{
   outMat <- matrix(NA, ncol=5, nrow=length(dataNames))
   for(i in 1:length(dataNames)){
     tmpDat <- get(dataNames[i])
@@ -200,7 +200,7 @@ print(out.plot.male)
 dev.off()  
 
 # Now do this for females
-allR <- foreach (q=1:1000, .combine='rbind',.packages=c('foreach', 'doParallel', 'glmnet','psych','reshape2', 'caret','MASS', 'methods', 'ggplot2', 'rpart'),.export=ls(envir=globalenv())) %dopar%{
+allR <- foreach (q=1:2000, .combine='rbind',.packages=c('foreach', 'doParallel', 'glmnet','psych','reshape2', 'caret','MASS', 'methods', 'ggplot2', 'rpart'),.export=ls(envir=globalenv())) %dopar%{
   outMat <- matrix(NA, ncol=5, nrow=7)
   for(i in 1:length(dataNames)){
     out.data <- NULL
@@ -253,7 +253,7 @@ print(outplot)
 dev.off()  
 
 ## Now create a null distribution
-allRN <- foreach (q=1:1000, .combine='rbind',.packages=c('foreach', 'doParallel', 'glmnet','psych','reshape2', 'caret','MASS', 'methods', 'ggplot2', 'rpart'),.export=ls(envir=globalenv())) %dopar%{
+allRN <- foreach (q=1:2000, .combine='rbind',.packages=c('foreach', 'doParallel', 'glmnet','psych','reshape2', 'caret','MASS', 'methods', 'ggplot2', 'rpart'),.export=ls(envir=globalenv())) %dopar%{
   outMat <- matrix(NA, ncol=5, nrow=length(dataNames))
   for(i in 1:length(dataNames)){
     tmpDat <- get(dataNames[i])
