@@ -11,12 +11,16 @@ vol.modal.data.age.reg <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/ageRe
 cbf.modal.data.age.reg <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/ageRegQA/cbfData.csv')
 gmd.modal.data.age.reg <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/ageReg/gmdData.csv')
 tr.modal.data.age.reg <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/ageRegQA/jlfTRData.csv')
+alff.modal.data.age.reg <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/ageRegQA/alffData.csv')
+reho.modal.data.age.reg <- read.csv('/home/adrose/dataPrepForHiLoPaper/data/ageRegQA/rehoData.csv')
 
 ## Prep data
 cbf.modal.data.age.reg$ageBin <- 'Age Regressed'
 vol.modal.data.age.reg$ageBin <- 'Age Regressed'
 gmd.modal.data.age.reg$ageBin <- 'Age Regressed'
 tr.modal.data.age.reg$ageBin <- 'Age Regressed'
+alff.modal.data.age.reg$ageBin <- 'Age Regressed'
+reho.modal.data.age.reg$ageBin <- 'Age Regressed'
 
 ## Declare any functions
 returnPerfBin <- function(data) {
@@ -69,16 +73,25 @@ static.perf.bin <- outCol
 colnames(static.perf.bin) <- c('bblid', 'scanid', 'groupFactorLevel')
 rm(tmpDF)
 
+## Now load the performance groups I have sent Ruben in the past
+tmpDF <- read.csv("/home/gur/gursas/GO/perfBinsForRuben.csv")
+tmpDF <- tmpDF[,1:3]
+colnames(tmpDF)[3] <- 'groupFactorLevel'
+tmpDF$groupFactorLevel <- plyr::revalue(factor(tmpDF$groupFactorLevel), c("1"="lo", "2"="me","3"="hi"))
+static.perf.bin <- tmpDF
+
 # Now I need to grab the effect sizes
 ## Now prep the data 
 age.reg.vol <- doEverythingEver(vol.modal.data.age.reg, 'mprage_jlf_vol_', 0, 999, 'Age Regressed', cerebellum=T)
 age.reg.cbf <- doEverythingEver(cbf.modal.data.age.reg, 'pcasl_jlf_cbf_', 0, 999, 'Age Regressed', cerebellum=F)
 age.reg.gmd <- doEverythingEver(gmd.modal.data.age.reg, 'mprage_jlf_gmd_', 0, 999, 'Age Regressed', cerebellum=T)
 age.reg.tr <- doEverythingEver(tr.modal.data.age.reg, 'dti_jlf_tr_', 0, 167, 'Age Regressed', cerebellum=T)
+age.reg.alff <- doEverythingEver(alff.modal.data.age.reg, 'rest_jlf_alff_', 0, 167, 'Age Regressed', cerebellum=T)
+age.reg.reho <- doEverythingEver(reho.modal.data.age.reg, 'rest_jlf_reho_', 0, 167, 'Age Regressed', cerebellum=T)
 
 # Now write the output for each isolated gender
 for(genZ in c('F', 'M')){
-  for(modZ in c('vol', 'cbf', 'gmd', 'tr')){
+  for(modZ in c('vol', 'cbf', 'gmd', 'tr','alff','reho')){
     # Grab our data
     inputDat <- get(paste('age.reg.', modZ, sep=''))
     inputDat <- inputDat[which(inputDat$sex==genZ),]
@@ -89,8 +102,8 @@ for(genZ in c('F', 'M')){
 ## Now do the hi-me, me-lo and lo-me 
 # First declare everything we are going to loop through
 sexRep <- c(1, 2)
-suffixRep <- c("mprage_jlf_vol_", "pcasl_jlf_cbf_", "mprage_jlf_gmd_", "dti_jlf_tr_")
-dataRep <- c('vol', 'cbf', 'gmd', 'tr')
+suffixRep <- c("mprage_jlf_vol_", "pcasl_jlf_cbf_", "mprage_jlf_gmd_", "dti_jlf_tr_", "rest_jlf_alff_","rest_jlf_reho_")
+dataRep <- c('vol','cbf','gmd','tr',"alff","reho")
 for(g in sexRep){
   for(p in 1:length(suffixRep)){
     dataName <- paste(dataRep[p], '.modal.data.age.reg', sep='')
