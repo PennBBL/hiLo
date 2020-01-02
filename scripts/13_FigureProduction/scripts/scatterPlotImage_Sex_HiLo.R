@@ -1,8 +1,7 @@
-### This script plots age and sex interactions for all modalities, limiting
-### the number of regions by effect size
+### This script creates Ruben's favorite scatterplot with Hi-Lo by Sex
 ###
 ### Ellyn Butler
-### December 16, 2019
+### November 22, 2019
 
 # What machine are you working on?
 galton=FALSE
@@ -11,12 +10,10 @@ mymachine=TRUE
 ## Load Library(s)
 if (galton == TRUE) {
 	source("/home/butellyn/ButlerPlotFuncs/plotFuncs.R")
-  print("Facet nested isn't here yet")
 } else if (mymachine == TRUE) {
 	source("/Users/butellyn/Documents/ButlerPlotFuncs/plotFuncs.R")
-  source("/Users/butellyn/Documents/ButlerPlotFuncs/facetnested.R")
 }
-install_load('plyr', 'ggplot2', 'reshape2', 'grid', 'gridExtra', 'labeling', 'data.table', 'ggrepel', 'DescTools', 'gtable')
+install_load('plyr', 'ggplot2', 'reshape2', 'grid', 'gridExtra', 'labeling', 'data.table', 'ggrepel')
 
 # Now load the data
 if (galton == TRUE) {
@@ -42,8 +39,8 @@ if (galton == TRUE) {
 	nback_quality_df <- read.csv('/home/butellyn/hiLo/data/n2416_nback2minus0_quality_20191118.csv')
 } else if (mymachine == TRUE) {
 	vol_df <- read.csv("/Users/butellyn/Documents/age_prediction/data/n1601_imagingclinicalcognitive_20190130.csv")
-	nback_df <- read.csv('/Users/butellyn/Documents/hiLo/data/task/n2416_nback2minus0_20191118.csv')
-	nback_quality_df <- read.csv('/Users/butellyn/Documents/hiLo/data/task/n2416_nback2minus0_quality_20191118.csv')
+	nback_df <- read.csv('/Users/butellyn/Documents/hiLo/data/n2416_nback2minus0_20191118.csv')
+	nback_quality_df <- read.csv('/Users/butellyn/Documents/hiLo/data/n2416_nback2minus0_quality_20191118.csv')
 }
 
 colnames(nback_df)[colnames(nback_df) == "id0"] <- "bblid"
@@ -104,8 +101,8 @@ if (galton == TRUE) {
 	print("Not on galton yet")
 } else if (mymachine == TRUE) {
 	vol_df <- read.csv("/Users/butellyn/Documents/age_prediction/data/n1601_imagingclinicalcognitive_20190130.csv")
-	idemo_df <- read.csv('/Users/butellyn/Documents/hiLo/data/task/n1601_idemo_jlf_roivals_20170710.csv')
-	idemo_quality_df <- read.csv('/Users/butellyn/Documents/hiLo/data/task/n1601_idemo_FinalQA_092817.csv')
+	idemo_df <- read.csv('/Users/butellyn/Documents/hiLo/data/n1601_idemo_jlf_roivals_20170710.csv')
+	idemo_quality_df <- read.csv('/Users/butellyn/Documents/hiLo/data/n1601_idemo_FinalQA_092817.csv')
 
 	# Filter out duplicate and unnecessary columns in idemo_df
 	idemo_df <- idemo_df[,c("bblid", "scanid", grep("Task", colnames(idemo_df), value=TRUE))]
@@ -153,7 +150,6 @@ idemo.modal.data <- merge(idemo.modal.data, vol.modal.data[,c("bblid", "F1_Exec_
 
 # Apply idemo exclusion
 idemo.modal.data <- idemo.modal.data[idemo.modal.data$idemoExclude == 0,]
-rownames(idemo.modal.data) <- 1:nrow(idemo.modal.data)
 
 # Create Adon's hi-lo definitions and merge with every dataframe
 # ./hiLo/scripts/01_DataPrep/scripts/prepareNBins.R
@@ -183,13 +179,6 @@ for (q in 1:8) {
 	tmp_df[tmp_df$sex == 2, "sex"] <- "Female"
 	tmp_df[tmp_df$sex == 1, "sex"] <- "Male"
 
-  # Create age bins
-  tmp_df$ageYrs <- tmp_df$ageAtGo1Scan/12
-  tmp_df$ageBin <- NA
-  tmp_df[tmp_df$ageYrs < 13, "ageBin"] <- "Children"
-  tmp_df[tmp_df$ageYrs >= 13 & tmp_df$ageYrs < 18, "ageBin"] <- "Adolescents"
-  tmp_df[tmp_df$ageYrs >= 18, "ageBin"] <- "Young Adults"
-
 	# Filter out Me and rename rows
 	tmp_df <- merge(tmp_df, hilo_df)
 	tmp_df <- tmp_df[tmp_df$CogGroup != "Me",]
@@ -201,7 +190,6 @@ for (q in 1:8) {
 		tmp_df_sex$age <- scale(tmp_df_sex$ageAtGo1Scan)
 		tmp_df_sex$age2 <- scale((tmp_df_sex$age)^2)
 		tmp_df_sex$age3 <- scale((tmp_df_sex$age)^3)
-		tmp_df_sex <- tmp_df[tmp_df$sex == sex,]
 		tmp_df_sex$F1_Exec_Comp_Cog_Accuracy <- scale(tmp_df_sex$F1_Exec_Comp_Cog_Accuracy)
 		tmp_df_sex[, qualitymetrics[q]] <- scale(tmp_df_sex[, qualitymetrics[q]])
 		tmp_df_sex[, grep(grepVals[q], colnames(tmp_df_sex))] <- scale(tmp_df_sex[, grep(grepVals[q], colnames(tmp_df_sex))])
@@ -212,15 +200,18 @@ for (q in 1:8) {
 	}
 }
 
-# Get coefficients for CogGroup
-basgang <- c("Thal", "Put", "Cau", "Pall", "Acc")
-limbic <- c("PHG", "Hipp", "PIns", "SCA", "AIns", "ACgG", "PCgG", "Ent", "Amy", "MCgG")
-front <- c("FO", "MFC", "MOrG", "POrG", "OrIFG", "TrIFG", "AOrG", "OpIFG", "GRe", "FRP", "LOrG", "PrG", "MSFG", "SMC", "MFG", "SFG")
-temporal <- c("FuG", "PT", "PP", "ITG", "CO", "MTG", "TMP", "STG", "TTG")
-parietal <- c("PCu", "PoG", "AnG", "PO", "SPL", "MPrG", "SMG", "MPoG")
-occipital <- c("IOG", "Cun", "LiG", "OFuG", "MOG", "Calc", "OCP", "SOG")
-cerebellum <- c("C1-5", "C6-7", "C8-10", "CExt")
-whitematter <- c("IWM", "LWM", "FWM", "TWM", "PWM", "OWM")
+
+thistext <- paste0("Figure 1. Coefficients for High Performers for each region.\nRegion ~ High + Age + Age^2 + Age^3 + QA\nAll continuous variables standardized.\n")
+
+# Get coefficients for F1_Exec_Comp_Cog_Accuracy
+basgang <- c("Thal", "Put", "Cau", "Pall", "Acc", "INS_WM")
+limbic <- c("PHG", "Hipp", "PIns", "SCA", "AIns", "ACgG", "PCgG", "Ent", "Amy", "MCgG", "LIM_WM")
+frontorb <- c("FO", "MFC", "MOrG", "POrG", "OrIFG", "TrIFG", "AOrG", "OpIFG", "GRe", "FRP", "LOrG", "FRO_WM")
+frontdors <- c("PrG", "MSFG", "SMC", "MFG", "SFG")
+temporal <- c("FuG", "PT", "PP", "ITG", "CO", "MTG", "TMP", "STG", "TTG", "TMP_WM")
+parietal <- c("PCu", "PoG", "AnG", "PO", "SPL", "MPrG", "SMG", "MPoG", "PAR_WM")
+occipital <- c("IOG", "Cun", "LiG", "OFuG", "MOG", "Calc", "OCP", "SOG", "OCC_WM")
+cerebellum <- c("Cer_1-5", "Cer_6-7", "Cer_8-10", "Cer_Ext")
 for (q in 1:8) {
 	dfName <- paste0(data.names[q], ".modal.data")
 	tmp_df <- get(dfName)
@@ -239,16 +230,11 @@ for (q in 1:8) {
 		colstouse <- colstouse[!(colstouse %in% grep("WM", colstouse, value=TRUE))]
 	}
 
-	sum_df <- data.frame(matrix(NA, nrow=length(colstouse)*6, ncol=7)) ####
-	colnames(sum_df) <- c("Label", "Abbrev", "Lobe", "ageBin", "Importance", "Sex", "EffectSize")
-  sum_df$Sex <- c(rep("Female", length(colstouse)*3), rep("Male", length(colstouse)*3))
+	sum_df <- data.frame(matrix(NA, nrow=length(colstouse), ncol=10)) ####
+	colnames(sum_df) <- c("Label", "Abbrev", "Abbrev2", "Lobe", "Importance", "texttypes", "Female", "Male", "Female_SE", "Male_SE")
 
 	for (i in 1:length(colstouse)) {
-		sum_df[seq(i, i+length(colstouse)*5, length(colstouse)), "Label"] <- colstouse[i]
-    sum_df[c(i, i+length(colstouse)*3), "ageBin"] <- "Children"
-    sum_df[c(i+length(colstouse), i+length(colstouse)*4), "ageBin"] <- "Adolescents"
-    sum_df[c(i+length(colstouse)*2, i+length(colstouse)*5), "ageBin"] <- "Young Adults"
-
+		sum_df[i, "Label"] <- colstouse[i]
 		intname <- strsplit(colstouse[i], split="_")
 		if (q != 7 & q != 8) { thisint = 4
 		} else if (q == 7) { thisint = 7
@@ -266,13 +252,13 @@ for (q in 1:8) {
 		} else {
 			intname <- intname[[1]][thisint]
 		}
-		if (intname == "Cerebellar_Vermal_Lobules_I.V") { intname <- "C1-5"
-		} else if (intname == "Cerebellar_Vermal_Lobules_VI.VII") { intname <- "C6-7"
-		} else if (intname == "Cerebellar_Vermal_Lobules_VIII.X") { intname <- "C8-10"
+		if (intname == "Cerebellar_Vermal_Lobules_I.V") { intname <- "Cer_1-5"
+		} else if (intname == "Cerebellar_Vermal_Lobules_VI.VII") { intname <- "Cer_6-7"
+		} else if (intname == "Cerebellar_Vermal_Lobules_VIII.X") { intname <- "Cer_8-10"
 		} else if (intname == "Accumbens_Area") { intname <- "Acc"
 		} else if (intname == "Amygdala") { intname <- "Amy"
 		} else if (intname == "Caudate") { intname <- "Cau"
-		} else if (intname == "Cerebellum_Exterior") { intname <- "CExt"
+		} else if (intname == "Cerebellum_Exterior") { intname <- "Cer_Ext"
 		} else if (intname == "Hippocampus") { intname <- "Hipp"
 		} else if (intname == "Pallidum") { intname <- "Pall"
 		} else if (intname == "Putamen") { intname <- "Put"
@@ -285,103 +271,160 @@ for (q in 1:8) {
 		} else if (intname == "Temporal_Lobe_WM") { intname <- "TWM"
 		}
 
-		sum_df[seq(i, i+length(colstouse)*5, length(colstouse)), "Abbrev"] <- intname
-
-		if (intname %in% basgang) {
-      sum_df[seq(i, i+length(colstouse)*5, length(colstouse)), "Lobe"] <- "Basal Ganglia"
-		} else if (intname %in% limbic) {
-      sum_df[seq(i, i+length(colstouse)*5, length(colstouse)), "Lobe"] <- "Limbic"
-		} else if (intname %in% front) {
-      sum_df[seq(i, i+length(colstouse)*5, length(colstouse)), "Lobe"] <- "Frontal"
-		} else if (intname %in% temporal) {
-      sum_df[seq(i, i+length(colstouse)*5, length(colstouse)), "Lobe"] <- "Temporal"
-		} else if (intname %in% parietal) {
-      sum_df[seq(i, i+length(colstouse)*5, length(colstouse)), "Lobe"] <- "Parietal"
-		} else if (intname %in% occipital) {
-      sum_df[seq(i, i+length(colstouse)*5, length(colstouse)), "Lobe"] <- "Occipital"
-		} else if (intname %in% cerebellum) {
-      sum_df[seq(i, i+length(colstouse)*5, length(colstouse)), "Lobe"] <- "Cerebellum"
-		} else if (intname %in% whitematter) {
-      sum_df[seq(i, i+length(colstouse)*5, length(colstouse)), "Lobe"] <- "White Matter"
-    }
+		sum_df[i, "Abbrev"] <- intname
+		if (intname %in% basgang) { sum_df[i, "Lobe"] <- "Basal Ganglia"
+		} else if (intname %in% limbic) { sum_df[i, "Lobe"] <- "Limbic"
+		} else if (intname %in% frontorb) { sum_df[i, "Lobe"] <- "Frontal"
+		} else if (intname %in% frontdors) { sum_df[i, "Lobe"] <- "Frontal"
+		} else if (intname %in% temporal) { sum_df[i, "Lobe"] <- "Temporal"
+		} else if (intname %in% parietal) { sum_df[i, "Lobe"] <- "Parietal"
+		} else if (intname %in% occipital) { sum_df[i, "Lobe"] <- "Occipital"
+		} else if (intname %in% cerebellum) { sum_df[i, "Lobe"] <- "Cerebellum"
+		}
 	}
 
 	for (sex in c("Female", "Male")) {
-  	dfName <- paste0(data.names[q], ".modal.data_", sex)
-  	tmp_df <- get(dfName)
+		dfName <- paste0(data.names[q], ".modal.data_", sex)
+		tmp_df <- get(dfName)
 
-    for (ageGroup in c("Children", "Adolescents", "Young Adults")) {
-    	for (j in 1:length(colstouse)) {
-    		func <- paste0(colstouse[j], "~I(CogGroup)+age+age2+age3+", qualitymetrics[q])
+		for (j in 1:length(colstouse)) {
+			func <- paste0(colstouse[j], "~I(CogGroup)+age+age2+age3+", qualitymetrics[q])
+			mod <- lm(as.formula(func), data=tmp_df)
 
-    		mod <- lm(as.formula(func), data=tmp_df[tmp_df$ageBin == ageGroup, ])
-    		sum_df[sum_df$Sex == sex & sum_df$ageBin == ageGroup & sum_df$Label == colstouse[j], "EffectSize"] <- summary(mod)$coefficients[2, 1]
-      }
-    }
+			sum_df[j, sex] <- summary(mod)$coefficients[2, 1]
+			sum_df[j, paste0(sex, "_SE")] <- summary(mod)$coefficients[2, 2]
+		}
 	}
+
+	thisSE <- max(c(sum_df$Female_SE, sum_df$Male_SE))
 
 	PFITregions <- c("MFG", "IFG", "SFG", "SMC", "ACgG", "SPL", "PCu", "MTG", "PCgG", "ITG", "STG", "Cau", "MOG")
 
-	sum_df$Lobe <- factor(sum_df$Lobe, levels = c("Basal Ganglia", "Limbic", "Frontal", "Temporal", "Parietal", "Occipital", "Cerebellum", "White Matter"))
+	sum_df$Lobe <- factor(sum_df$Lobe, levels = c("Basal Ganglia", "Limbic", "Frontal", "Temporal", "Parietal", "Occipital", "Cerebellum"))
 	for (j in 1:nrow(sum_df)) {
 		if (sum_df[j, "Abbrev"] %in% PFITregions) {
-			sum_df[j, "Importance"] <- "PF"
-		} else {
-      sum_df[j, "Importance"] <- "Other"
-    }
+			sum_df[j, "Importance"] <- "PFIT"
+			sum_df[j, "texttypes"] <- "sans" ####
+			sum_df[j, "Abbrev2"] <- sum_df[j, "Abbrev"]
+		}
 	}
 
-  minscale <- RoundTo(min(sum_df$EffectSize), multiple=.2, FUN=round)
-  maxscale <- RoundTo(max(sum_df$EffectSize), multiple=.2, FUN=round)
-  if (minscale > min(sum_df$EffectSize)) { minscale <- minscale - .2 }
-  if (maxscale < max(sum_df$EffectSize)) { maxscale <- maxscale + .2 }
+	pfitters <- c(abs(sum_df[sum_df$Importance == "PFIT", "Female"]), abs(sum_df[sum_df$Importance == "PFIT", "Male"]))
+	pfitters <- pfitters[!is.na(pfitters)]
+	topeight <- rev(pfitters[order(pfitters)])[1:8]
+
+	for (j in 1:nrow(sum_df)) {
+		if (abs(sum_df[j, "Female"]) > 2*sum_df[j, "Female_SE"] & abs(sum_df[j, "Male"]) > 2*sum_df[j, "Male_SE"] & (!(sum_df[j, "Abbrev"] %in% PFITregions)) & (abs(sum_df[j, "Female"]) > min(topeight)| abs(sum_df[j, "Male"]) > min(topeight))) {
+			sum_df[j, "Importance"] <- "Major"
+			sum_df[j, "texttypes"] <- "mono" ####
+			sum_df[j, "Abbrev2"] <- sum_df[j, "Abbrev"]
+		} else if (!(sum_df[j, "Abbrev"] %in% PFITregions)) {
+			sum_df[j, "Importance"] <- "None"
+			sum_df[j, "texttypes"] <- "" ####
+			sum_df[j, "Abbrev2"] <- ""
+		}
+	}
+
+	#if (data.names[q] %in% c("vol", "gmd", "md", "nback")) {
+	#	minscale <- -.4
+	#	maxscale <- .4
+	#} else if (data.names[q] %in% c("cbf", "alff", "reho")) {
+	#	minscale <- -.25
+	#	maxscale <- .25
+	#}
+
+	F_df <- get(paste0(data.names[q], ".modal.data_Female"))
+	M_df <- get(paste0(data.names[q], ".modal.data_Male"))
 
 	if (data.names[q] == "vol") {
-		thistit <- "Volume"
+		thistit <- "Volume: Coefficient for High Performers"
+		thistext <- paste0(thistext, "Volume: M N=", nrow(M_df), ", F N=", nrow(F_df), "; ")
 	} else if (data.names[q] == "gmd") {
-		thistit <- "GMD"
+		thistit <- "Gray Matter Density: Coefficient for High Performers"
+		thistext <- paste0(thistext, "Gray Matter Density: M N=", nrow(M_df), ", F N=", nrow(F_df), "\n")
 	} else if (data.names[q] == "tr") {
-		thistit <- "MD"
+		thistit <- "Mean Diffusivity: Coefficient for High Performers"
+		thistext <- paste0(thistext, "Mean Diffusivity: M N=", nrow(M_df), ", F N=", nrow(F_df), "; ")
 	} else if (data.names[q] == "cbf") {
-		thistit <- "CBF"
+		thistit <- "Cerebral Blood Flow: Coefficient for High Performers"
+		thistext <- paste0(thistext, "Cerebral Blood Flow: M N=", nrow(M_df), ", F N=", nrow(F_df), "\n")
 	} else if (data.names[q] == "alff") {
-		thistit <- "ALFF"
+		thistit <- "Amp of Low Freq Fluc: Coefficient for High Performers"
+		thistext <- paste0(thistext, "Amp of Low Freq Fluc: M N=", nrow(M_df), ", F N=", nrow(F_df), "; ")
 	} else if (data.names[q] == "reho") {
-		thistit <- "ReHo"
+		thistit <- "Regional Homogeneity: Coefficient for High Performers"
+		thistext <- paste0(thistext, "Regional Homogeneity: M N=", nrow(M_df), ", F N=", nrow(F_df), "\n")
 	} else if (data.names[q] == "nback") {
-		thistit <- "NBack"
+		thistit <- "2 - 0 Back: Coefficient for High Performers"
+		thistext <- paste0(thistext, "2 - 0 Back: M N=", nrow(M_df), ", F N=", nrow(F_df), "; ")
 	} else if (data.names[q] == "idemo") {
-		thistit <- "IDEMO"
+		thistit <- "IDEMO Task: Coefficient for High Performers"
+		thistext <- paste0(thistext, "IDEMO Task: M N=", nrow(M_df), ", F N=", nrow(F_df))
 	}
 
-	sum_df$Importance <- ordered(sum_df$Importance, levels=c("PF", "Other"))
-  sum_df$ageBin <- ordered(sum_df$ageBin, levels=c("Young Adults", "Adolescents", "Children"))
+	sum_df$Importance <- ordered(sum_df$Importance, levels=c("None", "Major", "PFIT"))
 
-  sum_df$Sex <- factor(sum_df$Sex)
+	lowerbound <- force(-thisSE*2)
+	upperbound <- force(thisSE*2)
 
-	thisplot <- ggplot(sum_df, aes(Abbrev, EffectSize, group=Sex, colour=Sex)) + geom_point(stat="identity") +
-    geom_line() + scale_y_continuous(limits=c(minscale, maxscale), breaks=round(seq(minscale, maxscale, .2), digits=1)) +
-    facet_nested(ageBin ~ Lobe + Importance, scales="free", space="free_x") +
-    ylab("Effect Size") + theme_linedraw() + geom_hline(yintercept=0) +
-    labs(fill = "Sex") + theme(axis.text.x = element_text(angle=90)) +
-    ggtitle(thistit) +
-    theme(legend.position="bottom", legend.box="vertical", axis.title.x=element_blank(), plot.title=element_text(vjust=1, face="bold"))
+	minscale <- round(min(sum_df$Female, sum_df$Male), digits=1) ####
+	maxscale <- round(max(sum_df$Female, sum_df$Male), digits=1) ####
+	if (minscale > min(c(sum_df$Female, sum_df$Male, lowerbound))) {
+		minscale <- round(min(c(sum_df$Female, sum_df$Male, lowerbound)), digits=1) - .1
+	}
+	if (maxscale < max(c(sum_df$Female, sum_df$Male, upperbound))) {
+		maxscale <- round(max(c(sum_df$Female, sum_df$Male, upperbound)), digits=1) + .1
+	}
 
-	assign(paste0(data.names[q], "_plot"), thisplot)
+	# November 22, 2019: Try giving more space for volume
+	if (data.names[q] == "vol") {
+		maxscale <- maxscale + .1
+	}
+
+	levelvec <- as.character(unique(sum_df$Importance))
+
+	if (identical(levelvec[order(levelvec)], c("Major", "None", "PFIT"))) { ####
+		thesecolors <- c("grey60", "grey30", "black") ####
+		theseshapes <- c(16, 17, 15) ####
+	} else if (identical(levelvec[order(levelvec)], c("None", "PFIT"))) { ####
+		thesecolors <- c("grey60", "black") ####
+		theseshapes <- c(16, 15) ####
+	} else { print(q) }####
+
+	plot_fun <- function(sum_df, lowerbound, upperbound, thesecolors) {
+		force(lowerbound)
+		force(upperbound)
+		ggplot(sum_df, aes(x=Male, y=Female)) + theme_minimal() +
+		geom_rect(aes(xmin=lowerbound, xmax=upperbound, ymin=-Inf, ymax=Inf), fill="grey97", color=NA, alpha=.2, size=0) +
+		geom_rect(aes(ymin=lowerbound, ymax=upperbound, xmin=-Inf, xmax=Inf), fill="grey97", color=NA, alpha=.2, size=0) +
+		geom_point(aes(color=Importance, shape=Importance), size=2) +  ####
+		geom_text_repel(aes(label=Abbrev2, color=Importance, family=texttypes), show.legend=FALSE, size=6, nudge_x=c(minscale/5, maxscale/5), nudge_y=c(minscale/8, maxscale/8)) + ####
+		guides(text_repel=FALSE) + scale_shape_manual(values=theseshapes) + ####
+		scale_color_manual(values=thesecolors) + labs(title=thistit) +
+		xlab("Male Effect Size (95% CI)") + ylab("Female Effect Size (95% CI)") +
+		geom_abline(intercept=0, slope=1, linetype="dotdash", alpha=.5) + geom_smooth(method="lm", formula=y~x, se=FALSE, color="red") + #might remove
+		geom_hline(yintercept=0, linetype="dashed", color="blue") + geom_vline(xintercept=0, linetype="dashed", color="blue") +
+		geom_hline(yintercept=thisSE*2, linetype="dashed", color="slateblue") + geom_vline(xintercept=thisSE*2, linetype="dashed", color="slateblue") +
+		geom_hline(yintercept=-thisSE*2, linetype="dashed", color="slateblue") + geom_vline(xintercept=-thisSE*2, linetype="dashed", color="slateblue") +
+		annotate(geom="text", x=minscale+(maxscale-minscale)/8, y=maxscale, size=6, label=paste0("r = ", round(cor(sum_df$Female, sum_df$Male), digits=3))) +
+		theme(plot.title = element_text(size=15, face="bold"), axis.title = element_text(size=15), axis.text = element_text(size=15), axis.text.x = element_text(angle = 90))+
+		scale_x_continuous(limits=c(minscale, maxscale), breaks=round(seq(minscale, maxscale, .1), digits=2)) + ####
+		scale_y_continuous(limits=c(minscale, maxscale), breaks=round(seq(minscale, maxscale, .1), digits=2))  ####
+	}
+
+	outPlot <- plot_fun(sum_df, lowerbound, upperbound, thesecolors)
+
+	assign(paste0(data.names[q], "_plot"), outPlot)
 }
 
+obj <- grid.text(thistext)
+
 if (galton == TRUE) {
-	pdf(paste0('/home/butellyn/hiLo/plots/beta_HiLo_Age_', Sys.Date(), '.pdf'), width=15, height=12)
-	grid.arrange(vol_plot, gmd_plot, nrow=2)
-  grid.arrange(tr_plot, nback_plot, nrow=2)
-  grid.arrange(idemo_plot, cbf_plot, nrow=2)
-  grid.arrange(alff_plot, reho_plot, nrow=2)
+	pdf(paste0('/home/butellyn/hiLo/plots/beta_HiLo_', Sys.Date(), '.pdf'), width=20, height=18)
+	grid.arrange(vol_plot, gmd_plot, tr_plot, nback_plot, obj, idemo_plot, cbf_plot, alff_plot, reho_plot, nrow=3, ncol=3)
 	dev.off()
 } else if (mymachine == TRUE) {
-	pdf(paste0('/Users/butellyn/Documents/hiLo/plots/beta_HiLo_Age_', Sys.Date(), '.pdf'), width=15, height=12)
-	grid.arrange(vol_plot, gmd_plot, nrow=2)
-  grid.arrange(tr_plot, nback_plot, nrow=2)
-  grid.arrange(idemo_plot, cbf_plot, nrow=2)
-  grid.arrange(alff_plot, reho_plot, nrow=2)
+	pdf(paste0('/Users/butellyn/Documents/hiLo/plots/beta_HiLo_', Sys.Date(), '.pdf'), width=20, height=18)
+	grid.arrange(vol_plot, gmd_plot, tr_plot, nback_plot, obj, idemo_plot, cbf_plot, alff_plot, reho_plot, nrow=3, ncol=3)
 	dev.off()
 }

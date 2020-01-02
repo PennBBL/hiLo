@@ -4,7 +4,7 @@ returnHeatMapITKSnapVals <- function(inputZScores, lowColor='blue', hiColor='red
         # Now make sure we have some standard deviation
         if(is.na(sd(x))){
             output <- rep(1, length(x))
-            return(output)          
+            return(output)
         }
         if (sd(x)==0 ){
             output <- rep(1, length(x))
@@ -36,34 +36,34 @@ returnHeatMapITKSnapVals <- function(inputZScores, lowColor='blue', hiColor='red
     }
     # Output values
     outputValues <- matrix(0, nrow=(length(inputZScores)+1), ncol=8)
-    
+
     # Now cretae our rgb values
     redValues <- round(cRamp(inputZScores)[,1], digits=0)
     greenValues <- round(cRamp(inputZScores)[,2], digits=0)
     blueValues <- round(cRamp(inputZScores)[,3], digits=0)
-    
+
     # Now create our index column
     outputValues[,1] <- seq(0, length(inputZScores))
-    
+
     # Now put the proper values in the correct place
     outputValues[2:(length(inputZScores)+1),2] <- redValues
     outputValues[2:(length(inputZScores)+1),3] <- greenValues
     outputValues[2:(length(inputZScores)+1),4] <- blueValues
-    
+
     # Now we need to do the Transperancy column
     outputValues[,5] <- c(0, rep(1, length(inputZScores)))
-    
+
     # Now the visibility column
     outputValues[,6] <- c(0, rep(1, length(inputZScores)))
-    
+
     # Now the mesh visibility
     outputValues[,7] <- c(0, rep(1, length(inputZScores)))
-    
+
     # Now the label indicies
     labelIndexNames <- c('Clear Label', paste('Label ', inputZScores, sep=''))
     labelIndexNames <- paste('"', labelIndexNames, '"', sep='')
     outputValues[,8] <- labelIndexNames
-    
+
     # Now return our output
     return(outputValues)
 }
@@ -71,10 +71,10 @@ returnHeatMapITKSnapVals <- function(inputZScores, lowColor='blue', hiColor='red
 returnPosNegAndNeuColorScale <- function(outputZScores, colorScaleNeg=c('blue', 'light blue'), colorScalePos=c('red', 'yellow'), colorScaleNeu=c('gray'), sigThreshold=.05, minimum=NULL, maximum=NULL){
     # MAKE SURE WE ARE DEALING WITH NUMERICS!!!!
     outputZScores <- as.numeric(as.character(outputZScores))
-    
+
     # First convert our sig threshold into a z score to find our cut off value
     cutOff <- abs(qnorm(sigThreshold))
-    
+
     # Now we need to make our seperate our data into neutral, positive, and negative values
     # We are going to order these just so it is easier to match the labesl to the output ROI
     # when working with the ouput of this function
@@ -91,7 +91,7 @@ returnPosNegAndNeuColorScale <- function(outputZScores, colorScaleNeg=c('blue', 
     # Create our blank label row first
     values <- rep(0, 7)
     blankRow <- append(values, paste('"', 'Clear Label' ,'"', sep=''))
-    
+
     # Now we need to create our individual color scales
     #startPoint <- NULL
     output <- blankRow
@@ -108,9 +108,9 @@ returnPosNegAndNeuColorScale <- function(outputZScores, colorScaleNeg=c('blue', 
         output <- rbind(output, positiveColors)
     }
     # Now I need to make sure that the index column doesn't have any repeats
-    # This will be done by running an an index thorugh the first column
+    # This will be done by running an index through the first column
     output[,1] <- seq(0, length(outputZScores))
-    
+
     # Now we are all set! just need to return our output
     return(output)
 }
@@ -121,7 +121,7 @@ writeColorTableandKey <- function(inputData, inputColumn, outName, minTmp=NULL, 
   tmpColorTable <- returnPosNegAndNeuColorScale(inputData[complete.cases(inputData[,inputColumn]),inputColumn], colorScaleNeg=c('light blue'), colorScalePos=c('orange', 'yellow', 'white'), sigThreshold=1, minimum=minTmp, maximum=maxTmp)
   valuesToBind <- rbind(c('1616', '190', '190', '190', '0.40', '1', '1', '"Label Nonsense"'),c('5000', '0', '0', '0', '1', '1', '1', '"Label Border"'))
 
-  # Now produce the output key 
+  # Now produce the output key
   tmpOutputKey <- matrix(NA, nrow=dim(tmpColorTable)[1]-1, ncol=3)
   tmpOutputKey[,1] <- as.character(inputData[complete.cases(inputData[,inputColumn]),1])
   tmpOutputKey[,2] <- as.character(inputData[complete.cases(inputData[,inputColumn]),inputColumn])
@@ -130,14 +130,14 @@ writeColorTableandKey <- function(inputData, inputColumn, outName, minTmp=NULL, 
   #tmpOutputKeyFlip <- tmpOutputKey
   #tmpOutputKey[,1] <- paste('R_', tmpOutputKey[,1], sep='')
   #tmpOutputKeyFlip[,1] <- paste('L_', tmpOutputKeyFlip[,1], sep='')
- 
+
   # Now write the tables
   outCTName <- paste(outName, '-ColorTable.txt', sep='')
   outKeyName <- paste(outName, '-KEY.csv', sep='')
   tmpColorTable <- rbind(tmpColorTable, valuesToBind)
   write.table(tmpColorTable, file=outCTName, sep="\t", quote=F, row.names=F, col.names=F)
   #tmpOutputKey <- rbind(tmpOutputKey, tmpOutputKeyFlip)
-  tmpOutputKey[,1] <- rmLatVal(tmpOutputKey[,1]) 
+  tmpOutputKey[,1] <- rmLatVal(tmpOutputKey[,1])
   tmpOutputKey <- tmpOutputKey[!duplicated(tmpOutputKey[,1]),]
   write.csv(tmpOutputKey, file=outKeyName, quote=F)
 }
@@ -164,23 +164,23 @@ rmLatVal <- function(inputROIName){
 
 # Now also add Angel's function for the hi-me and me-lo contrasts
 calculateDeltaHiMeLo <- function(data, suffix) {
-  
+
   data$F1_Exec_Comp_Cog_Accuracy
   quantiles <- quantile(data$F1_Exec_Comp_Cog_Accuracy, c(0,.3333,.6666,1))
-  
+
   data$PerformanceGroup <- 0
   data$PerformanceGroup[which(data$F1_Exec_Comp_Cog_Accuracy < quantiles[2])] <- 1
   data$PerformanceGroup[which(data$F1_Exec_Comp_Cog_Accuracy >= quantiles[2] &
                           data$F1_Exec_Comp_Cog_Accuracy < quantiles[3])] <- 2
   data$PerformanceGroup[which(data$F1_Exec_Comp_Cog_Accuracy >= quantiles[3])] <- 3
-  
+
   roi.index <- grep(pattern = suffix, x = names(data))
-  
-  
-  output <- as.data.frame(matrix(NA, 
-                                 nrow = length(roi.index), 
+
+
+  output <- as.data.frame(matrix(NA,
+                                 nrow = length(roi.index),
                                  ncol= (4)))
-  
+
   j <- 1
   for (i in roi.index) {
     temp.matrix <- describeBy(scale(data[,i]), group=data$PerformanceGroup, mat = T)
@@ -190,10 +190,10 @@ calculateDeltaHiMeLo <- function(data, suffix) {
     output[j,3] <- meanvals[3] - meanvals[2]
     output[j,4] <- meanvals[3] - meanvals[1]
     output[j,5] <- meanvals[1] - meanvals[2]
-    
+
     j <- j + 1
   }
-  
+
   names(output) <- c("roi","me-lo","hi-me","hi-lo","lo-me")
   return(output)
 }
