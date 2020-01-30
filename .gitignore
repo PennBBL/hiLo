@@ -1,3 +1,9 @@
+*data/*
 ./data/*
 ./*csv
 *~
+*nilearn_cache*
+*.xdebug*
+*.DS_Store*
+*plots*
+*surfer*

@@ -2,7 +2,7 @@
 ### age bins into single rows (within age bin age regression added)
 ###
 ### Ellyn Butler
-### December 12, 2019 - January 2, 2020
+### December 12, 2019 - January 29, 2020
 
 
 # What machine are you working on?
@@ -213,7 +213,7 @@ for (a in 1:8) {
   tmp_df$ageBin <- NA
   tmp_df[tmp_df$ageYrs < 13, "ageBin"] <- "Children"
   tmp_df[tmp_df$ageYrs >= 13 & tmp_df$ageYrs < 18, "ageBin"] <- "Adolescents"
-  tmp_df[tmp_df$ageYrs >= 18, "ageBin"] <- "Young Adults"
+  tmp_df[tmp_df$ageYrs >= 18, "ageBin"] <- "Adults"
 
 	# Filter out Me and rename rows
 	tmp_df <- merge(tmp_df, hilo_df)
@@ -271,7 +271,7 @@ for (a in 1:8) {
 		sum_df_tmp[seq(i, i+length(colstouse)*5, length(colstouse)), "Label"] <- colstouse[i]
     sum_df_tmp[c(i, i+length(colstouse)*3), "ageBin"] <- "Children"
     sum_df_tmp[c(i+length(colstouse), i+length(colstouse)*4), "ageBin"] <- "Adolescents"
-    sum_df_tmp[c(i+length(colstouse)*2, i+length(colstouse)*5), "ageBin"] <- "Young Adults"
+    sum_df_tmp[c(i+length(colstouse)*2, i+length(colstouse)*5), "ageBin"] <- "Adults"
 
 		intname <- strsplit(colstouse[i], split="_")
 		if (a != 7 & a != 8) { thisint = 4
@@ -333,7 +333,7 @@ for (a in 1:8) {
   	dfName <- paste0(data.names[a], ".modal.data_", sex)
   	temp_df <- get(dfName)
 
-    for (ageGroup in c("Children", "Adolescents", "Young Adults")) {
+    for (ageGroup in c("Children", "Adolescents", "Adults")) {
     	for (j in 1:length(colstouse)) {
     		func <- paste0(colstouse[j], "~I(CogGroup)+age+age2+age3+", qualitymetrics[a])
 
@@ -353,29 +353,6 @@ for (a in 1:8) {
     }
 	}
 
-	# Limit regions to those picked by adult volume
-	if (data.names[a] == "vol") {
-		abbrevtokeep <- c()
-		for (lobe in unique(sum_df_tmp$Lobe)) {
-			pick_df <- sum_df_tmp[sum_df_tmp$ageBin == "Young Adults" & sum_df_tmp$Lobe == lobe & sum_df_tmp$Importance == "Not",]
-			pick_F_df <- pick_df[pick_df$Sex == "Female",]
-			pick_M_df <- pick_df[pick_df$Sex == "Male",]
-			rownames(pick_F_df) <- 1:nrow(pick_F_df)
-			rownames(pick_M_df) <- 1:nrow(pick_M_df)
-
-			pick_F_df$MeanFM <- rowMeans(cbind(pick_F_df$EffectSize, pick_M_df$EffectSize))
-
-			if (lobe %in% c("Basal Ganglia", "Limbic", "Parietal", "Occipital", "Cer", "White")) { numother <- 2
-			} else { numother <- 3 }
-			effsizes <- rev(order(abs(pick_F_df$MeanFM)))[1:numother]
-
-			abbrevtokeep <- c(abbrevtokeep, pick_F_df[effsizes, "Abbrev"])
-		}
-	}
-
-	sum_df_tmp <- sum_df_tmp[sum_df_tmp$Importance == "PF" | sum_df_tmp$Abbrev %in% abbrevtokeep,]
-	rownames(sum_df_tmp) <- 1:nrow(sum_df_tmp)
-
 	if (data.names[a] == "vol") {
 		sum_df_tmp$Modality <- "Volume"
 	} else if (data.names[a] == "gmd") {
@@ -394,6 +371,32 @@ for (a in 1:8) {
 		sum_df_tmp$Modality <- "IdEmo"
 	}
 
+	write.csv(sum_df_tmp[,c("Modality", "Abbrev", "Lobe", "ageBin", "Importance", "Sex", "EffectSize")],
+		file=paste0("/Users/butellyn/Documents/hiLo/data/effsizes/", data.names[a], ".csv"), row.names=FALSE)
+
+	# Limit regions to those picked by adult volume
+	if (data.names[a] == "vol") {
+		abbrevtokeep <- c()
+		for (lobe in unique(sum_df_tmp$Lobe)) {
+			pick_df <- sum_df_tmp[sum_df_tmp$ageBin == "Adults" & sum_df_tmp$Lobe == lobe & sum_df_tmp$Importance == "Not",]
+			pick_F_df <- pick_df[pick_df$Sex == "Female",]
+			pick_M_df <- pick_df[pick_df$Sex == "Male",]
+			rownames(pick_F_df) <- 1:nrow(pick_F_df)
+			rownames(pick_M_df) <- 1:nrow(pick_M_df)
+
+			pick_F_df$MeanFM <- rowMeans(cbind(pick_F_df$EffectSize, pick_M_df$EffectSize))
+
+			if (lobe %in% c("Basal Ganglia", "Limbic", "Parietal", "Occipital", "Cer", "White")) { numother <- 2
+			} else { numother <- 3 }
+			effsizes <- rev(order(abs(pick_F_df$MeanFM)))[1:numother]
+
+			abbrevtokeep <- c(abbrevtokeep, pick_F_df[effsizes, "Abbrev"])
+		}
+	}
+
+	sum_df_tmp <- sum_df_tmp[sum_df_tmp$Importance == "PF" | sum_df_tmp$Abbrev %in% abbrevtokeep,]
+	rownames(sum_df_tmp) <- 1:nrow(sum_df_tmp)
+
 	if (a == 1) {
 		sum_df <- sum_df_tmp
 	} else {
@@ -406,25 +409,27 @@ sum_df$Lobe <- factor(sum_df$Lobe, levels = c("Basal Ganglia", "Limbic", "Fronta
 sum_df$Modality <- factor(sum_df$Modality, levels = c("Volume", "GMD", "MD", "CBF", "ALFF", "ReHo", "NBack", "IdEmo"))
 sum_df$Importance <- ordered(sum_df$Importance, levels=c("PF", "Not"))
 sum_df$Group <- paste(sum_df$Sex, sum_df$ageBin)
-sum_df$Group <- ordered(sum_df$Group, levels=c("Female Children", "Female Adolescents", "Female Young Adults", "Male Children", "Male Adolescents", "Male Young Adults"))
+sum_df$Group <- ordered(sum_df$Group, levels=c("Female Children", "Female Adolescents", "Female Adults", "Male Children", "Male Adolescents", "Male Adults"))
 sum_df$Sex <- factor(sum_df$Sex)
 
 struc_plot <- ggplot(sum_df[sum_df$Modality %in% c("Volume", "GMD", "MD"), ], aes(Abbrev, EffectSize, group=Group, colour=Group, fill=Group)) +
 	geom_bar(stat="identity", position="dodge") + scale_y_continuous(limits=c(-1.5, 1.5), breaks=round(seq(-1.5, 1.5, .5), digits=1)) +
 	facet_nested(Modality ~ Lobe + Importance, scales="free", space="free_x") +
 	scale_shape_manual(values=c(17, 15, 16, 17, 15, 16)) +
-	scale_color_manual(values=c("black", "black", "black", "black", "black", "black")) +
-	scale_fill_manual(values=c("pink", "violetred1", "red3", "lightsteelblue1", "steelblue2", "blue4")) +
 	ylab("Effect Size") + theme_linedraw() + geom_hline(yintercept=0) +
 	labs(fill = "Group") + theme(axis.text.x = element_text(angle=90)) +
-	theme(legend.position="bottom", legend.box="vertical", axis.title.x=element_blank())
+	theme(legend.position="bottom", legend.box="vertical", axis.title.x=element_blank()) +
+	scale_color_manual(values=c("black", "black", "black", "black", "black", "black"),
+			guide = guide_legend(nrow=1)) +
+	scale_fill_manual(values=c("pink", "violetred1", "red3", "lightsteelblue1", "steelblue2", "blue4"),
+			guide = guide_legend(nrow=1))
 
 func_plot <- ggplot(sum_df[sum_df$Modality %in% c("CBF", "ALFF", "ReHo"), ], aes(Abbrev, EffectSize, group=Group, colour=Group, fill=Group)) +
 	geom_bar(stat="identity", position="dodge") + scale_y_continuous(limits=c(-1, 1), breaks=round(seq(-1, 1, .2), digits=1)) +
 	facet_nested(Modality ~ Lobe + Importance, scales="free", space="free_x") +
 	scale_shape_manual(values=c(17, 15, 16, 17, 15, 16)) +
-	scale_color_manual(values=c("black", "black", "black", "black", "black", "black")) +
-	scale_fill_manual(values=c("pink", "violetred1", "red3", "lightsteelblue1", "steelblue2", "blue4")) +
+	scale_color_manual(values=c("black", "black", "black", "black", "black", "black"), guide = guide_legend(nrow=1)) +
+	scale_fill_manual(values=c("pink", "violetred1", "red3", "lightsteelblue1", "steelblue2", "blue4"), guide = guide_legend(nrow=1)) +
 	ylab("Effect Size") + theme_linedraw() + geom_hline(yintercept=0) +
 	labs(fill = "Group") + theme(axis.text.x = element_text(angle=90)) +
 	theme(legend.position="bottom", legend.box="vertical", axis.title.x=element_blank())
@@ -433,23 +438,23 @@ task_plot <- ggplot(sum_df[sum_df$Modality %in% c("NBack", "IdEmo"), ], aes(Abbr
 	geom_bar(stat="identity", position="dodge") + scale_y_continuous(limits=c(-.8, 1.2), breaks=round(seq(-1.4, 1.4, .2), digits=1)) +
 	facet_nested(Modality ~ Lobe + Importance, scales="free", space="free_x") +
 	scale_shape_manual(values=c(17, 15, 16, 17, 15, 16)) +
-	scale_color_manual(values=c("black", "black", "black", "black", "black", "black")) +
-	scale_fill_manual(values=c("pink", "violetred1", "red3", "lightsteelblue1", "steelblue2", "blue4")) +
+	scale_color_manual(values=c("black", "black", "black", "black", "black", "black"), guide = guide_legend(nrow=1)) +
+	scale_fill_manual(values=c("pink", "violetred1", "red3", "lightsteelblue1", "steelblue2", "blue4"), guide = guide_legend(nrow=1)) +
 	ylab("Effect Size") + theme_linedraw() + geom_hline(yintercept=0) +
 	labs(fill = "Group") + theme(axis.text.x = element_text(angle=90)) +
 	theme(legend.position="bottom", legend.box="vertical", axis.title.x=element_blank())
 
 
 if (galton == TRUE) {
-	pdf(paste0('/home/butellyn/hiLo/plots/beta_HiLo_Age_condensed_bars_struc_', Sys.Date(), '.pdf'), width=8, height=8)
+	pdf(paste0('/home/butellyn/hiLo/plots/beta_HiLo_Age_condensed_bars_struc_', Sys.Date(), '.pdf'), width=9, height=7)
 	struc_plot
 	dev.off()
 
-	pdf(paste0('/home/butellyn/hiLo/plots/beta_HiLo_Age_condensed_bars_func_', Sys.Date(), '.pdf'), width=8, height=8)
+	pdf(paste0('/home/butellyn/hiLo/plots/beta_HiLo_Age_condensed_bars_func_', Sys.Date(), '.pdf'), width=9, height=7)
 	func_plot
 	dev.off()
 
-	pdf(paste0('/home/butellyn/hiLo/plots/beta_HiLo_Age_condensed_bars_task_', Sys.Date(), '.pdf'), width=8, height=8)
+	pdf(paste0('/home/butellyn/hiLo/plots/beta_HiLo_Age_condensed_bars_task_', Sys.Date(), '.pdf'), width=9, height=7)
 	task_plot
 	dev.off()
 } else if (mymachine == TRUE) {
