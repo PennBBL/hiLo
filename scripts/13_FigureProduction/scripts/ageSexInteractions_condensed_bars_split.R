@@ -256,12 +256,12 @@ for (a in 1:8) {
 	colstouse <- colstouse[!(colstouse %in% grep("CSF", colstouse, value=TRUE))]
 	colstouse <- colstouse[!(colstouse %in% grep("Cerebellum_White_Matter", colstouse, value=TRUE))]
 	colstouse <- colstouse[!(colstouse %in% grep("Mean", colstouse, value=TRUE))]
-	if (cerebellumValues[a] == 0) {
-		colstouse <- colstouse[!(colstouse %in% grep("Cere", colstouse, value=TRUE))]
-	}
-	if (whitematterValues[a] == 0) {
-		colstouse <- colstouse[!(colstouse %in% grep("WM", colstouse, value=TRUE))]
-	}
+	#if (cerebellumValues[a] == 0) {
+	#	colstouse <- colstouse[!(colstouse %in% grep("Cere", colstouse, value=TRUE))]
+	#}
+	#if (whitematterValues[a] == 0) {
+	#	colstouse <- colstouse[!(colstouse %in% grep("WM", colstouse, value=TRUE))]
+	#}
 
 	sum_df_tmp <- data.frame(matrix(NA, nrow=length(colstouse)*6, ncol=9)) ####
 	colnames(sum_df_tmp) <- c("Modality", "Label", "Abbrev", "Lobe", "ageBin", "Importance", "Sex", "Group", "EffectSize")
@@ -377,7 +377,7 @@ for (a in 1:8) {
 	# Limit regions to those picked by adult volume
 	if (data.names[a] == "vol") {
 		abbrevtokeep <- c()
-		for (lobe in unique(sum_df_tmp$Lobe)) {
+		for (lobe in c("Basal Ganglia", "Limbic", "Frontal", "Temporal", "Parietal", "Occipital")) {
 			pick_df <- sum_df_tmp[sum_df_tmp$ageBin == "Adults" & sum_df_tmp$Lobe == lobe & sum_df_tmp$Importance == "Not",]
 			pick_F_df <- pick_df[pick_df$Sex == "Female",]
 			pick_M_df <- pick_df[pick_df$Sex == "Male",]
@@ -392,7 +392,9 @@ for (a in 1:8) {
 
 			abbrevtokeep <- c(abbrevtokeep, pick_F_df[effsizes, "Abbrev"])
 		}
+		abbrevtokeep <- c(abbrevtokeep, "C1-5", "C6-7", "C8-10", "CExt", "Lim", "Ins", "Fro", "Occ", "Tmp")
 	}
+
 
 	sum_df_tmp <- sum_df_tmp[sum_df_tmp$Importance == "PF" | sum_df_tmp$Abbrev %in% abbrevtokeep,]
 	rownames(sum_df_tmp) <- 1:nrow(sum_df_tmp)
@@ -412,11 +414,13 @@ sum_df$Group <- paste(sum_df$Sex, sum_df$ageBin)
 sum_df$Group <- ordered(sum_df$Group, levels=c("Female Children", "Female Adolescents", "Female Adults", "Male Children", "Male Adolescents", "Male Adults"))
 sum_df$Sex <- factor(sum_df$Sex)
 
-struc_plot <- ggplot(sum_df[sum_df$Modality %in% c("Volume", "GMD", "MD"), ], aes(Abbrev, EffectSize, group=Group, colour=Group, fill=Group)) +
+struc_plot <- ggplot(sum_df[sum_df$Modality %in% c("Volume", "GMD", "MD") & sum_df$Lobe %in% c("Basal Ganglia", "Limbic", "Frontal", "Temporal", "Parietal", "Occipital"), ],
+		aes(Abbrev, EffectSize, group=Group, colour=Group, fill=Group)) +
 	geom_bar(stat="identity", position="dodge") + scale_y_continuous(limits=c(-1.5, 1.5), breaks=round(seq(-1.5, 1.5, .5), digits=1)) +
 	facet_nested(Modality ~ Lobe + Importance, scales="free", space="free_x") +
 	scale_shape_manual(values=c(17, 15, 16, 17, 15, 16)) +
 	ylab("Effect Size") + theme_linedraw() + geom_hline(yintercept=0) +
+	geom_hline(yintercept=-.4, linetype="dashed") + geom_hline(yintercept=.4, linetype="dashed") +
 	labs(fill = "Group") + theme(axis.text.x = element_text(angle=90)) +
 	theme(legend.position="bottom", legend.box="vertical", axis.title.x=element_blank()) +
 	scale_color_manual(values=c("black", "black", "black", "black", "black", "black"),
@@ -424,23 +428,38 @@ struc_plot <- ggplot(sum_df[sum_df$Modality %in% c("Volume", "GMD", "MD"), ], ae
 	scale_fill_manual(values=c("pink", "violetred1", "red3", "lightsteelblue1", "steelblue2", "blue4"),
 			guide = guide_legend(nrow=1))
 
-func_plot <- ggplot(sum_df[sum_df$Modality %in% c("CBF", "ALFF", "ReHo"), ], aes(Abbrev, EffectSize, group=Group, colour=Group, fill=Group)) +
+func_plot <- ggplot(sum_df[sum_df$Modality %in% c("CBF", "ALFF", "ReHo") & sum_df$Lobe %in% c("Basal Ganglia", "Limbic", "Frontal", "Temporal", "Parietal", "Occipital"), ],
+		aes(Abbrev, EffectSize, group=Group, colour=Group, fill=Group)) +
 	geom_bar(stat="identity", position="dodge") + scale_y_continuous(limits=c(-1, 1), breaks=round(seq(-1, 1, .2), digits=1)) +
 	facet_nested(Modality ~ Lobe + Importance, scales="free", space="free_x") +
 	scale_shape_manual(values=c(17, 15, 16, 17, 15, 16)) +
 	scale_color_manual(values=c("black", "black", "black", "black", "black", "black"), guide = guide_legend(nrow=1)) +
 	scale_fill_manual(values=c("pink", "violetred1", "red3", "lightsteelblue1", "steelblue2", "blue4"), guide = guide_legend(nrow=1)) +
 	ylab("Effect Size") + theme_linedraw() + geom_hline(yintercept=0) +
+	geom_hline(yintercept=-.4, linetype="dashed") + geom_hline(yintercept=.4, linetype="dashed") +
 	labs(fill = "Group") + theme(axis.text.x = element_text(angle=90)) +
 	theme(legend.position="bottom", legend.box="vertical", axis.title.x=element_blank())
 
-task_plot <- ggplot(sum_df[sum_df$Modality %in% c("NBack", "IdEmo"), ], aes(Abbrev, EffectSize, group=Group, colour=Group, fill=Group)) +
+task_plot <- ggplot(sum_df[sum_df$Modality %in% c("NBack", "IdEmo") & sum_df$Lobe %in% c("Basal Ganglia", "Limbic", "Frontal", "Temporal", "Parietal", "Occipital"), ],
+		aes(Abbrev, EffectSize, group=Group, colour=Group, fill=Group)) +
 	geom_bar(stat="identity", position="dodge") + scale_y_continuous(limits=c(-.8, 1.2), breaks=round(seq(-1.4, 1.4, .2), digits=1)) +
 	facet_nested(Modality ~ Lobe + Importance, scales="free", space="free_x") +
 	scale_shape_manual(values=c(17, 15, 16, 17, 15, 16)) +
 	scale_color_manual(values=c("black", "black", "black", "black", "black", "black"), guide = guide_legend(nrow=1)) +
 	scale_fill_manual(values=c("pink", "violetred1", "red3", "lightsteelblue1", "steelblue2", "blue4"), guide = guide_legend(nrow=1)) +
 	ylab("Effect Size") + theme_linedraw() + geom_hline(yintercept=0) +
+	geom_hline(yintercept=-.4, linetype="dashed") + geom_hline(yintercept=.4, linetype="dashed") +
+	labs(fill = "Group") + theme(axis.text.x = element_text(angle=90)) +
+	theme(legend.position="bottom", legend.box="vertical", axis.title.x=element_blank())
+
+wmcer_plot <- ggplot(sum_df[sum_df$Lobe %in% c("Cerebellum", "White Matter"), ], aes(Abbrev, EffectSize, group=Group, colour=Group, fill=Group)) +
+	geom_bar(stat="identity", position="dodge") + scale_y_continuous(limits=c(-.8, 1.2), breaks=round(seq(-1.4, 1.4, .2), digits=1)) +
+	facet_nested(. ~ Lobe + Modality, scales="free", space="free_x") +
+	scale_shape_manual(values=c(17, 15, 16, 17, 15, 16)) +
+	scale_color_manual(values=c("black", "black", "black", "black", "black", "black"), guide = guide_legend(nrow=1)) +
+	scale_fill_manual(values=c("pink", "violetred1", "red3", "lightsteelblue1", "steelblue2", "blue4"), guide = guide_legend(nrow=1)) +
+	ylab("Effect Size") + theme_linedraw() + geom_hline(yintercept=0) +
+	geom_hline(yintercept=-.4, linetype="dashed") + geom_hline(yintercept=.4, linetype="dashed") +
 	labs(fill = "Group") + theme(axis.text.x = element_text(angle=90)) +
 	theme(legend.position="bottom", legend.box="vertical", axis.title.x=element_blank())
 
@@ -457,6 +476,10 @@ if (galton == TRUE) {
 	pdf(paste0('/home/butellyn/hiLo/plots/beta_HiLo_Age_condensed_bars_task_', Sys.Date(), '.pdf'), width=9, height=7)
 	task_plot
 	dev.off()
+
+	pdf(paste0('/home/butellyn/hiLo/plots/beta_HiLo_Age_condensed_bars_wmcer_', Sys.Date(), '.pdf'), width=12, height=5)
+	wmcer_plot
+	dev.off()
 } else if (mymachine == TRUE) {
 	pdf(paste0('/Users/butellyn/Documents/hiLo/plots/beta_HiLo_Age_condensed_bars_struc_', Sys.Date(), '.pdf'), width=9, height=7)
 	struc_plot
@@ -468,5 +491,9 @@ if (galton == TRUE) {
 
 	pdf(paste0('/Users/butellyn/Documents/hiLo/plots/beta_HiLo_Age_condensed_bars_task_', Sys.Date(), '.pdf'), width=9, height=7)
 	task_plot
+	dev.off()
+
+	pdf(paste0('/Users/butellyn/Documents/hiLo/plots/beta_HiLo_Age_condensed_bars_wmcer_', Sys.Date(), '.pdf'), width=14, height=5)
+	wmcer_plot
 	dev.off()
 }
