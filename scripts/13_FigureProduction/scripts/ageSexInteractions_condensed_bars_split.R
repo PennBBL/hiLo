@@ -244,7 +244,6 @@ parietal <- c("PCu", "PoG", "AnG", "PO", "SPL", "MPrG", "SMG", "MPoG")
 occipital <- c("IOG", "Cun", "LiG", "OFuG", "MOG", "Calc", "OCP", "SOG")
 cerebellum <- c("C1-5", "C6-7", "C8-10", "CExt")
 whitematter <- c("Ins", "Lim", "Fro", "Tmp", "Par", "Occ")
-
 for (a in 1:8) {
 	dfName <- paste0(data.names[a], ".modal.data")
 	tmp_df <- get(dfName)
