@@ -1,4 +1,4 @@
-## This script will be used to compare all of the impotance metrics for the hi lo project
+## This script will be used to compare all of the importance metrics for the hi lo project
 
 ## Load library(s)
 install_load('ggplot2', 'GGally')
@@ -60,7 +60,7 @@ set.seed(00889944)
 ## Now declare a function so I can modify the alpha of my density plots
 my_dens <- function(data, mapping, ...) {
   ggplot(data = data, mapping=mapping) +
-    geom_density(..., alpha = 0.7) 
+    geom_density(..., alpha = 0.7)
 }
 
 str_c <- function (..., sep = "", collapse = NULL) {
@@ -68,10 +68,10 @@ str_c <- function (..., sep = "", collapse = NULL) {
 }
 
 
-cor_text <- function(data, mapping, alignPercent = 0.6, method = "pearson", 
-    use = "complete.obs", corAlignPercent = NULL, corMethod = NULL, 
+cor_text <- function(data, mapping, alignPercent = 0.6, method = "pearson",
+    use = "complete.obs", corAlignPercent = NULL, corMethod = NULL,
     corUse = NULL, sgnf=3, ...) {
-    
+
   if (! is.null(corAlignPercent)) {
     stop("'corAlignPercent' is deprecated.  Please use argument 'alignPercent'")
   }
@@ -301,7 +301,7 @@ cor_text <- function(data, mapping, alignPercent = 0.6, method = "pearson",
 
 PlotCont = function(data, mapping, ...){
   print(names(data))
-  print(mapping)  
+  print(mapping)
   ggplot(data, mapping) + geom_point(..., shape = 19) +
       geom_smooth(method = "lm") + geom_point(mapping, shape = 19) +
       geom_smooth(method='lm', aes(color=NULL, group=NULL), color='black')
