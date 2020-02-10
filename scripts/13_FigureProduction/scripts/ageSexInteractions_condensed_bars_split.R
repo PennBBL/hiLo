@@ -292,7 +292,7 @@ for (a in 1:8) {
 		if (intname == "Cerebellar_Vermal_Lobules_I.V") { intname <- "C1-5"
 		} else if (intname == "Cerebellar_Vermal_Lobules_VI.VII") { intname <- "C6-7"
 		} else if (intname == "Cerebellar_Vermal_Lobules_VIII.X") { intname <- "C8-10"
-		} else if (intname == "Accumbens_Area") { intname <- "Acc"
+		} else if (intname == "Accumbens_Area") { intname <- "NA"
 		} else if (intname == "Amygdala") { intname <- "Amy"
 		} else if (intname == "Caudate") { intname <- "Cau"
 		} else if (intname == "Cerebellum_Exterior") { intname <- "CExt"
@@ -451,7 +451,13 @@ task_plot <- ggplot(sum_df[sum_df$Modality %in% c("NBack", "IdEmo") & sum_df$Lob
 	labs(fill = "Group") + theme(axis.text.x = element_text(angle=90)) +
 	theme(legend.position="bottom", legend.box="vertical", axis.title.x=element_blank())
 
-wmcer_plot <- ggplot(sum_df[sum_df$Lobe %in% c("Cerebellum", "White Matter"), ], aes(Abbrev, EffectSize, group=Group, colour=Group, fill=Group)) +
+boo <- sum_df[sum_df$Lobe %in% c("Cerebellum", "White Matter"), ]
+boo$Modality <- as.character(boo$Modality)
+boo$Modality <- gsub("NBack", "NB", boo$Modality)
+boo$Modality <- gsub("IdEmo", "Id", boo$Modality)
+boo$Modality <- factor(boo$Modality)
+boo$Modality <- factor(boo$Modality, levels = c("Volume", "GMD", "MD", "CBF", "ALFF", "ReHo", "NB", "Id"))
+wmcer_plot <- ggplot(boo, aes(Abbrev, EffectSize, group=Group, colour=Group, fill=Group)) +
 	geom_bar(stat="identity", position="dodge") + scale_y_continuous(limits=c(-.8, 1.2), breaks=round(seq(-1.4, 1.4, .2), digits=1)) +
 	facet_nested(. ~ Lobe + Modality, scales="free", space="free_x") +
 	scale_shape_manual(values=c(17, 15, 16, 17, 15, 16)) +
@@ -493,6 +499,22 @@ if (galton == TRUE) {
 	dev.off()
 
 	pdf(paste0('/Users/butellyn/Documents/hiLo/plots/beta_HiLo_Age_condensed_bars_wmcer_', Sys.Date(), '.pdf'), width=14, height=5)
+	wmcer_plot
+	dev.off()
+
+	png('/Users/butellyn/Documents/hiLo/plots/figure3_color.png', units="mm", width=220, height=150, res=800)
+	struc_plot
+	dev.off()
+
+	png('/Users/butellyn/Documents/hiLo/plots/figure4_color.png', units="mm", width=220, height=150, res=800)
+	func_plot
+	dev.off()
+
+	png('/Users/butellyn/Documents/hiLo/plots/figure5_color.png', units="mm", width=220, height=150, res=800)
+	task_plot
+	dev.off()
+
+	png('/Users/butellyn/Documents/hiLo/plots/figure6_color.png', units="mm", width=220, height=100, res=800)
 	wmcer_plot
 	dev.off()
 }

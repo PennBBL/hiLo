@@ -158,26 +158,26 @@ for (g in global.values) {
 }
 
 ## Now plot everything
-png("/Users/butellyn/Documents/hiLo/plots/globalEffects.png", width=150, height=150, units='mm', res=300)
+png("/Users/butellyn/Documents/hiLo/plots/figure1_color.png",width=150, height=140, units='mm', res=800)
 grid.arrange(VolumePlot,GMDPlot,MDPlot,VolumePlotD,GMDPlotD,MDPlotD,CBFPlot,ALFFPlot,ReHoPlot,CBFPlotD,ALFFPlotD,ReHoPlotD,ncol=3, nrow=4) #multiplot, cols
 dev.off()
 
 ## Now plot one with a legend
-outPlot <- ggplot(toPlot,aes(x=V2,y=Lo*-1,group=V3,fill=V3)) +
-    geom_bar(stat="identity", position=position_dodge()) +
-	scale_fill_manual(name = "sex",
-                          values=c("1"="blue","2"="red")) +
-    scale_y_continuous(limits=c(-.8, 1.4),
-                           breaks=round(seq(-.8,1.4,.2), digits=2)) +
-	theme_bw() +
-	theme(legend.position="bottom",plot.title = element_text(hjust = 0.5),text = element_text(size=20,face='bold'),axis.text.x = element_text(size=16),legend.text=element_text(size=16)) +
-	xlab("") +
-	ylab("")
+#outPlot <- ggplot(toPlot,aes(x=V2,y=Lo*-1,group=V3,fill=V3)) +
+#    geom_bar(stat="identity", position=position_dodge()) +
+#	scale_fill_manual(name = "sex",
+#                          values=c("1"="blue","2"="red")) +
+#    scale_y_continuous(limits=c(-.8, 1.4),
+#                           breaks=round(seq(-.8,1.4,.2), digits=2)) +
+#	theme_bw() +
+#	theme(legend.position="bottom",plot.title = element_text(hjust = 0.5),text = element_text(size=20,face='bold'),axis.text.x = element_text(size=16),legend.text=element_text(size=16)) +
+#	xlab("") +
+#	ylab("")
 
-library(gtable)
-g <- ggplotGrob(outPlot)
-s <- gtable_filter(g, 'axis-b|guide', trim=F)  # use trim depending on need
-png("/Users/butellyn/Documents/hiLo/plots/outXAxisValuesGE.png",width=5.83, height=5, units='in', res=300)
-grid.newpage()
-grid.draw(s)
-dev.off()
+#library(gtable)
+#g <- ggplotGrob(outPlot)
+#s <- gtable_filter(g, 'axis-b|guide', trim=F)  # use trim depending on need
+#png("/Users/butellyn/Documents/hiLo/plots/figure8_color.png",width=220, height=120, units='mm', res=800)
+#grid.newpage()
+#grid.draw(s)
+#dev.off()

@@ -1,7 +1,7 @@
 ## Load the libraries
 install_load('psych','reshape2','ggplot2')
 
-## Read the data 
+## Read the data
 allR <- read.csv('./allIndivRValsMALE.csv')
 allRN <- read.csv('./allIndivRValsMALEPERM.csv')
 
@@ -34,7 +34,7 @@ toPlotVals$value <- paste("Mean Value =", toPlotVals$value, sep='')
 out.plot.male <- ggplot(toPlot, aes(x=value, group=Outcome, fill=Outcome)) +
   geom_density(data=subset(toPlot,Outcome=='Real')) +
   geom_density(data=subset(toPlot,Outcome=='Fake')) +
-  theme_bw() +
+  theme_linedraw() +
   facet_grid(V1 ~ .) +
   coord_cartesian(ylim=c(0,250),xlim=c(-.1,.25)) +
   ggtitle("Male") +
@@ -73,7 +73,7 @@ toPlotVals$value <- paste("Mean Value =", toPlotVals$value, sep='')
 out.plot.female <- ggplot(toPlot, aes(x=value, group=Outcome, fill=Outcome)) +
   geom_density(data=subset(toPlot,Outcome=='Real')) +
   geom_density(data=subset(toPlot,Outcome=='Fake')) +
-  theme_bw() +
+  theme_linedraw() +
   facet_grid(V1 ~ .) +
   coord_cartesian(ylim=c(0,250),xlim=c(-.1,.25)) +
   ggtitle("Female") +
@@ -82,6 +82,11 @@ out.plot.female <- ggplot(toPlot, aes(x=value, group=Outcome, fill=Outcome)) +
   ## Now add the mean values
   geom_text(data=toPlotVals,aes(x=X,y=Y,color=Outcome,label=value))
 
-png("CVRSquaredVals2.png",height=6, width=16, units='in', res=300)
+png("~/Documents/hiLo/plots/figure5_color.png", height=100, width=180, units='mm', res=800)
 multiplot(out.plot.male, out.plot.female, cols=2)
 dev.off()
+
+# TO DO:
+# 1) Get rid of "Mean Value" on each plot, and replace with vertical lines
+# 2) Change the theme to linedraw DONE
+# 3) Add activation

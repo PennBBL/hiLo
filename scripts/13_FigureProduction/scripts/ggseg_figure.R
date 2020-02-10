@@ -6,6 +6,7 @@
 library('ggseg')
 library('ggplot2')
 library('tidyverse')
+library('R.utils')
 
 load("/Users/butellyn/Documents/ggsegExtra/data/micCort.rda")
 
@@ -69,7 +70,9 @@ pdf(file="/Users/butellyn/Documents/hiLo/plots/brainFigure.pdf", width=7, height
 p
 dev.off()
 
-
+png(file="/Users/butellyn/Documents/hiLo/plots/figure2_color.png", units="mm", width=180, height=100, res=800)
+p
+dev.off()
 
 
 

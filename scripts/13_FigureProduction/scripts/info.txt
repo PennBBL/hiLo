@@ -1,0 +1,6 @@
+rSquaredFig.R creates Figure 5a in the first submission, and the csvs for Kosha
+to create Figure 5b.
+
+anatomicRegionalEffects.R creates Figure 3 in the first submission
+
+phisioRegionalEffect.R creates Figure 3 in the first submission
