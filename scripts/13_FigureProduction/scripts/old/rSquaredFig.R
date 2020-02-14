@@ -11,6 +11,7 @@ source('~/Documents/ButlerPlotFuncs/plotFuncs.R')
 
 ################################ Males ################################
 ## Read the data
+# ~/Documents/hiLo/scripts/04_CognitiveModels/scripts/
 allR <- read.csv('~/Documents/hiLo/data/allIndivRValsMALE.csv')
 allRN <- read.csv('~/Documents/hiLo/data/allIndivRValsMALEPERM.csv')
 

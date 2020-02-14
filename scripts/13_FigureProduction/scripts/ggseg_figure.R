@@ -8,7 +8,7 @@ library('ggplot2')
 library('tidyverse')
 library('R.utils')
 
-load("/Users/butellyn/Documents/ggsegExtra/data/micCort.rda")
+load("~/Documents/ggsegExtra/data/micCort.rda")
 
 base_atlas = micCort %>%
   select(area,hemi) %>%
@@ -24,12 +24,18 @@ new_data_M = base_atlas %>%
 # Load effect sizes
 i=1
 for (eff in c("alff", "cbf", "gmd", "idemo", "nback", "reho", "tr", "vol")) {
-  tmp_df <- read.csv(paste0("/Users/butellyn/Documents/hiLo/data/effsizes/", eff, ".csv"))
+  tmp_df <- read.csv(paste0("~/Documents/hiLo/data/effsizes/", eff, ".csv"))
   if (i == 1) { this_df <- tmp_df
   } else if (i > 1) { this_df <- rbind(this_df, tmp_df) }
   i=i+1
 }
 this_df <- this_df[!(this_df$Lobe %in% c("White Matter", "Cerebellum")),]
+
+# NAs aren't actually missing... They are the nucleus accumbens/accumbens area
+this_df$Abbrev <- as.character(this_df$Abbrev)
+this_df <- this_df %>%
+    mutate(Abbrev = if_else(is.na(Abbrev), "NA", Abbrev))
+this_df$Abbrev <- as.factor(this_df$Abbrev)
 
 F_df <- this_df[this_df$ageBin == "Adults" & this_df$Sex == "Female",]
 rownames(F_df) <- 1:nrow(F_df)
@@ -63,12 +69,9 @@ p <- ggseg(final_data, atlas="micCort", mapping=aes(fill=Count2), hemisphere="le
   scale_fill_manual(values=c("antiquewhite1", "#fddbc7", "#f4a582", "#d6604d", "#b2182b", "#67001f", "black",
     "white", "aliceblue", "#d1e5f0", "#92c5de", "#4393c3", "#2166ac", "#053061"), drop=FALSE) +
   facet_wrap(~Gender, ncol=1) + labs(fill="# Modalities >.4") +
-  theme(axis.title.x=element_blank(), axis.text.x=element_blank())
+  theme(text=element_text(size=14,  family="Arial"), axis.title.x=element_blank(), axis.text.x=element_blank())
 
 
-pdf(file="/Users/butellyn/Documents/hiLo/plots/brainFigure.pdf", width=7, height=5)
-p
-dev.off()
 
 png(file="/Users/butellyn/Documents/hiLo/plots/figure2_color.png", units="mm", width=180, height=100, res=800)
 p
