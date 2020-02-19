@@ -84,13 +84,18 @@ for (dafr in dataframes) {
           thisdf$F1_Exec_Comp_Cog_Accuracy <- sample(thisdf$F1_Exec_Comp_Cog_Accuracy, replace=FALSE)
         }
 
-        folds10 <- createFolds(thisdf$F1_Exec_Comp_Cog_Accuracy, k = 10, list = TRUE)
+        #folds10 <- createFolds(thisdf$F1_Exec_Comp_Cog_Accuracy, k = 10, list = TRUE)
 
         ### Create training and testing dataframes
-        test <- folds10[[10]]
-        trainfolds <- subset(folds10, !(grepl(10, names(folds10))))
-        train <- c()
-        for (j in 1:9) { train <- c(train, trainfolds[[j]]) }
+        #test <- folds10[[10]]
+        #trainfolds <- subset(folds10, !(grepl(10, names(folds10))))
+        #train <- c()
+        #for (j in 1:9) { train <- c(train, trainfolds[[j]]) }
+
+        # February 19, 2020: Version with half and half for Tyler
+        folds2 <- createFolds(thisdf$F1_Exec_Comp_Cog_Accuracy, k = 2, list = TRUE)
+        test <- folds2[[1]]
+        train <- folds2[[2]]
 
         x_train_df <- thisdf[train, c("bblid", xvars)]
         x_train_input <- as.matrix(x_train_df[,xvars])
@@ -100,7 +105,6 @@ for (dafr in dataframes) {
         ridge_model <- cv.glmnet(x_train_input, F1_Exec_Comp_Cog_Accuracy, alpha=0,
           lambda=10^seq(-3, 5, length.out = 100), standardize=TRUE, nfolds=5)
         		# https://www.datacamp.com/community/tutorials/tutorial-ridge-lasso-elastic-net
-        assign(paste0("mod_", i), elastic_net_model)
         x_test_df <- thisdf[test, c("bblid", xvars)]
         y_test_df <- thisdf[test, c("bblid", yvar)]
         lambda_cv <- ridge_model$lambda.min
@@ -131,12 +135,12 @@ write.csv(toPlotVals, file="~/Documents/hiLo/data/permutationSummary.csv", row.n
 
 out.plot <- ggplot(results_df, aes(x=RSq, group=Permuted, fill=Permuted)) +
   geom_density(data=results_df[results_df$Permuted=='No' & results_df$Sex=="Male",], fill="steelblue2") +
-  #geom_density(data=results_df[results_df$Permuted=='Yes' & results_df$Sex=="Male",], fill="black") +
+  geom_density(data=results_df[results_df$Permuted=='Yes' & results_df$Sex=="Male",], fill="black") +
   geom_density(data=results_df[results_df$Permuted=='No' & results_df$Sex=="Female",], fill="violetred1") +
-  #geom_density(data=results_df[results_df$Permuted=='Yes' & results_df$Sex=="Female",], fill="black") +
+  geom_density(data=results_df[results_df$Permuted=='Yes' & results_df$Sex=="Female",], fill="black") +
   theme_linedraw() +
   facet_grid(Modality ~ Sex) +
-  #coord_cartesian(ylim=c(0,500),xlim=c(-.1,.5)) +
+  coord_cartesian(ylim=c(0,500),xlim=c(-.1,.5)) +
   xlab(bquote('CV R'^2)) + theme(axis.text.y = element_text(size=7), legend.position="none") +
   ylab("") +
   geom_vline(data = toPlotVals[toPlotVals$Permuted == "Yes" & toPlotVals$Sex == "Female", ],
