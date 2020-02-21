@@ -92,7 +92,7 @@ for (dafr in dataframes) {
         #train <- c()
         #for (j in 1:9) { train <- c(train, trainfolds[[j]]) }
 
-        # February 19, 2020: Version with half and half for Tyler
+        # February 19, 2020: Version with half and half
         folds2 <- createFolds(thisdf$F1_Exec_Comp_Cog_Accuracy, k = 2, list = TRUE)
         test <- folds2[[1]]
         train <- folds2[[2]]
@@ -126,21 +126,21 @@ for (dafr in dataframes) {
 results_df$Modality <- ordered(results_df$Modality, levels=c("Volume", "GMD", "MD",
   "CBF", "ALFF", "ReHo", "NBack", "IdEmo", "All"))
 
-write.csv(results_df, file="~/Documents/hiLo/data/permutationResults.csv", row.names=FALSE)
+write.csv(results_df, file="~/Documents/hiLo/data/permutationResults_half.csv", row.names=FALSE)
 
 toPlotVals <- summarySE(data=results_df[,c('Modality', 'Sex', 'Permuted', "RSq")],
   groupvars=c('Modality', 'Sex', 'Permuted'), measurevar='RSq')
 
-write.csv(toPlotVals, file="~/Documents/hiLo/data/permutationSummary.csv", row.names=FALSE)
+write.csv(toPlotVals, file="~/Documents/hiLo/data/permutationSummary_half.csv", row.names=FALSE)
 
 out.plot <- ggplot(results_df, aes(x=RSq, group=Permuted, fill=Permuted)) +
-  geom_density(data=results_df[results_df$Permuted=='No' & results_df$Sex=="Male",], fill="steelblue2") +
-  geom_density(data=results_df[results_df$Permuted=='Yes' & results_df$Sex=="Male",], fill="black") +
-  geom_density(data=results_df[results_df$Permuted=='No' & results_df$Sex=="Female",], fill="violetred1") +
-  geom_density(data=results_df[results_df$Permuted=='Yes' & results_df$Sex=="Female",], fill="black") +
+  geom_density(data=results_df[results_df$Permuted=='Yes' & results_df$Sex=="Male",], fill="black", adjust=10) +
+  geom_density(data=results_df[results_df$Permuted=='No' & results_df$Sex=="Male",], fill="steelblue2", alpha=.5, adjust=1.5) +
+  geom_density(data=results_df[results_df$Permuted=='Yes' & results_df$Sex=="Female",], fill="black", adjust=10) +
+  geom_density(data=results_df[results_df$Permuted=='No' & results_df$Sex=="Female",], fill="violetred1", alpha=.5, adjust=1.5) +
   theme_linedraw() +
   facet_grid(Modality ~ Sex) +
-  coord_cartesian(ylim=c(0,500),xlim=c(-.1,.5)) +
+  coord_cartesian(ylim=c(0,25),xlim=c(-.1,.5)) +
   xlab(bquote('CV R'^2)) + theme(axis.text.y = element_text(size=7), legend.position="none") +
   ylab("") +
   geom_vline(data = toPlotVals[toPlotVals$Permuted == "Yes" & toPlotVals$Sex == "Female", ],
@@ -153,10 +153,6 @@ out.plot <- ggplot(results_df, aes(x=RSq, group=Permuted, fill=Permuted)) +
     mapping = aes(xintercept = RSq), linetype = "dashed", color="steelblue2")
 
 
-
 png(file="~/Documents/hiLo/plots/figure7_color.png", height=160, width=120, units='mm', res=800)
 out.plot
 dev.off()
-
-
-#boo <- results_df[results_df$Modality == "Volume" & results_df$Sex == "Female" & results_df$Permuted == "Yes",]
