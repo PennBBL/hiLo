@@ -255,7 +255,7 @@ for (a in 1:8) {
 
 			abbrevtokeep <- c(abbrevtokeep, pick_F_df[effsizes, "Abbrev"])
 		}
-		abbrevtokeep <- c(abbrevtokeep, "C1-5", "C6-7", "C8-10", "CExt", "Lim", "Ins", "Fro", "Occ", "Tmp")
+		abbrevtokeep <- c(abbrevtokeep, "C1-5", "C6-7", "C8-10", "CExt", "Lim", "Ins", "Fro", "Occ", "Tmp", "Par")
 	}
 
 
