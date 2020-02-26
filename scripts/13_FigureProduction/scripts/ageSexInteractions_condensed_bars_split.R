@@ -2,7 +2,7 @@
 ### age bins into single rows (within age bin age regression added)
 ###
 ### Ellyn Butler
-### December 12, 2019 - February 10, 2020
+### December 12, 2019 - February 24, 2020
 
 
 # What machine are you working on?
@@ -36,7 +36,10 @@ if (galton == TRUE) {
 	tr.modal.data <- read.csv('~/Documents/hiLo/data/meanLR/jlfTRData.csv')
 	nback.modal.data <- read.csv('~/Documents/hiLo/data/meanLR/nbackData.csv')
 	idemo.modal.data <- read.csv('~/Documents/hiLo/data/meanLR/idemoData.csv')
+	fa.modal.data <- read.csv('~/Documents/hiLo/data/meanLR/jhuFATracts.csv')
 }
+
+fa.modal.data <- fa.modal.data[, c("bblid", "sex", "ageAtGo1Scan", "dti64Tsnr", grep("dti_dtitk_jhutract_fa_", colnames(fa.modal.data), value=TRUE))]
 
 ######### Create Adon's hi-lo definitions and merge with every dataframe
 # ./hiLo/scripts/01_DataPrep/scripts/prepareNBins.R
@@ -58,14 +61,14 @@ for (i in 1:nrow(hilo_df)) {
 }
 
 # Ellyn: scale (0, 1) all cognitive, brain, age and quality data
-grepVals <- c('mprage_jlf_vol_', 'mprage_jlf_gmd_', 'dti_jlf_tr_', 'pcasl_jlf_cbf_', 'rest_jlf_alff_', 'rest_jlf_reho_', 'sigchange_contrast4_2back0back_mean_miccai_ave_', 'sigchange_cope1_task_mean_miccai_ave_')
-data.names <- c('vol', 'gmd', 'tr', 'cbf', 'alff', 'reho', 'nback', 'idemo')
+grepVals <- c('mprage_jlf_vol_', 'mprage_jlf_gmd_', 'dti_jlf_tr_', 'pcasl_jlf_cbf_', 'rest_jlf_alff_', 'rest_jlf_reho_', 'sigchange_contrast4_2back0back_mean_miccai_ave_', 'sigchange_cope1_task_mean_miccai_ave_', 'dti_dtitk_jhutract_fa_')
+data.names <- c('vol', 'gmd', 'tr', 'cbf', 'alff', 'reho', 'nback', 'idemo', 'fa')
 #whitematterValues <- c(1, 0, 1, 1, 0, 0, 0, 0)
 #cerebellumValues <- c(1, 1, 1, 0, 1, 1, 0, 0)
-whitematterValues <- c(0, 0, 0, 0, 0, 0, 0, 0)
-cerebellumValues <- c(0, 0, 0, 0, 0, 0, 0, 0)
-qualitymetrics <- c("averageManualRating", "averageManualRating", "dti64Tsnr", "pcaslRelMeanRMSMotion", "restRelMeanRMSMotion", "restRelMeanRMSMotion", "nbackRelMeanRMSMotion", "idemoRelMeanRMSMotion")
-for (a in 1:8) {
+whitematterValues <- c(0, 0, 0, 0, 0, 0, 0, 0, 0)
+cerebellumValues <- c(0, 0, 0, 0, 0, 0, 0, 0, 0)
+qualitymetrics <- c("averageManualRating", "averageManualRating", "dti64Tsnr", "pcaslRelMeanRMSMotion", "restRelMeanRMSMotion", "restRelMeanRMSMotion", "nbackRelMeanRMSMotion", "idemoRelMeanRMSMotion", "dti64Tsnr")
+for (a in 1:9) {
 	# Recode sex
 	dfName <- paste(data.names[a], ".modal.data", sep='')
 	tmp_df <- get(dfName)
@@ -107,8 +110,9 @@ temporal <- c("FuG", "PT", "PP", "ITG", "CO", "MTG", "TMP", "STG", "TTG")
 parietal <- c("PCu", "PoG", "AnG", "PO", "SPL", "MPrG", "SMG", "MPoG")
 occipital <- c("IOG", "Cun", "LiG", "OFuG", "MOG", "Calc", "OCP", "SOG")
 cerebellum <- c("C1-5", "C6-7", "C8-10", "CExt")
-whitematter <- c("Ins", "Lim", "Fro", "Tmp", "Par", "Occ")
-for (a in 1:8) {
+whitematter <- c("Ins", "Lim", "Fro", "Tmp", "Par", "Occ", "ATR", "CGC", "CGH",
+	"CST", "FOmn", "FOmj", "IFO", "ILF", "SLF", "UF")
+for (a in 1:9) {
 	dfName <- paste0(data.names[a], ".modal.data")
 	tmp_df <- get(dfName)
 
@@ -119,12 +123,6 @@ for (a in 1:8) {
 	colstouse <- colstouse[!(colstouse %in% grep("CSF", colstouse, value=TRUE))]
 	colstouse <- colstouse[!(colstouse %in% grep("Cerebellum_White_Matter", colstouse, value=TRUE))]
 	colstouse <- colstouse[!(colstouse %in% grep("Mean", colstouse, value=TRUE))]
-	#if (cerebellumValues[a] == 0) {
-	#	colstouse <- colstouse[!(colstouse %in% grep("Cere", colstouse, value=TRUE))]
-	#}
-	#if (whitematterValues[a] == 0) {
-	#	colstouse <- colstouse[!(colstouse %in% grep("WM", colstouse, value=TRUE))]
-	#}
 
 	sum_df_tmp <- data.frame(matrix(NA, nrow=length(colstouse)*6, ncol=9)) ####
 	colnames(sum_df_tmp) <- c("Modality", "Label", "Abbrev", "Lobe", "ageBin", "Importance", "Sex", "Group", "EffectSize")
@@ -137,9 +135,10 @@ for (a in 1:8) {
     sum_df_tmp[c(i+length(colstouse)*2, i+length(colstouse)*5), "ageBin"] <- "Adults"
 
 		intname <- strsplit(colstouse[i], split="_")
-		if (a != 7 & a != 8) { thisint = 4
+		if (a != 7 & a != 8 & a != 9) { thisint = 4
+		} else if (a == 9) { thisint = 5
 		} else if (a == 7 | a == 8) { thisint = 7 }
-		#} else { thisint = 6 }
+
 		if (length(intname[[1]]) > thisint) {
 			tmpname <- ""
 			for (k in thisint:length(intname[[1]])) {
@@ -170,6 +169,16 @@ for (a in 1:8) {
 		} else if (intname == "Parietal_Lobe_WM") { intname <- "Par"
 		} else if (intname == "Occipital_Lobe_WM") { intname <- "Occ"
 		} else if (intname == "Temporal_Lobe_WM") { intname <- "Tmp"
+		} else if (intname == "atr") { intname <- "ATR"
+		} else if (intname == "cgc") { intname <- "CGC"
+		} else if (intname == "cgh") { intname <- "CGH"
+		} else if (intname == "cst") { intname <- "CST"
+		} else if (intname == "forceps_minor") { intname <- "FOmn"
+		} else if (intname == "forceps_mjor") { intname <- "FOmj"
+		} else if (intname == "ifo") { intname <- "IFO"
+		} else if (intname == "ilf") { intname <- "ILF"
+		} else if (intname == "slf") { intname <- "SLF"
+		} else if (intname == "uf") { intname <- "UF"
 		}
 
 		sum_df_tmp[seq(i, i+length(colstouse)*5, length(colstouse)), "Abbrev"] <- intname
@@ -232,6 +241,8 @@ for (a in 1:8) {
 		sum_df_tmp$Modality <- "NBack"
 	} else if (data.names[a] == "idemo") {
 		sum_df_tmp$Modality <- "IdEmo"
+	} else if (data.names[a] == "fa") {
+		sum_df_tmp$Modality <- "FA"
 	}
 
 	write.csv(sum_df_tmp[,c("Modality", "Abbrev", "Lobe", "ageBin", "Importance", "Sex", "EffectSize")],
@@ -255,9 +266,10 @@ for (a in 1:8) {
 
 			abbrevtokeep <- c(abbrevtokeep, pick_F_df[effsizes, "Abbrev"])
 		}
-		abbrevtokeep <- c(abbrevtokeep, "C1-5", "C6-7", "C8-10", "CExt", "Lim", "Ins", "Fro", "Occ", "Tmp", "Par")
+		abbrevtokeep <- c(abbrevtokeep, "C1-5", "C6-7", "C8-10", "CExt", "Lim", "Ins",
+			"Fro", "Occ", "Tmp", "Par", "ATR", "CGC", "CGH", "CST", "FOmn", "FOmj",
+			"IFO", "ILF", "SLF", "UF")
 	}
-
 
 	sum_df_tmp <- sum_df_tmp[sum_df_tmp$Importance == "PF" | sum_df_tmp$Abbrev %in% abbrevtokeep,]
 	rownames(sum_df_tmp) <- 1:nrow(sum_df_tmp)
@@ -271,7 +283,7 @@ for (a in 1:8) {
 
 
 sum_df$Lobe <- factor(sum_df$Lobe, levels = c("Basal Ganglia", "Limbic", "Frontal", "Temporal", "Parietal", "Occipital", "Cerebellum", "White Matter"))
-sum_df$Modality <- factor(sum_df$Modality, levels = c("Volume", "GMD", "MD", "CBF", "ALFF", "ReHo", "NBack", "IdEmo"))
+sum_df$Modality <- factor(sum_df$Modality, levels = c("Volume", "GMD", "MD", "CBF", "ALFF", "ReHo", "NBack", "IdEmo", "FA"))
 sum_df$Importance <- ordered(sum_df$Importance, levels=c("PF", "Not"))
 sum_df$Group <- paste(sum_df$Sex, sum_df$ageBin)
 sum_df$Group <- ordered(sum_df$Group, levels=c("Female Children", "Female Adolescents", "Female Adults", "Male Children", "Male Adolescents", "Male Adults"))
@@ -315,7 +327,7 @@ task_plot <- ggplot(sum_df[sum_df$Modality %in% c("NBack", "IdEmo") & sum_df$Lob
 	labs(fill = "Group") + theme(axis.text.x = element_text(angle=90)) +
 	theme(legend.position="bottom", legend.box="vertical", axis.title.x=element_blank())
 
-boo <- sum_df[sum_df$Lobe %in% c("Cerebellum", "White Matter"), ]
+boo <- sum_df[sum_df$Lobe %in% c("Cerebellum", "White Matter") & sum_df$Modality != "FA", ]
 boo$Modality <- as.character(boo$Modality)
 boo$Modality <- gsub("NBack", "NB", boo$Modality)
 boo$Modality <- gsub("IdEmo", "Id", boo$Modality)
@@ -332,6 +344,16 @@ wmcer_plot <- ggplot(boo, aes(Abbrev, EffectSize, group=Group, colour=Group, fil
 	labs(fill = "Group") + theme(axis.text.x = element_text(angle=90)) +
 	theme(legend.position="bottom", legend.box="vertical", axis.title.x=element_blank())
 
+fa_plot <- ggplot(sum_df[sum_df$Modality == "FA", ], aes(Abbrev, EffectSize, group=Group, colour=Group, fill=Group)) +
+	geom_bar(stat="identity", position="dodge") + scale_y_continuous(limits=c(-.8, .8), breaks=round(seq(-1.4, 1.4, .2), digits=1)) +
+	facet_nested(Modality ~ Importance, scales="free", space="free_x") +
+	scale_shape_manual(values=c(17, 15, 16, 17, 15, 16)) +
+	scale_color_manual(values=c("black", "black", "black", "black", "black", "black"), guide = guide_legend(ncol=1)) +
+	scale_fill_manual(values=c("pink", "violetred1", "red3", "lightsteelblue1", "steelblue2", "blue4"), guide = guide_legend(ncol=1)) +
+	ylab("Effect Size") + theme_linedraw() + geom_hline(yintercept=0) +
+	geom_hline(yintercept=-.4, linetype="dashed") + geom_hline(yintercept=.4, linetype="dashed") +
+	labs(fill = "Group") + theme(axis.text.x = element_text(angle=90)) +
+	theme(legend.box="vertical", axis.title.x=element_blank(), legend.title = element_text(size=8), legend.text = element_text(size=8))
 
 if (galton == TRUE) {
 	pdf(paste0('/home/butellyn/hiLo/plots/beta_HiLo_Age_condensed_bars_struc_', Sys.Date(), '.pdf'), width=9, height=7)
@@ -380,5 +402,9 @@ if (galton == TRUE) {
 
 	png('/Users/butellyn/Documents/hiLo/plots/figure6_color.png', units="mm", width=220, height=100, res=800)
 	wmcer_plot
+	dev.off()
+
+	png('/Users/butellyn/Documents/hiLo/plots/fa_color.png', units="mm", width=140, height=60, res=800)
+	fa_plot
 	dev.off()
 }

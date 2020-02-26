@@ -11,18 +11,53 @@ source("~/Documents/ButlerPlotFuncs/plotFuncs.R")
 install_load('glmnet', 'ggplot2', 'reshape2', 'gridExtra', 'psych', 'dplyr',
   'caret', 'dfoptim', 'Rmisc', 'permute')
 
+# Load the non-age-regressed cognitive data
+cog.data <- read.csv("~/Documents/hiLo/data/cognitive/n1601_cnb_factor_scores_tymoore_20151006.csv")
+
 # Load the data
 vol.data <- read.csv('~/Documents/hiLo/data/meanLR/volumeData.csv')
+vol.data <- merge(vol.data, cog.data, by="bblid")
+vol.data <- vol.data[!is.na(vol.data$F1_Exec_Comp_Res_Accuracy),]
+rownames(vol.data) <- 1:nrow(vol.data)
+
 cbf.data <- read.csv('~/Documents/hiLo/data/meanLR/cbfData.csv')
+cbf.data <- merge(cbf.data, cog.data, by="bblid")
+cbf.data <- cbf.data[!is.na(cbf.data$F1_Exec_Comp_Res_Accuracy),]
+rownames(cbf.data) <- 1:nrow(cbf.data)
+
 gmd.data <- read.csv('~/Documents/hiLo/data/meanLR/gmdData.csv')
+gmd.data <- merge(gmd.data, cog.data, by="bblid")
+gmd.data <- gmd.data[!is.na(gmd.data$F1_Exec_Comp_Res_Accuracy),]
+rownames(gmd.data) <- 1:nrow(gmd.data)
+
 reho.data <- read.csv('~/Documents/hiLo/data/meanLR/rehoData.csv')
+reho.data <- merge(reho.data, cog.data, by="bblid")
+reho.data <- reho.data[!is.na(reho.data$F1_Exec_Comp_Res_Accuracy),]
+rownames(reho.data) <- 1:nrow(reho.data)
+
 alff.data <- read.csv('~/Documents/hiLo/data/meanLR/alffData.csv')
+alff.data <- merge(alff.data, cog.data, by="bblid")
+alff.data <- alff.data[!is.na(alff.data$F1_Exec_Comp_Res_Accuracy),]
+rownames(alff.data) <- 1:nrow(alff.data)
+
 md.data <- read.csv('~/Documents/hiLo/data/meanLR/jlfTRData.csv')
+md.data <- merge(md.data, cog.data, by="bblid")
+md.data <- md.data[!is.na(md.data$F1_Exec_Comp_Res_Accuracy),]
+rownames(md.data) <- 1:nrow(md.data)
+
 nback.data <- read.csv('~/Documents/hiLo/data/meanLR/nbackData.csv')
+nback.data <- merge(nback.data, cog.data, by="bblid")
+nback.data <- nback.data[!is.na(nback.data$F1_Exec_Comp_Res_Accuracy),]
+rownames(nback.data) <- 1:nrow(nback.data)
+
 idemo.data <- read.csv('~/Documents/hiLo/data/meanLR/idemoData.csv')
+idemo.data <- merge(idemo.data, cog.data, by="bblid")
+idemo.data <- idemo.data[!is.na(idemo.data$F1_Exec_Comp_Res_Accuracy),]
+rownames(idemo.data) <- 1:nrow(idemo.data)
 
 nback.data <- nback.data[!is.na(nback.data$sigchange_contrast4_2back0back_mean_miccai_ave_Accumbens_Area),]
 rownames(nback.data) <- 1:nrow(nback.data)
+
 idemo.data <- idemo.data[!is.na(idemo.data$sigchange_cope1_task_mean_miccai_ave_Accumbens_Area),]
 rownames(idemo.data) <- 1:nrow(idemo.data)
 
@@ -33,7 +68,7 @@ dataframes <- c("vol.data", "gmd.data", "md.data", "cbf.data", "alff.data",
   "reho.data", "nback.data", "idemo.data", "all.data")
 
 # yvar
-yvar <- "F1_Exec_Comp_Cog_Accuracy"
+yvar <- "F1_Exec_Comp_Res_Accuracy"
 
 # Create a dataframe for the results
 # 9 modalities, 2 perm statuses, 2 sexes, 1000 runs
@@ -82,71 +117,70 @@ for (dafr in dataframes) {
         colstouse <- colstouse[!(colstouse %in% grep("Cerebellum_White_Matter", colstouse, value=TRUE))]
         xvars <- colstouse[!(colstouse %in% grep("Mean", colstouse, value=TRUE))]
 
-        if (perm == "Yes") {
-          thisdf$F1_Exec_Comp_Cog_Accuracy <- sample(thisdf$F1_Exec_Comp_Cog_Accuracy, replace=FALSE)
-        }
-
         # Create age vars
         thisdf$age <- scale(thisdf$ageAtGo1Scan)
         thisdf$age2 <- scale((thisdf$age)^2)
         thisdf$age3 <- scale((thisdf$age)^3)
 
+        # Permute the cognitive variable with the age and QA variables to create a stronger null
+        if (perm == "Yes") {
+          reorderrows <- sample(1:nrow(thisdf), replace=FALSE)
+          thisdf$F1_Exec_Comp_Res_Accuracy <- thisdf$F1_Exec_Comp_Res_Accuracy[reorderrows]
+          thisdf$age <- thisdf$age[reorderrows]
+          thisdf$age2 <- thisdf$age2[reorderrows]
+          thisdf$age3 <- thisdf$age3[reorderrows]
+          if (a < 9) {
+            thisdf[, qualitymetrics[a]] <- thisdf[reorderrows, qualitymetrics[a]]
+          } else {
+            for (qual in qualitymetrics) {
+              thisdf[, qual] <- thisdf[reorderrows, qual]
+            }
+          }
+        }
+        rownames(thisdf) <- 1:nrow(thisdf)
+
         # Version with half and half
-        folds2 <- createFolds(thisdf$F1_Exec_Comp_Cog_Accuracy, k = 2, list = TRUE)
+        folds2 <- createFolds(thisdf$F1_Exec_Comp_Res_Accuracy, k = 2, list = TRUE)
         test <- folds2[[1]]
         train <- folds2[[2]]
 
-        # Regress out age and quality metrics from the cognitive variable, and all brain features
         if (a < 9) {
-          train_df <- thisdf[train, c("bblid", xvars, yvar, "age", "age2", "age3", qualitymetrics[a])]
-          test_df <- thisdf[test, c("bblid", xvars, yvar, "age", "age2", "age3", qualitymetrics[a])]
-
-          for (thisvar in c(yvar, xvars)) {
-            thisfunc <- paste0(thisvar, " ~ ", qualitymetrics[a], " + age + age2 + age3")
-            thismod <- lm(formula(thisfunc), data=train_df)
-
-            # Apply the function trained on the training data to the training data and the test data
-            # to regress out age, age2, age3 and the quality metric from brain features
-            train_df[,thisvar] <- thismod$residuals
-            test_df[,thisvar] <- test_df[,thisvar] - predict(thismod, newdata=test_df)
-          }
+          x_train_df <- thisdf[train, c("bblid", "age", "age2", "age3", qualitymetrics[a], xvars)]
+          y_train_df <- thisdf[train, c("bblid", yvar)]
+          x_test_df <- thisdf[test, c("bblid", "age", "age2", "age3", qualitymetrics[a], xvars)]
+          y_test_df <- thisdf[test, c("bblid", yvar)]
+          x_train_input <- as.matrix(x_train_df[, c("age", "age2", "age3", qualitymetrics[a], xvars)])
+          F1_Exec_Comp_Res_Accuracy <- y_train_df$F1_Exec_Comp_Res_Accuracy
         } else {
-          qualitymetricsunique <- unique(qualitymetrics)
-          qualfunc <- ""
-          for (qm in qualitymetricsunique) { qualfunc <- paste0(qualfunc, qm, " + ") }
-
-          for (thisvar in c(yvar, xvars)) {
-            thisfunc <- paste0(thisvar, " ~ ", qualfunc, " age + age2 + age3")
-            thismod <- lm(formula(thisfunc), data=train_df)
-
-            # Apply the function trained on the training data to the training data and the test data
-            # to regress out age, age2, age3 and the quality metric from brain features
-            train_df[,thisvar] <- thismod$residuals
-            test_df[,thisvar] <- test_df[,thisvar] - predict(thismod, newdata=test_df)
-          }
+          x_train_df <- thisdf[train, c("bblid", "age", "age2", "age3", unique(qualitymetrics), xvars)]
+          y_train_df <- thisdf[train, c("bblid", yvar)]
+          x_test_df <- thisdf[test, c("bblid", "age", "age2", "age3", unique(qualitymetrics), xvars)]
+          y_test_df <- thisdf[test, c("bblid", yvar)]
+          x_train_input <- as.matrix(x_train_df[, c("age", "age2", "age3", unique(qualitymetrics), xvars)])
+          F1_Exec_Comp_Res_Accuracy <- y_train_df$F1_Exec_Comp_Res_Accuracy
         }
 
-        x_train_df <- thisdf[train, c("bblid", xvars)]
-        y_train_df <- thisdf[train, c("bblid", yvar)]
-        x_test_df <- thisdf[test, c("bblid", xvars)]
-        y_test_df <- thisdf[test, c("bblid", yvar)]
-        x_train_input <- as.matrix(x_train_df[,xvars])
-        F1_Exec_Comp_Cog_Accuracy <- y_train_df$F1_Exec_Comp_Cog_Accuracy
-
-
-        # Build the ridge model
-        ridge_model <- cv.glmnet(x_train_input, F1_Exec_Comp_Cog_Accuracy, alpha=0,
+        #### Build the ridge model using only age, QA variables, and imaging variables
+        ridge_model <- cv.glmnet(x_train_input, F1_Exec_Comp_Res_Accuracy, alpha=0,
           lambda=10^seq(-3, 5, length.out = 100), standardize=TRUE, nfolds=5)
         		# https://www.datacamp.com/community/tutorials/tutorial-ridge-lasso-elastic-net
         lambda_cv <- ridge_model$lambda.min
-        model_cv <- glmnet(as.matrix(x_train_df[,xvars]), F1_Exec_Comp_Cog_Accuracy, alpha = 0, lambda = lambda_cv, standardize = TRUE)
 
-        y_test_predicted <- predict(model_cv, as.matrix(x_test_df[,xvars]))
+        if (a < 9) {
+          model_cv <- glmnet(as.matrix(x_train_df[, c("age", "age2", "age3", qualitymetrics[a], xvars)]),
+            F1_Exec_Comp_Res_Accuracy, alpha = 0, lambda = lambda_cv, standardize = TRUE)
+          y_test_predicted <- predict(model_cv, as.matrix(x_test_df[, c("age", "age2", "age3", qualitymetrics[a], xvars)]))
+        } else {
+          model_cv <- glmnet(as.matrix(x_train_df[, c("age", "age2", "age3", unique(qualitymetrics), xvars)]),
+            F1_Exec_Comp_Res_Accuracy, alpha = 0, lambda = lambda_cv, standardize = TRUE)
+          y_test_predicted <- predict(model_cv, as.matrix(x_test_df[, c("age", "age2", "age3", unique(qualitymetrics), xvars)]))
+        }
 
-        # Calculate the RSq value
-        SSres <- sum((y_test_df$F1_Exec_Comp_Cog_Accuracy - y_test_predicted)^2)
-        SStot <- sum((y_test_df$F1_Exec_Comp_Cog_Accuracy - mean(y_train_df$F1_Exec_Comp_Cog_Accuracy))^2)
+        # Calculate the RSq change value
+        SSres <- sum((y_test_df$F1_Exec_Comp_Res_Accuracy - y_test_predicted)^2)
+        SStot <- sum((y_test_df$F1_Exec_Comp_Res_Accuracy - mean(y_train_df$F1_Exec_Comp_Res_Accuracy))^2)
         results_df[k, "RSq"] <- 1 - SSres/SStot
+
         k=k+1
       }
     }
@@ -157,12 +191,12 @@ for (dafr in dataframes) {
 results_df$Modality <- ordered(results_df$Modality, levels=c("Volume", "GMD", "MD",
   "CBF", "ALFF", "ReHo", "NBack", "IdEmo", "All"))
 
-write.csv(results_df, file="~/Documents/hiLo/data/permutationResults_half_regressAgeQA.csv", row.names=FALSE)
+write.csv(results_df, file="~/Documents/hiLo/data/permutationResults_half_strongNull.csv", row.names=FALSE)
 
 toPlotVals <- summarySE(data=results_df[,c('Modality', 'Sex', 'Permuted', "RSq")],
   groupvars=c('Modality', 'Sex', 'Permuted'), measurevar='RSq')
 
-write.csv(toPlotVals, file="~/Documents/hiLo/data/permutationSummary_half_regressAgeQA.csv", row.names=FALSE)
+write.csv(toPlotVals, file="~/Documents/hiLo/data/permutationSummary_half_strongNull.csv", row.names=FALSE)
 
 out.plot <- ggplot(results_df, aes(x=RSq, group=Permuted, fill=Permuted)) +
   geom_density(data=results_df[results_df$Permuted=='Yes' & results_df$Sex=="Male",], fill="black", adjust=10) +
@@ -184,6 +218,6 @@ out.plot <- ggplot(results_df, aes(x=RSq, group=Permuted, fill=Permuted)) +
     mapping = aes(xintercept = RSq), linetype = "dashed", color="steelblue2")
 
 
-png(file="~/Documents/hiLo/plots/figure7_color_regressAgeQA.png", height=160, width=120, units='mm', res=800)
+png(file="~/Documents/hiLo/plots/figure7_color_strongNull.png", height=160, width=120, units='mm', res=800)
 out.plot
 dev.off()
