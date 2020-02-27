@@ -2,7 +2,7 @@
 ### reproduce the effects in Figure 5 in the first submission
 ###
 ### Ellyn Butler
-### February 24, 2020
+### February 27, 2020
 
 # Source my functions
 source("~/Documents/ButlerPlotFuncs/plotFuncs.R")
@@ -131,16 +131,34 @@ for (dafr in dataframes) {
         test <- folds2[[1]]
         train <- folds2[[2]]
 
-        # Regress out age and quality metrics from the cognitive variable, and all brain features
-        train_df <- thisdf[train, c("bblid", xvars, yvar, "age", "age2", "age3")]
-        test_df <- thisdf[test, c("bblid", xvars, yvar, "age", "age2", "age3")]
+        # Regress out age and quality metrics from all of the brain features
+        if (a < 9) {
+          train_df <- thisdf[train, c("bblid", xvars, yvar, "age", "age2", "age3")]
+          test_df <- thisdf[test, c("bblid", xvars, yvar, "age", "age2", "age3")]
 
-        thismod <- lm(F1_Exec_Comp_Res_Accuracy ~ age + age2 + age3, data=train_df)
+          for (thisvar in xvars) {
+            thisfunc <- paste0(thisvar, " ~ age + age2 + age3")
+            thismod <- lm(formula(thisfunc), data=train_df)
 
-        # Apply the function trained on the training data to the training data and the test data
-        # to regress out age, age2, age3 and the quality metric from brain features
-        train_df[,"F1_Exec_Comp_Res_Accuracy"] <- thismod$residuals
-        test_df[,"F1_Exec_Comp_Res_Accuracy"] <- test_df[,"F1_Exec_Comp_Res_Accuracy"] - predict(thismod, newdata=test_df)
+            # Apply the function trained on the training data to the training data and the test data
+            # to regress out age, age2, age3 and the quality metric from brain features
+            train_df[,thisvar] <- thismod$residuals
+            test_df[,thisvar] <- test_df[,thisvar] - predict(thismod, newdata=test_df)
+          }
+        } else {
+          train_df <- thisdf[train, c("bblid", xvars, yvar, "age", "age2", "age3")]
+          test_df <- thisdf[test, c("bblid", xvars, yvar, "age", "age2", "age3")]
+
+          for (thisvar in xvars) {
+            thisfunc <- paste0(thisvar, " ~ age + age2 + age3")
+            thismod <- lm(formula(thisfunc), data=train_df)
+
+            # Apply the function trained on the training data to the training data and the test data
+            # to regress out age, age2, age3 and the quality metric from brain features
+            train_df[,thisvar] <- thismod$residuals
+            test_df[,thisvar] <- test_df[,thisvar] - predict(thismod, newdata=test_df)
+          }
+        }
 
         x_train_df <- thisdf[train, c("bblid", xvars)]
         y_train_df <- thisdf[train, c("bblid", yvar)]
@@ -173,12 +191,12 @@ for (dafr in dataframes) {
 results_df$Modality <- ordered(results_df$Modality, levels=c("Volume", "GMD", "MD",
   "CBF", "ALFF", "ReHo", "NBack", "IdEmo", "All"))
 
-write.csv(results_df, file="~/Documents/hiLo/data/permutationResults_half_regressAge_DV.csv", row.names=FALSE)
+write.csv(results_df, file="~/Documents/hiLo/data/permutationResults_half_regressAge_IV.csv", row.names=FALSE)
 
 toPlotVals <- summarySE(data=results_df[,c('Modality', 'Sex', 'Permuted', "RSq")],
   groupvars=c('Modality', 'Sex', 'Permuted'), measurevar='RSq')
 
-write.csv(toPlotVals, file="~/Documents/hiLo/data/permutationSummary_half_regressAge_DV.csv", row.names=FALSE)
+write.csv(toPlotVals, file="~/Documents/hiLo/data/permutationSummary_half_regressAge_IV.csv", row.names=FALSE)
 
 out.plot <- ggplot(results_df, aes(x=RSq, group=Permuted, fill=Permuted)) +
   geom_density(data=results_df[results_df$Permuted=='Yes' & results_df$Sex=="Male",], fill="black", adjust=10) +
@@ -200,6 +218,6 @@ out.plot <- ggplot(results_df, aes(x=RSq, group=Permuted, fill=Permuted)) +
     mapping = aes(xintercept = RSq), linetype = "dashed", color="steelblue2")
 
 
-png(file="~/Documents/hiLo/plots/figure7_color_regressAge_DV.png", height=160, width=120, units='mm', res=800)
+png(file="~/Documents/hiLo/plots/figure7_color_regressAge_IV.png", height=160, width=120, units='mm', res=800)
 out.plot
 dev.off()
