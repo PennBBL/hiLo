@@ -2,7 +2,7 @@
 ### reproduce the effects in Figure 5 in the first submission
 ###
 ### Ellyn Butler
-### February 24, 2020
+### March 4, 2020
 
 # Source my functions
 source("~/Documents/ButlerPlotFuncs/plotFuncs.R")
@@ -95,8 +95,8 @@ for (dafr in dataframes) {
   print(dafr)
   for (sex in c(2, 1)) {
     print(sex)
-    for (perm in c("No", "Yes")) {
-      print(perm)
+    for (null in c("No", "Yes")) {
+      print(null)
       for (run in 1:1000) {
         thisdf <- get(dafr)
         thisdf <- thisdf[thisdf$sex == sex, ]
@@ -117,51 +117,79 @@ for (dafr in dataframes) {
         colstouse <- colstouse[!(colstouse %in% grep("Cerebellum_White_Matter", colstouse, value=TRUE))]
         xvars <- colstouse[!(colstouse %in% grep("Mean", colstouse, value=TRUE))]
 
-        if (perm == "Yes") {
-          thisdf$F1_Exec_Comp_Res_Accuracy <- sample(thisdf$F1_Exec_Comp_Res_Accuracy, replace=FALSE)
-        }
-
         # Create age vars
         thisdf$age <- scale(thisdf$ageAtGo1Scan)
         thisdf$age2 <- scale((thisdf$age)^2)
         thisdf$age3 <- scale((thisdf$age)^3)
+        rownames(thisdf) <- 1:nrow(thisdf)
 
         # Version with half and half
         folds2 <- createFolds(thisdf$F1_Exec_Comp_Res_Accuracy, k = 2, list = TRUE)
         test <- folds2[[1]]
         train <- folds2[[2]]
 
-        # Regress out age and quality metrics from the cognitive variable, and all brain features
-        train_df <- thisdf[train, c("bblid", xvars, yvar, "age", "age2", "age3")]
-        test_df <- thisdf[test, c("bblid", xvars, yvar, "age", "age2", "age3")]
+        if (a < 9) {
+          train_df <- thisdf[train, ]
+          x_train_df <- thisdf[train, c("bblid", "age", "age2", "age3", qualitymetrics[a], xvars)]
+          y_train_df <- thisdf[train, c("bblid", yvar)]
+          x_test_df <- thisdf[test, c("bblid", "age", "age2", "age3", qualitymetrics[a], xvars)]
+          y_test_df <- thisdf[test, c("bblid", yvar)]
+          x_train_input <- as.matrix(x_train_df[, c("age", "age2", "age3", qualitymetrics[a], xvars)])
+          F1_Exec_Comp_Res_Accuracy <- y_train_df$F1_Exec_Comp_Res_Accuracy
 
-        thismod <- lm(F1_Exec_Comp_Res_Accuracy ~ age + age2 + age3, data=test_df)
+          #### Build the ridge model using only age, QA variables, and imaging variables
+          # ------------ PENALIZE ONLY BRAIN VARIABLES ----------- #
+          ridge_model <- cv.glmnet(x_train_input, F1_Exec_Comp_Res_Accuracy, alpha=0,
+            lambda=10^seq(-3, 5, length.out = 100), standardize=TRUE, nfolds=5, exclude=1:4)
+              # https://www.datacamp.com/community/tutorials/tutorial-ridge-lasso-elastic-net
+          lambda_cv <- ridge_model$lambda.min
+        } else {
+          train_df <- thisdf[train, ]
+          x_train_df <- thisdf[train, c("bblid", "age", "age2", "age3", unique(qualitymetrics), xvars)]
+          y_train_df <- thisdf[train, c("bblid", yvar)]
+          x_test_df <- thisdf[test, c("bblid", "age", "age2", "age3", unique(qualitymetrics), xvars)]
+          y_test_df <- thisdf[test, c("bblid", yvar)]
+          x_train_input <- as.matrix(x_train_df[, c("age", "age2", "age3", unique(qualitymetrics), xvars)])
+          F1_Exec_Comp_Res_Accuracy <- y_train_df$F1_Exec_Comp_Res_Accuracy
+          #### Build the ridge model using only age, QA variables, and imaging variables
 
-        # Apply the function trained on the testing data to the training data and the test data
-        # to regress out age, age2, and age3 from the cognitive variable
-        test_df[,"F1_Exec_Comp_Res_Accuracy"] <- thismod$residuals
-        train_df[,"F1_Exec_Comp_Res_Accuracy"] <- train_df[,"F1_Exec_Comp_Res_Accuracy"] - predict(thismod, newdata=train_df)
+          # ------------ PENALIZE ONLY BRAIN VARIABLES ----------- #
+          ridge_model <- cv.glmnet(x_train_input, F1_Exec_Comp_Res_Accuracy, alpha=0,
+            lambda=10^seq(-3, 5, length.out = 100), standardize=TRUE, nfolds=5, exclude=1:(3+length(unique(qualitymetrics))))
+              # https://www.datacamp.com/community/tutorials/tutorial-ridge-lasso-elastic-net
+          lambda_cv <- ridge_model$lambda.min
+        }
 
-        x_train_df <- train_df[, c("bblid", xvars)] ###HEREEEE
-        y_train_df <- train_df[, c("bblid", yvar)] ###HEREEEE
-        x_test_df <- test_df[, c("bblid", xvars)] ###HEREEEE
-        y_test_df <- test_df[, c("bblid", yvar)] ###HEREEEE
-        x_train_input <- as.matrix(x_train_df[,xvars])
-        F1_Exec_Comp_Res_Accuracy <- y_train_df$F1_Exec_Comp_Res_Accuracy
+        if (null == "No") {
+          if (a < 9) {
+            model_cv <- glmnet(as.matrix(x_train_df[, c("age", "age2", "age3", qualitymetrics[a], xvars)]),
+              F1_Exec_Comp_Res_Accuracy, alpha = 0, lambda = lambda_cv, standardize = TRUE)
+            y_test_predicted <- predict(model_cv, as.matrix(x_test_df[, c("age", "age2", "age3", qualitymetrics[a], xvars)]))
+          } else {
+            model_cv <- glmnet(as.matrix(x_train_df[, c("age", "age2", "age3", unique(qualitymetrics), xvars)]),
+              F1_Exec_Comp_Res_Accuracy, alpha = 0, lambda = lambda_cv, standardize = TRUE)
+            y_test_predicted <- predict(model_cv, as.matrix(x_test_df[, c("age", "age2", "age3", unique(qualitymetrics), xvars)]))
+          }
+        } else {
+          if (a < 9) {
+            thisfunc <- paste0("F1_Exec_Comp_Res_Accuracy ~ ", qualitymetrics[a], " + age + age2 + age3")
+            ols_model <- lm(formula(thisfunc), data=train_df)
+            y_test_predicted <- predict(ols_model, newdata=x_test_df)
+          } else {
+            qualitymetricsunique <- unique(qualitymetrics)
+            qualfunc <- ""
+            for (qm in qualitymetricsunique) { qualfunc <- paste0(qualfunc, qm, " + ") }
+            thisfunc <- paste0("F1_Exec_Comp_Res_Accuracy ~ ", qualfunc, " age + age2 + age3")
+            ols_model <- lm(formula(thisfunc), data=train_df)
+            y_test_predicted <- predict(ols_model, newdata=x_test_df)
+          }
+        }
 
-        # Build the ridge model
-        ridge_model <- cv.glmnet(x_train_input, F1_Exec_Comp_Res_Accuracy, alpha=0,
-          lambda=10^seq(-3, 5, length.out = 100), standardize=TRUE, nfolds=5)
-        		# https://www.datacamp.com/community/tutorials/tutorial-ridge-lasso-elastic-net
-        lambda_cv <- ridge_model$lambda.min
-        model_cv <- glmnet(as.matrix(x_train_df[,xvars]), F1_Exec_Comp_Res_Accuracy, alpha = 0, lambda = lambda_cv, standardize = TRUE)
-
-        y_test_predicted <- predict(model_cv, as.matrix(x_test_df[,xvars]))
-
-        # Calculate the RSq value
+        # Calculate the RSq change value
         SSres <- sum((y_test_df$F1_Exec_Comp_Res_Accuracy - y_test_predicted)^2)
         SStot <- sum((y_test_df$F1_Exec_Comp_Res_Accuracy - mean(y_train_df$F1_Exec_Comp_Res_Accuracy))^2)
         results_df[k, "RSq"] <- 1 - SSres/SStot
+
         k=k+1
       }
     }
@@ -172,12 +200,12 @@ for (dafr in dataframes) {
 results_df$Modality <- ordered(results_df$Modality, levels=c("Volume", "GMD", "MD",
   "CBF", "ALFF", "ReHo", "NBack", "IdEmo", "All"))
 
-write.csv(results_df, file="~/Documents/hiLo/data/permutationResults_half_regressAge_inTest.csv", row.names=FALSE)
+write.csv(results_df, file="~/Documents/hiLo/data/permutationResults_half_AgeQA_strongNull_OLSNoPenalizeAgeQA.csv", row.names=FALSE)
 
 toPlotVals <- summarySE(data=results_df[,c('Modality', 'Sex', 'Permuted', "RSq")],
   groupvars=c('Modality', 'Sex', 'Permuted'), measurevar='RSq')
 
-write.csv(toPlotVals, file="~/Documents/hiLo/data/permutationSummary_half_regressAge_inTest.csv", row.names=FALSE)
+write.csv(toPlotVals, file="~/Documents/hiLo/data/permutationSummary_half_AgeQA_strongNull_OLSNoPenalizeAgeQA.csv", row.names=FALSE)
 
 out.plot <- ggplot(results_df, aes(x=RSq, group=Permuted, fill=Permuted)) +
   geom_density(data=results_df[results_df$Permuted=='Yes' & results_df$Sex=="Male",], fill="black", adjust=10) +
@@ -199,6 +227,6 @@ out.plot <- ggplot(results_df, aes(x=RSq, group=Permuted, fill=Permuted)) +
     mapping = aes(xintercept = RSq), linetype = "dashed", color="steelblue2")
 
 
-png(file="~/Documents/hiLo/plots/figure7_color_regressAge_inTest.png", height=160, width=120, units='mm', res=800)
+png(file="~/Documents/hiLo/plots/figure7_color_AgeQA_strongNull_OLSNoPenalizeAgeQA.png", height=160, width=120, units='mm', res=800)
 out.plot
 dev.off()

@@ -160,13 +160,12 @@ for (dafr in dataframes) {
           }
         }
 
-        x_train_df <- thisdf[train, c("bblid", xvars)]
-        y_train_df <- thisdf[train, c("bblid", yvar)]
-        x_test_df <- thisdf[test, c("bblid", xvars)]
-        y_test_df <- thisdf[test, c("bblid", yvar)]
+        x_train_df <- train_df[, c("bblid", xvars)] ###HEREEEE
+        y_train_df <- train_df[, c("bblid", yvar)] ###HEREEEE
+        x_test_df <- test_df[, c("bblid", xvars)] ###HEREEEE
+        y_test_df <- test_df[, c("bblid", yvar)] ###HEREEEE
         x_train_input <- as.matrix(x_train_df[,xvars])
         F1_Exec_Comp_Res_Accuracy <- y_train_df$F1_Exec_Comp_Res_Accuracy
-
 
         # Build the ridge model
         ridge_model <- cv.glmnet(x_train_input, F1_Exec_Comp_Res_Accuracy, alpha=0,

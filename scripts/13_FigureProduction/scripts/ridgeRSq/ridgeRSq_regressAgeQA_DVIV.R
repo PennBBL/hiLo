@@ -2,7 +2,7 @@
 ### reproduce the effects in Figure 5 in the first submission
 ###
 ### Ellyn Butler
-### February 22, 2020
+### February 22, 2020 - March 5, 2020
 
 # Source my functions
 source("~/Documents/ButlerPlotFuncs/plotFuncs.R")
@@ -136,22 +136,88 @@ for (dafr in dataframes) {
           train_df <- thisdf[train, c("bblid", xvars, yvar, "age", "age2", "age3", qualitymetrics[a])]
           test_df <- thisdf[test, c("bblid", xvars, yvar, "age", "age2", "age3", qualitymetrics[a])]
 
+          # Make sure the regression is actually working
+          #beforeandafter_test <- data.frame(matrix(NA, nrow=length(c(yvar, xvars)), ncol=9))
+          #colnames(beforeandafter_test) <- c("Var", "age_corr_before", "age_corr_after",
+          #  "age2_corr_before", "age2_corr_after", "age3_corr_before", "age3_corr_after",
+          #  paste0(qualitymetrics[a], "_corr_before"), paste0(qualitymetrics[a], "_corr_after"))
+          #beforeandafter_test$Var <- c(yvar, xvars)
+
+          #beforeandafter_train <- data.frame(matrix(NA, nrow=length(c(yvar, xvars)), ncol=9))
+          #colnames(beforeandafter_train) <- c("Var", "age_corr_before", "age_corr_after",
+          #  "age2_corr_before", "age2_corr_after", "age3_corr_before", "age3_corr_after",
+          #  paste0(qualitymetrics[a], "_corr_before"), paste0(qualitymetrics[a], "_corr_after"))
+          #beforeandafter_train$Var <- c(yvar, xvars)
+          #m=1
           for (thisvar in c(yvar, xvars)) {
             thisfunc <- paste0(thisvar, " ~ ", qualitymetrics[a], " + age + age2 + age3")
             thismod <- lm(formula(thisfunc), data=train_df)
 
-            # Apply the function trained on the training data to the training data and the test data
-            # to regress out age, age2, age3 and the quality metric from brain features
+          #  # Put in before correlations, test
+          #  beforeandafter_test[m, "age_corr_before"] <- cor(test_df[,thisvar], test_df$age)
+          #  beforeandafter_test[m, "age2_corr_before"] <- cor(test_df[,thisvar], test_df$age2)
+          #  beforeandafter_test[m, "age3_corr_before"] <- cor(test_df[,thisvar], test_df$age3)
+          #  beforeandafter_test[m, paste0(qualitymetrics[a], "_corr_before")] <- cor(test_df[,thisvar], test_df[, qualitymetrics[a]])
+
+          #  # Put in before correlations, train
+          #  beforeandafter_train[m, "age_corr_before"] <- cor(train_df[,thisvar], train_df$age)
+          #  beforeandafter_train[m, "age2_corr_before"] <- cor(train_df[,thisvar], train_df$age2)
+          #  beforeandafter_train[m, "age3_corr_before"] <- cor(train_df[,thisvar], train_df$age3)
+          #  beforeandafter_train[m, paste0(qualitymetrics[a], "_corr_before")] <- cor(train_df[,thisvar], train_df[, qualitymetrics[a]])
+
+          #  # Apply the function trained on the training data to the training data and the test data
+          #  # to regress out age, age2, age3 and the quality metric from brain features
             train_df[,thisvar] <- thismod$residuals
             test_df[,thisvar] <- test_df[,thisvar] - predict(thismod, newdata=test_df)
+
+          #  # Put in after correlations, test
+          #  beforeandafter_test[m, "age_corr_after"] <- cor(test_df[,thisvar], test_df$age)
+          #  beforeandafter_test[m, "age2_corr_after"] <- cor(test_df[,thisvar], test_df$age2)
+          #  beforeandafter_test[m, "age3_corr_after"] <- cor(test_df[,thisvar], test_df$age3)
+          #  beforeandafter_test[m, paste0(qualitymetrics[a], "_corr_after")] <- cor(test_df[,thisvar], test_df[, qualitymetrics[a]])
+
+          #  # Put in after correlations, train
+          #  beforeandafter_train[m, "age_corr_after"] <- cor(train_df[,thisvar], train_df$age)
+          #  beforeandafter_train[m, "age2_corr_after"] <- cor(train_df[,thisvar], train_df$age2)
+          #  beforeandafter_train[m, "age3_corr_after"] <- cor(train_df[,thisvar], train_df$age3)
+          #  beforeandafter_train[m, paste0(qualitymetrics[a], "_corr_after")] <- cor(train_df[,thisvar], train_df[, qualitymetrics[a]])
+
+          #  # Make plots to show Tyler and dad
+          #  for (type in c("train", "test")) {
+          #    for (regstage in c("before", "after")) {
+          #      for (thisvar in c("age", "age2", "age3", qualitymetrics[a])) {
+          #        tmp_df <- get(paste0("beforeandafter_", type))
+          #        thisvar2 <- paste0(thisvar, "_corr_", regstage)
+          #        tmp_plot <- ggplot(tmp_df, aes_string(thisvar2)) + theme_linedraw() +
+          #          geom_histogram() + coord_cartesian(xlim=c(-.5, 1)) +
+          #          ggtitle(paste("Regression:", thisvar, regstage), subtitle="Var ~ age + age2 + age3 + QA") +
+          #          ylab(paste0("Count of vars (corr with ", thisvar, ")"))
+          #
+          #        assign(paste0(type, "_", regstage, "_", thisvar), tmp_plot)
+          #      }
+          #    }
+          #  }
+          #  pdf(file="~/Documents/hiLo/plots/beforeAndAfterRegExample_train.pdf", width=8, height=18)
+          #  grid.arrange(train_before_age, train_after_age, train_before_age2,
+          #    train_after_age2, train_before_age3, train_after_age3,
+          #    train_before_averageManualRating, train_after_averageManualRating, nrow=4, ncol=2)
+          #  dev.off()
+
+          #  pdf(file="~/Documents/hiLo/plots/beforeAndAfterRegExample_test.pdf", width=8, height=18)
+          #  grid.arrange(test_before_age, test_after_age, test_before_age2,
+          #    test_after_age2, test_before_age3, test_after_age3,
+          #    test_before_averageManualRating, test_after_averageManualRating, nrow=4, ncol=2)
+          #  dev.off()
+
+          #  m=m+1
           }
         } else {
           qualitymetricsunique <- unique(qualitymetrics)
           qualfunc <- ""
           for (qm in qualitymetricsunique) { qualfunc <- paste0(qualfunc, qm, " + ") }
 
-          train_df <- thisdf[train, c("bblid", xvars, yvar, "age", "age2", "age3", qualitymetrics)]
-          test_df <- thisdf[test, c("bblid", xvars, yvar, "age", "age2", "age3", qualitymetrics)]
+          train_df <- thisdf[train, c("bblid", xvars, yvar, "age", "age2", "age3", qualitymetricsunique)]
+          test_df <- thisdf[test, c("bblid", xvars, yvar, "age", "age2", "age3", qualitymetricsunique)]
 
           for (thisvar in c(yvar, xvars)) {
             thisfunc <- paste0(thisvar, " ~ ", qualfunc, " age + age2 + age3")
@@ -164,13 +230,12 @@ for (dafr in dataframes) {
           }
         }
 
-        x_train_df <- thisdf[train, c("bblid", xvars)]
-        y_train_df <- thisdf[train, c("bblid", yvar)]
-        x_test_df <- thisdf[test, c("bblid", xvars)]
-        y_test_df <- thisdf[test, c("bblid", yvar)]
+        x_train_df <- train_df[, c("bblid", xvars)] ###HEREEEE
+        y_train_df <- train_df[, c("bblid", yvar)] ###HEREEEE
+        x_test_df <- test_df[, c("bblid", xvars)] ###HEREEEE
+        y_test_df <- test_df[, c("bblid", yvar)] ###HEREEEE
         x_train_input <- as.matrix(x_train_df[,xvars])
         F1_Exec_Comp_Res_Accuracy <- y_train_df$F1_Exec_Comp_Res_Accuracy
-
 
         # Build the ridge model
         ridge_model <- cv.glmnet(x_train_input, F1_Exec_Comp_Res_Accuracy, alpha=0,
@@ -195,12 +260,12 @@ for (dafr in dataframes) {
 results_df$Modality <- ordered(results_df$Modality, levels=c("Volume", "GMD", "MD",
   "CBF", "ALFF", "ReHo", "NBack", "IdEmo", "All"))
 
-write.csv(results_df, file="~/Documents/hiLo/data/permutationResults_half_regressAgeQA.csv", row.names=FALSE)
+write.csv(results_df, file="~/Documents/hiLo/data/permutationResults_half_regressAgeQA_DVIV.csv", row.names=FALSE)
 
 toPlotVals <- summarySE(data=results_df[,c('Modality', 'Sex', 'Permuted', "RSq")],
   groupvars=c('Modality', 'Sex', 'Permuted'), measurevar='RSq')
 
-write.csv(toPlotVals, file="~/Documents/hiLo/data/permutationSummary_half_regressAgeQA.csv", row.names=FALSE)
+write.csv(toPlotVals, file="~/Documents/hiLo/data/permutationSummary_half_regressAgeQA_DVIV.csv", row.names=FALSE)
 
 out.plot <- ggplot(results_df, aes(x=RSq, group=Permuted, fill=Permuted)) +
   geom_density(data=results_df[results_df$Permuted=='Yes' & results_df$Sex=="Male",], fill="black", adjust=10) +

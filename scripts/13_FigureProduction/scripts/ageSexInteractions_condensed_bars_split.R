@@ -2,7 +2,7 @@
 ### age bins into single rows (within age bin age regression added)
 ###
 ### Ellyn Butler
-### December 12, 2019 - February 24, 2020
+### December 12, 2019 - March 3, 2020
 
 
 # What machine are you working on?
@@ -296,6 +296,7 @@ struc_plot <- ggplot(sum_df[sum_df$Modality %in% c("Volume", "GMD", "MD") & sum_
 	scale_shape_manual(values=c(17, 15, 16, 17, 15, 16)) +
 	ylab("Effect Size") + theme_linedraw() + geom_hline(yintercept=0) +
 	geom_hline(yintercept=-.4, linetype="dashed") + geom_hline(yintercept=.4, linetype="dashed") +
+	geom_hline(yintercept=-.2, linetype="dashed", color="grey") + geom_hline(yintercept=.2, linetype="dashed", color="grey") +
 	labs(fill = "Group") + theme(axis.text.x = element_text(angle=90)) +
 	theme(legend.position="bottom", legend.box="vertical", axis.title.x=element_blank()) +
 	scale_color_manual(values=c("black", "black", "black", "black", "black", "black"),
@@ -312,6 +313,7 @@ func_plot <- ggplot(sum_df[sum_df$Modality %in% c("CBF", "ALFF", "ReHo") & sum_d
 	scale_fill_manual(values=c("pink", "violetred1", "red3", "lightsteelblue1", "steelblue2", "blue4"), guide = guide_legend(nrow=1)) +
 	ylab("Effect Size") + theme_linedraw() + geom_hline(yintercept=0) +
 	geom_hline(yintercept=-.4, linetype="dashed") + geom_hline(yintercept=.4, linetype="dashed") +
+	geom_hline(yintercept=-.2, linetype="dashed", color="grey") + geom_hline(yintercept=.2, linetype="dashed", color="grey") +
 	labs(fill = "Group") + theme(axis.text.x = element_text(angle=90)) +
 	theme(legend.position="bottom", legend.box="vertical", axis.title.x=element_blank())
 
@@ -324,6 +326,7 @@ task_plot <- ggplot(sum_df[sum_df$Modality %in% c("NBack", "IdEmo") & sum_df$Lob
 	scale_fill_manual(values=c("pink", "violetred1", "red3", "lightsteelblue1", "steelblue2", "blue4"), guide = guide_legend(nrow=1)) +
 	ylab("Effect Size") + theme_linedraw() + geom_hline(yintercept=0) +
 	geom_hline(yintercept=-.4, linetype="dashed") + geom_hline(yintercept=.4, linetype="dashed") +
+	geom_hline(yintercept=-.2, linetype="dashed", color="grey") + geom_hline(yintercept=.2, linetype="dashed", color="grey") +
 	labs(fill = "Group") + theme(axis.text.x = element_text(angle=90)) +
 	theme(legend.position="bottom", legend.box="vertical", axis.title.x=element_blank())
 
@@ -341,6 +344,7 @@ wmcer_plot <- ggplot(boo, aes(Abbrev, EffectSize, group=Group, colour=Group, fil
 	scale_fill_manual(values=c("pink", "violetred1", "red3", "lightsteelblue1", "steelblue2", "blue4"), guide = guide_legend(nrow=1)) +
 	ylab("Effect Size") + theme_linedraw() + geom_hline(yintercept=0) +
 	geom_hline(yintercept=-.4, linetype="dashed") + geom_hline(yintercept=.4, linetype="dashed") +
+	geom_hline(yintercept=-.2, linetype="dashed", color="grey") + geom_hline(yintercept=.2, linetype="dashed", color="grey") +
 	labs(fill = "Group") + theme(axis.text.x = element_text(angle=90)) +
 	theme(legend.position="bottom", legend.box="vertical", axis.title.x=element_blank())
 
@@ -352,6 +356,7 @@ fa_plot <- ggplot(sum_df[sum_df$Modality == "FA", ], aes(Abbrev, EffectSize, gro
 	scale_fill_manual(values=c("pink", "violetred1", "red3", "lightsteelblue1", "steelblue2", "blue4"), guide = guide_legend(ncol=1)) +
 	ylab("Effect Size") + theme_linedraw() + geom_hline(yintercept=0) +
 	geom_hline(yintercept=-.4, linetype="dashed") + geom_hline(yintercept=.4, linetype="dashed") +
+	geom_hline(yintercept=-.2, linetype="dashed", color="grey") + geom_hline(yintercept=.2, linetype="dashed", color="grey") +
 	labs(fill = "Group") + theme(axis.text.x = element_text(angle=90)) +
 	theme(legend.box="vertical", axis.title.x=element_blank(), legend.title = element_text(size=8), legend.text = element_text(size=8))
 

@@ -5,8 +5,8 @@
 library('ggplot2')
 library('psych')
 library('effsize')
-source("/Users/butellyn/Documents/hiLo/scripts/02_DevelopmentalTrends/functions/functions.R")
-source("/Users/butellyn/Documents/ButlerPlotFuncs/plotFuncs.R")
+source("~/Documents/hiLo/scripts/02_DevelopmentalTrends/functions/functions.R")
+source("~/Documents/ButlerPlotFuncs/plotFuncs.R")
 returnPerfBin <- function(data) {
 
   data$F1_Exec_Comp_Cog_Accuracy
@@ -23,7 +23,7 @@ returnPerfBin <- function(data) {
 #########################################################################
 # Load data
 #########################################################################
-img.data <- read.csv('/Users/butellyn/Documents/hiLo/data/n1601_hiLoDataDump_2018-09-20.csv')
+img.data <- read.csv('~/Documents/hiLo/data/n1601_hiLoDataDump_2018-09-20.csv')
 img.data <- img.data[-which(is.na(img.data$F1_Exec_Comp_Cog_Accuracy)),]
 img.data <- img.data[-which(abs(img.data$ageAtCnb1 - img.data$ageAtScan1 ) >12),]
 rownames(img.data) <- 1:nrow(img.data)
