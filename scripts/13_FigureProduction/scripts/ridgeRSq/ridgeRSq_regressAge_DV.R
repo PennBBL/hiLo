@@ -4,6 +4,8 @@
 ### Ellyn Butler
 ### February 24, 2020
 
+set.seed(20)
+
 # Source my functions
 source("~/Documents/ButlerPlotFuncs/plotFuncs.R")
 

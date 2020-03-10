@@ -4,6 +4,8 @@
 ### Ellyn Butler
 ### February 27, 2020
 
+set.seed(20)
+
 # Source my functions
 source("~/Documents/ButlerPlotFuncs/plotFuncs.R")
 
@@ -198,10 +200,10 @@ toPlotVals <- summarySE(data=results_df[,c('Modality', 'Sex', 'Permuted', "RSq")
 write.csv(toPlotVals, file="~/Documents/hiLo/data/permutationSummary_half_regressAge_IV.csv", row.names=FALSE)
 
 out.plot <- ggplot(results_df, aes(x=RSq, group=Permuted, fill=Permuted)) +
-  geom_density(data=results_df[results_df$Permuted=='Yes' & results_df$Sex=="Male",], fill="black", adjust=10) +
-  geom_density(data=results_df[results_df$Permuted=='No' & results_df$Sex=="Male",], fill="steelblue2", alpha=.5, adjust=1.5) +
-  geom_density(data=results_df[results_df$Permuted=='Yes' & results_df$Sex=="Female",], fill="black", adjust=10) +
-  geom_density(data=results_df[results_df$Permuted=='No' & results_df$Sex=="Female",], fill="violetred1", alpha=.5, adjust=1.5) +
+  geom_density(data=results_df[results_df$Permuted=='Yes' & results_df$Sex=="Male",], fill="black") +
+  geom_density(data=results_df[results_df$Permuted=='No' & results_df$Sex=="Male",], fill="steelblue2", alpha=.5) +
+  geom_density(data=results_df[results_df$Permuted=='Yes' & results_df$Sex=="Female",], fill="black") +
+  geom_density(data=results_df[results_df$Permuted=='No' & results_df$Sex=="Female",], fill="violetred1", alpha=.5) +
   theme_linedraw() +
   facet_grid(Modality ~ Sex) +
   coord_cartesian(ylim=c(0,25),xlim=c(-.1,.5)) +

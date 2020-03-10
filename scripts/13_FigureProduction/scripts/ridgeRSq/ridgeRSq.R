@@ -4,6 +4,8 @@
 ### Ellyn Butler
 ### February 11, 2020 - February 14, 2020
 
+set.seed(20)
+
 # Source my functions
 source("~/Documents/ButlerPlotFuncs/plotFuncs.R")
 

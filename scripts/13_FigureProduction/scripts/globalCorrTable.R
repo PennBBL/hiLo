@@ -1,7 +1,7 @@
 ### This script creates a correlation plot of the global values
 ###
 ### Ellyn Butler
-### February 27, 2020 - March 4, 2020
+### February 27, 2020 - March 9, 2020
 
 library('ggplot2')
 library('ggcorrplot')
@@ -34,9 +34,9 @@ img.data <- img.data[!is.na(img.data$mprage_jlf_vol_ICV) & !is.na(img.data$mprag
   !is.na(img.data$sigchange_cope1_task_mean_miccai_ave_FuG),]
 rownames(img.data) <- 1:nrow(img.data)
 
-# Get limbic IdEmo activation
+# Get (subset of) limbic IdEmo activation
 vol.data <- read.csv('~/Documents/hiLo/data/meanLR/volumeData.csv')
-shortregs <-  c("ACgG", "PCgG", "AIns", "Amygdala", "Ent", "Hippocampus", "MCgG", "PHG", "PIns", "SCA")
+shortregs <-  c("AIns", "Amygdala", "Ent")
 volregs <- paste0("mprage_jlf_vol_", shortregs)
 idemoregs <- paste0("sigchange_cope1_task_mean_miccai_ave_", shortregs)
 vol.data <- vol.data[vol.data$bblid %in% img.data$bblid,]
@@ -60,16 +60,13 @@ for (i in 1:length(idemoregs)) {
 
 p_limbic <- ggplot(img.data, aes(sigchange_cope1_task_mean_miccai_ave_Limbic)) +
   geom_histogram(bins=100) + theme_linedraw() + ggtitle("IdEmo: Limbic")
-p_FuG <- ggplot(img.data, aes(sigchange_cope1_task_mean_miccai_ave_FuG)) +
-  geom_histogram(bins=100) + theme_linedraw() + ggtitle("IdEmo: FuG") +
-  coord_cartesian(xlim=c(-2, 2))
 
-pdf(file="~/Documents/hiLo/plots/limbicVsFuG.pdf", width=15, height=20)
-grid.arrange(p_ACgG, p_PCgG, p_AIns, p_Amygdala, p_Ent, p_Hippocampus, p_MCgG, p_PHG, p_PIns, p_SCA, p_limbic, p_FuG, nrow=4, ncol=3)
-dev.off()
+#pdf(file="~/Documents/hiLo/plots/limbicVsFuG.pdf", width=15, height=20)
+#grid.arrange(p_ACgG, p_PCgG, p_AIns, p_Amygdala, p_Ent, p_Hippocampus, p_MCgG, p_PHG, p_PIns, p_SCA, p_limbic, p_FuG, nrow=4, ncol=3)
+#dev.off()
 
 img.data <- img.data[, global.values]
-colnames(img.data) <- c("ICV", "GMD", "MD", "CBF", "ALFF", "ReHo", "NB MFG", "Id Limbic")
+colnames(img.data) <- c("ICV", "GMD", "MD", "CBF", "ALFF", "ReHo", "NB MFG", "Id AAE")
 
 corr <- cor(img.data)
 
@@ -81,7 +78,7 @@ dev.off()
 
 corr2 <- round(corr, digits=3)
 corr2 <- data.frame(corr2)
-colnames(corr2) <- c("ICV", "GMD", "MD", "CBF", "ALFF", "ReHo", "NB MFG", "Id Limbic")
+colnames(corr2) <- c("ICV", "GMD", "MD", "CBF", "ALFF", "ReHo", "NB MFG", "Id AAE")
 
 
 #### Get Bonferroni-corrected p

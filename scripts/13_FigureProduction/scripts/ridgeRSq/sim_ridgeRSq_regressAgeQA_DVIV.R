@@ -4,6 +4,8 @@
 ### Ellyn Butler
 ### March 5, 2020
 
+set.seed(20)
+
 library('mvtnorm')
 library('glmnet')
 library('caret')
@@ -93,14 +95,26 @@ for (i in 1:1000) {
 
 results_df$Diff_Age_AgeBrain <- results_df$Using_AgeBrain - results_df$Using_Age
 
+age_plot <- ggplot(results_df, aes(Using_Age)) + theme_linedraw() +
+    geom_histogram() + coord_cartesian(xlim=c(-.2, .5)) +
+    ggtitle("Age")
+
+agebrain_plot <- ggplot(results_df, aes(Using_AgeBrain)) + theme_linedraw() +
+    geom_histogram() + coord_cartesian(xlim=c(-.2, .5)) +
+    ggtitle("Age and Brain")
+
+brain_plot <- ggplot(results_df, aes(Using_Brain)) + theme_linedraw() +
+    geom_histogram() + coord_cartesian(xlim=c(-.2, .5)) +
+    ggtitle("Brain")
+
 diff_plot <- ggplot(results_df, aes(Diff_Age_AgeBrain)) + theme_linedraw() +
-    geom_histogram() + coord_cartesian(xlim=c(-.2, .2)) +
+    geom_histogram() + coord_cartesian(xlim=c(-.2, .5)) +
     ggtitle("Diff: Age vs. Age and Brain")
 
 agereg_plot <- ggplot(results_df, aes(Using_BrainRegAge)) + theme_linedraw() +
-    geom_histogram() + coord_cartesian(xlim=c(-.2, .2)) +
+    geom_histogram() + coord_cartesian(xlim=c(-.2, .5)) +
     ggtitle("Age Regressed Cog and Brain")
 
-pdf(file="~/Documents/hiLo/plots/sim_regageVdiff.pdf", width=8, height=4)
-grid.arrange(diff_plot, agereg_plot, ncol=2)
+pdf(file="~/Documents/hiLo/plots/sim_regageVdiff.pdf", width=12, height=8)
+grid.arrange(age_plot, agebrain_plot, brain_plot, diff_plot, agereg_plot, ncol=3, nrow=2)
 dev.off()

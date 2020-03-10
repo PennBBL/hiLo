@@ -2,7 +2,9 @@
 ### reproduce the effects in Figure 5 in the first submission
 ###
 ### Ellyn Butler
-### February 25, 2020
+### February 25, 2020 - March 10, 2020
+
+set.seed(20)
 
 # Source my functions
 source("~/Documents/ButlerPlotFuncs/plotFuncs.R")
@@ -202,10 +204,10 @@ toPlotVals <- summarySE(data=results_df[,c('Modality', 'Sex', 'Permuted', "RSq")
 write.csv(toPlotVals, file="~/Documents/hiLo/data/permutationSummary_half_regressAgeQA_IV.csv", row.names=FALSE)
 
 out.plot <- ggplot(results_df, aes(x=RSq, group=Permuted, fill=Permuted)) +
-  geom_density(data=results_df[results_df$Permuted=='Yes' & results_df$Sex=="Male",], fill="black", adjust=10) +
-  geom_density(data=results_df[results_df$Permuted=='No' & results_df$Sex=="Male",], fill="steelblue2", alpha=.5, adjust=1.5) +
-  geom_density(data=results_df[results_df$Permuted=='Yes' & results_df$Sex=="Female",], fill="black", adjust=10) +
-  geom_density(data=results_df[results_df$Permuted=='No' & results_df$Sex=="Female",], fill="violetred1", alpha=.5, adjust=1.5) +
+  geom_density(data=results_df[results_df$Permuted=='Yes' & results_df$Sex=="Male",], fill="black") +
+  geom_density(data=results_df[results_df$Permuted=='No' & results_df$Sex=="Male",], fill="steelblue2", alpha=.5) +
+  geom_density(data=results_df[results_df$Permuted=='Yes' & results_df$Sex=="Female",], fill="black") +
+  geom_density(data=results_df[results_df$Permuted=='No' & results_df$Sex=="Female",], fill="violetred1", alpha=.5) +
   theme_linedraw() +
   facet_grid(Modality ~ Sex) +
   coord_cartesian(ylim=c(0,25),xlim=c(-.1,.5)) +
@@ -220,7 +222,29 @@ out.plot <- ggplot(results_df, aes(x=RSq, group=Permuted, fill=Permuted)) +
   geom_vline(data = toPlotVals[toPlotVals$Permuted == "No" & toPlotVals$Sex == "Male", ],
     mapping = aes(xintercept = RSq), linetype = "dashed", color="steelblue2")
 
+out.plot_histogram <- ggplot(results_df, aes(x=RSq, group=Permuted, fill=Permuted)) +
+  geom_histogram(data=results_df[results_df$Permuted=='Yes' & results_df$Sex=="Male",], bins=200, fill="black") +
+  geom_histogram(data=results_df[results_df$Permuted=='No' & results_df$Sex=="Male",], bins=200, fill="steelblue2", alpha=.5) +
+  geom_histogram(data=results_df[results_df$Permuted=='Yes' & results_df$Sex=="Female",], bins=200, fill="black") +
+  geom_histogram(data=results_df[results_df$Permuted=='No' & results_df$Sex=="Female",], bins=200, fill="violetred1", alpha=.5) +
+  theme_linedraw() +
+  facet_grid(Modality ~ Sex) +
+  coord_cartesian(ylim=c(0,200),xlim=c(-.1,.6)) +
+  xlab(bquote('CV R'^2)) + theme(axis.text.y = element_text(size=7), legend.position="none") +
+  ylab("") +
+  geom_vline(data = toPlotVals[toPlotVals$Permuted == "Yes" & toPlotVals$Sex == "Female", ],
+    mapping = aes(xintercept = RSq), linetype = "dashed", color="black") +
+  geom_vline(data = toPlotVals[toPlotVals$Permuted == "No" & toPlotVals$Sex == "Female", ],
+    mapping = aes(xintercept = RSq), linetype = "dashed", color="violetred1") +
+  geom_vline(data = toPlotVals[toPlotVals$Permuted == "Yes" & toPlotVals$Sex == "Male", ],
+    mapping = aes(xintercept = RSq), linetype = "dashed", color="black") +
+  geom_vline(data = toPlotVals[toPlotVals$Permuted == "No" & toPlotVals$Sex == "Male", ],
+    mapping = aes(xintercept = RSq), linetype = "dashed", color="steelblue2")
 
 png(file="~/Documents/hiLo/plots/figure7_color_regressAgeQA_IV.png", height=160, width=120, units='mm', res=800)
 out.plot
+dev.off()
+
+png(file="~/Documents/hiLo/plots/figure7_color_regressAgeQA_IV_histogram.png", height=160, width=120, units='mm', res=800)
+out.plot_histogram
 dev.off()

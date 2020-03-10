@@ -138,80 +138,14 @@ for (dafr in dataframes) {
           train_df <- thisdf[train, c("bblid", xvars, yvar, "age", "age2", "age3", qualitymetrics[a])]
           test_df <- thisdf[test, c("bblid", xvars, yvar, "age", "age2", "age3", qualitymetrics[a])]
 
-          # Make sure the regression is actually working
-          #beforeandafter_test <- data.frame(matrix(NA, nrow=length(c(yvar, xvars)), ncol=9))
-          #colnames(beforeandafter_test) <- c("Var", "age_corr_before", "age_corr_after",
-          #  "age2_corr_before", "age2_corr_after", "age3_corr_before", "age3_corr_after",
-          #  paste0(qualitymetrics[a], "_corr_before"), paste0(qualitymetrics[a], "_corr_after"))
-          #beforeandafter_test$Var <- c(yvar, xvars)
-
-          #beforeandafter_train <- data.frame(matrix(NA, nrow=length(c(yvar, xvars)), ncol=9))
-          #colnames(beforeandafter_train) <- c("Var", "age_corr_before", "age_corr_after",
-          #  "age2_corr_before", "age2_corr_after", "age3_corr_before", "age3_corr_after",
-          #  paste0(qualitymetrics[a], "_corr_before"), paste0(qualitymetrics[a], "_corr_after"))
-          #beforeandafter_train$Var <- c(yvar, xvars)
-          #m=1
           for (thisvar in c(yvar, xvars)) {
             thisfunc <- paste0(thisvar, " ~ ", qualitymetrics[a], " + age + age2 + age3")
             thismod <- lm(formula(thisfunc), data=train_df)
 
-          #  # Put in before correlations, test
-          #  beforeandafter_test[m, "age_corr_before"] <- cor(test_df[,thisvar], test_df$age)
-          #  beforeandafter_test[m, "age2_corr_before"] <- cor(test_df[,thisvar], test_df$age2)
-          #  beforeandafter_test[m, "age3_corr_before"] <- cor(test_df[,thisvar], test_df$age3)
-          #  beforeandafter_test[m, paste0(qualitymetrics[a], "_corr_before")] <- cor(test_df[,thisvar], test_df[, qualitymetrics[a]])
-
-          #  # Put in before correlations, train
-          #  beforeandafter_train[m, "age_corr_before"] <- cor(train_df[,thisvar], train_df$age)
-          #  beforeandafter_train[m, "age2_corr_before"] <- cor(train_df[,thisvar], train_df$age2)
-          #  beforeandafter_train[m, "age3_corr_before"] <- cor(train_df[,thisvar], train_df$age3)
-          #  beforeandafter_train[m, paste0(qualitymetrics[a], "_corr_before")] <- cor(train_df[,thisvar], train_df[, qualitymetrics[a]])
-
-          #  # Apply the function trained on the training data to the training data and the test data
-          #  # to regress out age, age2, age3 and the quality metric from brain features
+            # Apply the function trained on the training data to the training data and the test data
+            # to regress out age, age2, age3 and the quality metric from brain features
             train_df[,thisvar] <- thismod$residuals
             test_df[,thisvar] <- test_df[,thisvar] - predict(thismod, newdata=test_df)
-
-          #  # Put in after correlations, test
-          #  beforeandafter_test[m, "age_corr_after"] <- cor(test_df[,thisvar], test_df$age)
-          #  beforeandafter_test[m, "age2_corr_after"] <- cor(test_df[,thisvar], test_df$age2)
-          #  beforeandafter_test[m, "age3_corr_after"] <- cor(test_df[,thisvar], test_df$age3)
-          #  beforeandafter_test[m, paste0(qualitymetrics[a], "_corr_after")] <- cor(test_df[,thisvar], test_df[, qualitymetrics[a]])
-
-          #  # Put in after correlations, train
-          #  beforeandafter_train[m, "age_corr_after"] <- cor(train_df[,thisvar], train_df$age)
-          #  beforeandafter_train[m, "age2_corr_after"] <- cor(train_df[,thisvar], train_df$age2)
-          #  beforeandafter_train[m, "age3_corr_after"] <- cor(train_df[,thisvar], train_df$age3)
-          #  beforeandafter_train[m, paste0(qualitymetrics[a], "_corr_after")] <- cor(train_df[,thisvar], train_df[, qualitymetrics[a]])
-
-          #  # Make plots to show Tyler and dad
-          #  for (type in c("train", "test")) {
-          #    for (regstage in c("before", "after")) {
-          #      for (thisvar in c("age", "age2", "age3", qualitymetrics[a])) {
-          #        tmp_df <- get(paste0("beforeandafter_", type))
-          #        thisvar2 <- paste0(thisvar, "_corr_", regstage)
-          #        tmp_plot <- ggplot(tmp_df, aes_string(thisvar2)) + theme_linedraw() +
-          #          geom_histogram() + coord_cartesian(xlim=c(-.5, 1)) +
-          #          ggtitle(paste("Regression:", thisvar, regstage), subtitle="Var ~ age + age2 + age3 + QA") +
-          #          ylab(paste0("Count of vars (corr with ", thisvar, ")"))
-          #
-          #        assign(paste0(type, "_", regstage, "_", thisvar), tmp_plot)
-          #      }
-          #    }
-          #  }
-          #  pdf(file="~/Documents/hiLo/plots/beforeAndAfterRegExample_train.pdf", width=8, height=18)
-          #  grid.arrange(train_before_age, train_after_age, train_before_age2,
-          #    train_after_age2, train_before_age3, train_after_age3,
-          #    train_before_averageManualRating, train_after_averageManualRating, nrow=4, ncol=2)
-          #  dev.off()
-
-          #  pdf(file="~/Documents/hiLo/plots/beforeAndAfterRegExample_test.pdf", width=8, height=18)
-          #  grid.arrange(test_before_age, test_after_age, test_before_age2,
-          #    test_after_age2, test_before_age3, test_after_age3,
-          #    test_before_averageManualRating, test_after_averageManualRating, nrow=4, ncol=2)
-          #  dev.off()
-
-          #  m=m+1
           }
         } else {
           qualitymetricsunique <- unique(qualitymetrics)
@@ -270,13 +204,32 @@ toPlotVals <- summarySE(data=results_df[,c('Modality', 'Sex', 'Permuted', "RSq")
 write.csv(toPlotVals, file="~/Documents/hiLo/data/permutationSummary_half_regressAgeQA_DVIV.csv", row.names=FALSE)
 
 out.plot <- ggplot(results_df, aes(x=RSq, group=Permuted, fill=Permuted)) +
-  geom_density(data=results_df[results_df$Permuted=='Yes' & results_df$Sex=="Male",], fill="black", adjust=10) +
-  geom_density(data=results_df[results_df$Permuted=='No' & results_df$Sex=="Male",], fill="steelblue2", alpha=.5, adjust=1.5) +
-  geom_density(data=results_df[results_df$Permuted=='Yes' & results_df$Sex=="Female",], fill="black", adjust=10) +
-  geom_density(data=results_df[results_df$Permuted=='No' & results_df$Sex=="Female",], fill="violetred1", alpha=.5, adjust=1.5) +
+  geom_density(data=results_df[results_df$Permuted=='Yes' & results_df$Sex=="Male",], fill="black") +
+  geom_density(data=results_df[results_df$Permuted=='No' & results_df$Sex=="Male",], fill="steelblue2", alpha=.5) +
+  geom_density(data=results_df[results_df$Permuted=='Yes' & results_df$Sex=="Female",], fill="black") +
+  geom_density(data=results_df[results_df$Permuted=='No' & results_df$Sex=="Female",], fill="violetred1", alpha=.5) +
   theme_linedraw() +
   facet_grid(Modality ~ Sex) +
-  coord_cartesian(ylim=c(0,25),xlim=c(-.1,.5)) +
+  coord_cartesian(ylim=c(0,25),xlim=c(-.1,.6)) +
+  xlab(bquote('CV R'^2)) + theme(axis.text.y = element_text(size=7), legend.position="none") +
+  ylab("") +
+  geom_vline(data = toPlotVals[toPlotVals$Permuted == "Yes" & toPlotVals$Sex == "Female", ],
+    mapping = aes(xintercept = RSq), linetype = "dashed", color="black") +
+  geom_vline(data = toPlotVals[toPlotVals$Permuted == "No" & toPlotVals$Sex == "Female", ],
+    mapping = aes(xintercept = RSq), linetype = "dashed", color="violetred1") +
+  geom_vline(data = toPlotVals[toPlotVals$Permuted == "Yes" & toPlotVals$Sex == "Male", ],
+    mapping = aes(xintercept = RSq), linetype = "dashed", color="black") +
+  geom_vline(data = toPlotVals[toPlotVals$Permuted == "No" & toPlotVals$Sex == "Male", ],
+    mapping = aes(xintercept = RSq), linetype = "dashed", color="steelblue2")
+
+out.plot_histogram <- ggplot(results_df, aes(x=RSq, group=Permuted, fill=Permuted)) +
+  geom_histogram(data=results_df[results_df$Permuted=='Yes' & results_df$Sex=="Male",], bins=200, fill="black") +
+  geom_histogram(data=results_df[results_df$Permuted=='No' & results_df$Sex=="Male",], bins=200, fill="steelblue2", alpha=.5) +
+  geom_histogram(data=results_df[results_df$Permuted=='Yes' & results_df$Sex=="Female",], bins=200, fill="black") +
+  geom_histogram(data=results_df[results_df$Permuted=='No' & results_df$Sex=="Female",], bins=200, fill="violetred1", alpha=.5) +
+  theme_linedraw() +
+  facet_grid(Modality ~ Sex) +
+  coord_cartesian(ylim=c(0,200),xlim=c(-.1,.6)) +
   xlab(bquote('CV R'^2)) + theme(axis.text.y = element_text(size=7), legend.position="none") +
   ylab("") +
   geom_vline(data = toPlotVals[toPlotVals$Permuted == "Yes" & toPlotVals$Sex == "Female", ],
@@ -291,4 +244,8 @@ out.plot <- ggplot(results_df, aes(x=RSq, group=Permuted, fill=Permuted)) +
 
 png(file="~/Documents/hiLo/plots/figure7_color_regressAgeQA_DVIV.png", height=160, width=120, units='mm', res=800)
 out.plot
+dev.off()
+
+png(file="~/Documents/hiLo/plots/figure7_color_regressAgeQA_DVIV_histogram.png", height=160, width=120, units='mm', res=800)
+out.plot_histogram
 dev.off()
