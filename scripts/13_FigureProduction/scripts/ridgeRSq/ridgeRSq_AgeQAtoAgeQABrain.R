@@ -2,7 +2,7 @@
 ### reproduce the effects in Figure 5 in the first submission
 ###
 ### Ellyn Butler
-### February 25, 2020 - March 10, 2020
+### March 4, 2020 - March 11, 2020
 
 set.seed(20)
 
@@ -75,13 +75,13 @@ yvar <- "F1_Exec_Comp_Res_Accuracy"
 # Create a dataframe for the results
 # 9 modalities, 2 perm statuses, 2 sexes, 1000 runs
 results_df <- data.frame(matrix(NA, nrow=36000, ncol=5))
-colnames(results_df) <- c("Modality", "Sex", "Permuted", "Run", "RSq")
+colnames(results_df) <- c("Modality", "Sex", "Null", "Run", "RSq")
 
 results_df$Modality <- c(rep("Volume", 4000), rep("GMD", 4000), rep("MD", 4000),
   rep("CBF", 4000), rep("ALFF", 4000), rep("ReHo", 4000), rep("NBack", 4000),
   rep("IdEmo", 4000), rep("All", 4000))
 results_df$Sex <- rep(c(rep("Female", 2000), rep("Male", 2000)), 9)
-results_df$Permuted <- rep(c(rep("No", 1000), rep("Yes", 1000)), 18)
+results_df$Null <- rep(c(rep("No", 1000), rep("Yes", 1000)), 18)
 results_df$Run <- rep(1:1000, 36)
 
 grepVals <- c('mprage_jlf_vol_', 'mprage_jlf_gmd_', 'dti_jlf_tr_', 'pcasl_jlf_cbf_',
@@ -90,15 +90,15 @@ grepVals <- c('mprage_jlf_vol_', 'mprage_jlf_gmd_', 'dti_jlf_tr_', 'pcasl_jlf_cb
 
 qualitymetrics <- c("averageManualRating", "averageManualRating", "dti64Tsnr", "pcaslRelMeanRMSMotion", "restRelMeanRMSMotion", "restRelMeanRMSMotion", "nbackRelMeanRMSMotion", "idemoRelMeanRMSMotion")
 
-# Get RSq values for permuted and true
+# Get RSq values for Null and true
 k=1
 a=1
 for (dafr in dataframes) {
   print(dafr)
   for (sex in c(2, 1)) {
     print(sex)
-    for (perm in c("No", "Yes")) {
-      print(perm)
+    for (null in c("No", "Yes")) {
+      print(null)
       for (run in 1:1000) {
         thisdf <- get(dafr)
         thisdf <- thisdf[thisdf$sex == sex, ]
@@ -118,74 +118,61 @@ for (dafr in dataframes) {
         colstouse <- colstouse[!(colstouse %in% grep("CSF", colstouse, value=TRUE))]
         colstouse <- colstouse[!(colstouse %in% grep("Cerebellum_White_Matter", colstouse, value=TRUE))]
         xvars <- colstouse[!(colstouse %in% grep("Mean", colstouse, value=TRUE))]
-
-        if (perm == "Yes") {
-          thisdf$F1_Exec_Comp_Res_Accuracy <- sample(thisdf$F1_Exec_Comp_Res_Accuracy, replace=FALSE)
-        }
+        xvars <- xvars[1:5]
 
         # Create age vars
         thisdf$age <- scale(thisdf$ageAtGo1Scan)
         thisdf$age2 <- scale((thisdf$age)^2)
         thisdf$age3 <- scale((thisdf$age)^3)
+        rownames(thisdf) <- 1:nrow(thisdf)
 
         # Version with half and half
         folds2 <- createFolds(thisdf$F1_Exec_Comp_Res_Accuracy, k = 2, list = TRUE)
         test <- folds2[[1]]
         train <- folds2[[2]]
 
-        # Regress out age and quality metrics from all of the brain features
-        if (a < 9) {
-          train_df <- thisdf[train, c("bblid", xvars, yvar, "age", "age2", "age3", qualitymetrics[a])]
-          test_df <- thisdf[test, c("bblid", xvars, yvar, "age", "age2", "age3", qualitymetrics[a])]
+        train_df <- thisdf[train, ]
+        rownames(train_df) <- 1:nrow(train_df)
+        test_df <- thisdf[test, ]
+        rownames(test_df) <- 1:nrow(test_df)
 
-          for (thisvar in xvars) {
-            thisfunc <- paste0(thisvar, " ~ ", qualitymetrics[a], " + age + age2 + age3")
-            thismod <- lm(formula(thisfunc), data=train_df)
-
-            # Apply the function trained on the training data to the training data and the test data
-            # to regress out age, age2, age3 and the quality metric from brain features
-            train_df[,thisvar] <- thismod$residuals
-            test_df[,thisvar] <- test_df[,thisvar] - predict(thismod, newdata=test_df)
+        if (null == "No") {
+          if (a < 9) {
+            xvarsfunc <- ""
+            for (xv in xvars) { xvarsfunc <- paste0(xvarsfunc, xv, " + ") }
+            thisfunc <- paste0("F1_Exec_Comp_Res_Accuracy ~ ", xvarsfunc, qualitymetrics[a], " + age + age2 + age3")
+            ols_model <- lm(formula(thisfunc), data=train_df)
+            y_test_predicted <- predict(ols_model, newdata=test_df)
+          } else {
+            xvarsfunc <- ""
+            for (xv in xvars) { xvarsfunc <- paste0(xvarsfunc, xv, " + ") }
+            qualitymetricsunique <- unique(qualitymetrics)
+            qualfunc <- ""
+            for (qm in qualitymetricsunique) { qualfunc <- paste0(qualfunc, qm, " + ") }
+            thisfunc <- paste0("F1_Exec_Comp_Res_Accuracy ~ ", xvarsfunc, qualfunc, " age + age2 + age3")
+            ols_model <- lm(formula(thisfunc), data=train_df)
+            y_test_predicted <- predict(ols_model, newdata=test_df)
           }
         } else {
-          qualitymetricsunique <- unique(qualitymetrics)
-          qualfunc <- ""
-          for (qm in qualitymetricsunique) { qualfunc <- paste0(qualfunc, qm, " + ") }
-
-          train_df <- thisdf[train, c("bblid", xvars, yvar, "age", "age2", "age3", qualitymetrics)]
-          test_df <- thisdf[test, c("bblid", xvars, yvar, "age", "age2", "age3", qualitymetrics)]
-
-          for (thisvar in xvars) {
-            thisfunc <- paste0(thisvar, " ~ ", qualfunc, " age + age2 + age3")
-            thismod <- lm(formula(thisfunc), data=train_df)
-
-            # Apply the function trained on the training data to the training data and the test data
-            # to regress out age, age2, age3 and the quality metric from brain features
-            train_df[,thisvar] <- thismod$residuals
-            test_df[,thisvar] <- test_df[,thisvar] - predict(thismod, newdata=test_df)
+          if (a < 9) {
+            thisfunc <- paste0("F1_Exec_Comp_Res_Accuracy ~ ", qualitymetrics[a], " + age + age2 + age3")
+            ols_model <- lm(formula(thisfunc), data=train_df)
+            y_test_predicted <- predict(ols_model, newdata=test_df)
+          } else {
+            qualitymetricsunique <- unique(qualitymetrics)
+            qualfunc <- ""
+            for (qm in qualitymetricsunique) { qualfunc <- paste0(qualfunc, qm, " + ") }
+            thisfunc <- paste0("F1_Exec_Comp_Res_Accuracy ~ ", qualfunc, " age + age2 + age3")
+            ols_model <- lm(formula(thisfunc), data=train_df)
+            y_test_predicted <- predict(ols_model, newdata=test_df)
           }
         }
 
-        x_train_df <- train_df[, c("bblid", xvars)] ###HEREEEE
-        y_train_df <- train_df[, c("bblid", yvar)] ###HEREEEE
-        x_test_df <- test_df[, c("bblid", xvars)] ###HEREEEE
-        y_test_df <- test_df[, c("bblid", yvar)] ###HEREEEE
-        x_train_input <- as.matrix(x_train_df[,xvars])
-        F1_Exec_Comp_Res_Accuracy <- y_train_df$F1_Exec_Comp_Res_Accuracy
-
-        # Build the ridge model
-        ridge_model <- cv.glmnet(x_train_input, F1_Exec_Comp_Res_Accuracy, alpha=0,
-          lambda=10^seq(-3, 5, length.out = 100), standardize=TRUE, nfolds=5)
-        		# https://www.datacamp.com/community/tutorials/tutorial-ridge-lasso-elastic-net
-        lambda_cv <- ridge_model$lambda.min
-        model_cv <- glmnet(as.matrix(x_train_df[,xvars]), F1_Exec_Comp_Res_Accuracy, alpha = 0, lambda = lambda_cv, standardize = TRUE)
-
-        y_test_predicted <- predict(model_cv, as.matrix(x_test_df[,xvars]))
-
-        # Calculate the RSq value
-        SSres <- sum((y_test_df$F1_Exec_Comp_Res_Accuracy - y_test_predicted)^2)
-        SStot <- sum((y_test_df$F1_Exec_Comp_Res_Accuracy - mean(y_train_df$F1_Exec_Comp_Res_Accuracy))^2)
+        # Calculate the RSq change value
+        SSres <- sum((test_df$F1_Exec_Comp_Res_Accuracy - y_test_predicted)^2)
+        SStot <- sum((test_df$F1_Exec_Comp_Res_Accuracy - mean(train_df$F1_Exec_Comp_Res_Accuracy))^2)
         results_df[k, "RSq"] <- 1 - SSres/SStot
+
         k=k+1
       }
     }
@@ -196,55 +183,56 @@ for (dafr in dataframes) {
 results_df$Modality <- ordered(results_df$Modality, levels=c("Volume", "GMD", "MD",
   "CBF", "ALFF", "ReHo", "NBack", "IdEmo", "All"))
 
-write.csv(results_df, file="~/Documents/hiLo/data/permutationResults_half_regressAgeQA_IV.csv", row.names=FALSE)
+write.csv(results_df, file="~/Documents/hiLo/data/permutationResults_half_AgeQAtoAgeQABrain_OLSsubset.csv", row.names=FALSE)
 
-toPlotVals <- summarySE(data=results_df[,c('Modality', 'Sex', 'Permuted', "RSq")],
-  groupvars=c('Modality', 'Sex', 'Permuted'), measurevar='RSq')
+toPlotVals <- summarySE(data=results_df[,c('Modality', 'Sex', 'Null', 'RSq')],
+  groupvars=c('Modality', 'Sex', 'Null'), measurevar='RSq')
 
-write.csv(toPlotVals, file="~/Documents/hiLo/data/permutationSummary_half_regressAgeQA_IV.csv", row.names=FALSE)
+write.csv(toPlotVals, file="~/Documents/hiLo/data/permutationSummary_half_AgeQAtoAgeQABrain_OLSsubset.csv", row.names=FALSE)
 
-out.plot <- ggplot(results_df, aes(x=RSq, group=Permuted, fill=Permuted)) +
-  geom_density(data=results_df[results_df$Permuted=='Yes' & results_df$Sex=="Male",], fill="black") +
-  geom_density(data=results_df[results_df$Permuted=='No' & results_df$Sex=="Male",], fill="steelblue2", alpha=.5) +
-  geom_density(data=results_df[results_df$Permuted=='Yes' & results_df$Sex=="Female",], fill="black") +
-  geom_density(data=results_df[results_df$Permuted=='No' & results_df$Sex=="Female",], fill="violetred1", alpha=.5) +
+out.plot <- ggplot(results_df, aes(x=RSq, group=Null, fill=Null)) +
+  geom_density(data=results_df[results_df$Null=='Yes' & results_df$Sex=="Male",], fill="black") +
+  geom_density(data=results_df[results_df$Null=='No' & results_df$Sex=="Male",], fill="steelblue2", alpha=.5) +
+  geom_density(data=results_df[results_df$Null=='Yes' & results_df$Sex=="Female",], fill="black") +
+  geom_density(data=results_df[results_df$Null=='No' & results_df$Sex=="Female",], fill="violetred1", alpha=.5) +
   theme_linedraw() +
   facet_grid(Modality ~ Sex) +
-  coord_cartesian(ylim=c(0,25),xlim=c(-.1,.5)) +
+  coord_cartesian(ylim=c(0,25),xlim=c(-.1,.6)) +
   xlab(bquote('CV R'^2)) + theme(axis.text.y = element_text(size=7), legend.position="none") +
   ylab("") +
-  geom_vline(data = toPlotVals[toPlotVals$Permuted == "Yes" & toPlotVals$Sex == "Female", ],
+  geom_vline(data = toPlotVals[toPlotVals$Null == "Yes" & toPlotVals$Sex == "Female", ],
     mapping = aes(xintercept = RSq), linetype = "dashed", color="black") +
-  geom_vline(data = toPlotVals[toPlotVals$Permuted == "No" & toPlotVals$Sex == "Female", ],
+  geom_vline(data = toPlotVals[toPlotVals$Null == "No" & toPlotVals$Sex == "Female", ],
     mapping = aes(xintercept = RSq), linetype = "dashed", color="violetred1") +
-  geom_vline(data = toPlotVals[toPlotVals$Permuted == "Yes" & toPlotVals$Sex == "Male", ],
+  geom_vline(data = toPlotVals[toPlotVals$Null == "Yes" & toPlotVals$Sex == "Male", ],
     mapping = aes(xintercept = RSq), linetype = "dashed", color="black") +
-  geom_vline(data = toPlotVals[toPlotVals$Permuted == "No" & toPlotVals$Sex == "Male", ],
+  geom_vline(data = toPlotVals[toPlotVals$Null == "No" & toPlotVals$Sex == "Male", ],
     mapping = aes(xintercept = RSq), linetype = "dashed", color="steelblue2")
 
-out.plot_histogram <- ggplot(results_df, aes(x=RSq, group=Permuted, fill=Permuted)) +
-  geom_histogram(data=results_df[results_df$Permuted=='Yes' & results_df$Sex=="Male",], bins=200, fill="black") +
-  geom_histogram(data=results_df[results_df$Permuted=='No' & results_df$Sex=="Male",], bins=200, fill="steelblue2", alpha=.5) +
-  geom_histogram(data=results_df[results_df$Permuted=='Yes' & results_df$Sex=="Female",], bins=200, fill="black") +
-  geom_histogram(data=results_df[results_df$Permuted=='No' & results_df$Sex=="Female",], bins=200, fill="violetred1", alpha=.5) +
+out.plot_histogram <- ggplot(results_df, aes(x=RSq, group=Null, fill=Null)) +
+  geom_histogram(data=results_df[results_df$Null=='Yes' & results_df$Sex=="Male",], bins=50, fill="black") +
+  geom_histogram(data=results_df[results_df$Null=='No' & results_df$Sex=="Male",], bins=50, fill="steelblue2", alpha=.5) +
+  geom_histogram(data=results_df[results_df$Null=='Yes' & results_df$Sex=="Female",], bins=50, fill="black") +
+  geom_histogram(data=results_df[results_df$Null=='No' & results_df$Sex=="Female",], bins=50, fill="violetred1", alpha=.5) +
   theme_linedraw() +
   facet_grid(Modality ~ Sex) +
   coord_cartesian(ylim=c(0,200),xlim=c(-.1,.6)) +
   xlab(bquote('CV R'^2)) + theme(axis.text.y = element_text(size=7), legend.position="none") +
   ylab("") +
-  geom_vline(data = toPlotVals[toPlotVals$Permuted == "Yes" & toPlotVals$Sex == "Female", ],
+  geom_vline(data = toPlotVals[toPlotVals$Null == "Yes" & toPlotVals$Sex == "Female", ],
     mapping = aes(xintercept = RSq), linetype = "dashed", color="black") +
-  geom_vline(data = toPlotVals[toPlotVals$Permuted == "No" & toPlotVals$Sex == "Female", ],
+  geom_vline(data = toPlotVals[toPlotVals$Null == "No" & toPlotVals$Sex == "Female", ],
     mapping = aes(xintercept = RSq), linetype = "dashed", color="violetred1") +
-  geom_vline(data = toPlotVals[toPlotVals$Permuted == "Yes" & toPlotVals$Sex == "Male", ],
+  geom_vline(data = toPlotVals[toPlotVals$Null == "Yes" & toPlotVals$Sex == "Male", ],
     mapping = aes(xintercept = RSq), linetype = "dashed", color="black") +
-  geom_vline(data = toPlotVals[toPlotVals$Permuted == "No" & toPlotVals$Sex == "Male", ],
+  geom_vline(data = toPlotVals[toPlotVals$Null == "No" & toPlotVals$Sex == "Male", ],
     mapping = aes(xintercept = RSq), linetype = "dashed", color="steelblue2")
 
-png(file="~/Documents/hiLo/plots/figure7_color_regressAgeQA_IV.png", height=160, width=120, units='mm', res=800)
+
+png(file="~/Documents/hiLo/plots/figure7_color_AgeQAtoAgeQABrain_OLSsubset.png", height=160, width=120, units='mm', res=800)
 out.plot
 dev.off()
 
-png(file="~/Documents/hiLo/plots/figure7_color_regressAgeQA_IV_histogram.png", height=160, width=120, units='mm', res=800)
+png(file="~/Documents/hiLo/plots/figure7_color_AgeQAtoAgeQABrain_OLSsubset_histogram.png", height=160, width=120, units='mm', res=800)
 out.plot_histogram
 dev.off()
