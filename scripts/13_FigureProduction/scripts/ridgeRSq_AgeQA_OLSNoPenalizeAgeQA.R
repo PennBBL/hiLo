@@ -235,7 +235,7 @@ out.plot_histogram <- ggplot(results_df, aes(x=RSq, group=Null, fill=Null)) +
   geom_histogram(data=results_df[results_df$Null=='No' & results_df$Sex=="Female",], bins=50, fill="violetred1", alpha=.5) +
   theme_linedraw() +
   facet_grid(Modality ~ Sex) +
-  coord_cartesian(ylim=c(0,200),xlim=c(-.1,.6)) +
+  coord_cartesian(ylim=c(0,250),xlim=c(-.1,.6)) +
   xlab(bquote('CV R'^2)) + theme(axis.text.y = element_text(size=7), legend.position="none") +
   ylab("") +
   geom_vline(data = toPlotVals[toPlotVals$Null == "Yes" & toPlotVals$Sex == "Female", ],
