@@ -58,10 +58,10 @@ img.data[img.data$ageYrs >= 18, "ageBin"] <- "Adults"
 # Panel A
 # this will be mean GLOBAL values across ages w/in perf bins
 #########################################################################
-global.values <- c('mprage_jlf_vol_ICV','mprage_jlf_gmd_MeanGMD','dti_jlf_tr_MeanTR','pcasl_jlf_cbf_MeanGMCBF','rest_jlf_alff_MeanALFF','rest_jlf_reho_MeanReho')
+global.values <- c('mprage_jlf_vol_TBV','mprage_jlf_gmd_MeanGMD','dti_jlf_tr_MeanTR','pcasl_jlf_cbf_MeanGMCBF','rest_jlf_alff_MeanALFF','rest_jlf_reho_MeanReho')
 short.val <- c('Volume','GMD','MD','CBF','ALFF','ReHo')
 valsToPlot <- NULL
-img.data$mprage_jlf_vol_ICV <- img.data$mprage_jlf_vol_ICV/1000000
+img.data$mprage_jlf_vol_TBV <- img.data$mprage_jlf_vol_TBV/1000000
 
 index <- 1
 for(i in global.values){
@@ -76,8 +76,8 @@ valsToPlot$perfBin <- factor(valsToPlot$perfBin, levels=c('Lo','Me','Hi'))
 valsToPlot$sex <- factor(valsToPlot$sex,levels=c(1,2))
 ## Now prepare the plots in a loop
 ## this will be done in a loop because of the wild diff in axis values
-yLimLower <- c(1.3,.79,2.1,61,450,.15)
-yLimUpper <- c(1.6,.82,2.5,70,575,.18)
+yLimLower <- c(1,.79,2.1,61,450,.15)
+yLimUpper <- c(1.4,.82,2.5,70,575,.18)
 index <- 1
 for (i in short.val) {
   ## First grab the values
@@ -109,7 +109,7 @@ for (i in short.val) {
 # This will be cohen d values across the age bins
 #########################################################################
 cohenValues <- NULL
-global.values <- c('mprage_jlf_vol_ICV','mprage_jlf_gmd_MeanGMD','dti_jlf_tr_MeanTR','pcasl_jlf_cbf_MeanWholeBrainCBF','rest_jlf_alff_MeanALFF','rest_jlf_reho_MeanReho')
+global.values <- c('mprage_jlf_vol_TBV','mprage_jlf_gmd_MeanGMD','dti_jlf_tr_MeanTR','pcasl_jlf_cbf_MeanWholeBrainCBF','rest_jlf_alff_MeanALFF','rest_jlf_reho_MeanReho')
 sex.values <- c(1,2)
 age.values <- c("Children","Adolescents","Adults")
 index <- 1
