@@ -21,13 +21,13 @@ img.data <- merge(img.data, nback.data)
 img.data <- merge(img.data, idemo.data)
 
 # Filter data
-global.values <- c('mprage_jlf_vol_ICV','mprage_jlf_gmd_MeanGMD','dti_jlf_tr_MeanTR',
+global.values <- c('mprage_jlf_vol_TBV','mprage_jlf_gmd_MeanGMD','dti_jlf_tr_MeanTR',
   'pcasl_jlf_cbf_MeanGMCBF','rest_jlf_alff_MeanALFF','rest_jlf_reho_MeanReho',
   'sigchange_contrast4_2back0back_mean_miccai_ave_MFG',
   'sigchange_cope1_task_mean_miccai_ave_Limbic')
 img.data <- img.data[img.data$dti64Exclude == 0 & img.data$restExclude == 0 &
   img.data$t1Exclude == 0 & img.data$pcaslExclude == 0, ]
-img.data <- img.data[!is.na(img.data$mprage_jlf_vol_ICV) & !is.na(img.data$mprage_jlf_gmd_MeanGMD) &
+img.data <- img.data[!is.na(img.data$mprage_jlf_vol_TBV) & !is.na(img.data$mprage_jlf_gmd_MeanGMD) &
   !is.na(img.data$dti_jlf_tr_MeanTR) & !is.na(img.data$pcasl_jlf_cbf_MeanGMCBF) &
   !is.na(img.data$rest_jlf_alff_MeanALFF) & !is.na(img.data$rest_jlf_reho_MeanReho) &
   !is.na(img.data$sigchange_contrast4_2back0back_mean_miccai_ave_MFG) &
@@ -61,12 +61,12 @@ for (i in 1:length(idemoregs)) {
 p_limbic <- ggplot(img.data, aes(sigchange_cope1_task_mean_miccai_ave_Limbic)) +
   geom_histogram(bins=100) + theme_linedraw() + ggtitle("IdEmo: Limbic")
 
-#pdf(file="~/Documents/hiLo/plots/limbicVsFuG.pdf", width=15, height=20)
+#pdf(file="~/Documents/hiLo/plots/limbTBVsFuG.pdf", width=15, height=20)
 #grid.arrange(p_ACgG, p_PCgG, p_AIns, p_Amygdala, p_Ent, p_Hippocampus, p_MCgG, p_PHG, p_PIns, p_SCA, p_limbic, p_FuG, nrow=4, ncol=3)
 #dev.off()
 
 img.data <- img.data[, global.values]
-colnames(img.data) <- c("ICV", "GMD", "MD", "CBF", "ALFF", "ReHo", "NB MFG", "Id AAE")
+colnames(img.data) <- c("TBV", "GMD", "MD", "CBF", "ALFF", "ReHo", "NB MFG", "Id AAE")
 
 corr <- cor(img.data)
 
@@ -78,7 +78,7 @@ dev.off()
 
 corr2 <- round(corr, digits=3)
 corr2 <- data.frame(corr2)
-colnames(corr2) <- c("ICV", "GMD", "MD", "CBF", "ALFF", "ReHo", "NB MFG", "Id AAE")
+colnames(corr2) <- c("TBV", "GMD", "MD", "CBF", "ALFF", "ReHo", "NB MFG", "Id AAE")
 
 
 #### Get Bonferroni-corrected p
