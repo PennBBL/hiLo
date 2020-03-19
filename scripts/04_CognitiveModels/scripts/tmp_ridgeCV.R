@@ -2,21 +2,25 @@ source('~/Documents/hiLo/scripts/04_CognitiveModels/functions/functions.R')
 source('~/Documents/ButlerPlotFuncs/plotfuncs.R')
 install_load('foreach', 'doParallel', 'glmnet','psych','reshape2', 'caret','MASS', 'methods', 'ggplot2', 'rpart')
 
+# data was originally from ~/dataPrepForHiLoPaper/data/meanLRVolandAgeReg
+vol.data <- read.csv('~/Documents/hiLo/data/meanLR/volumeData.csv')
+cbf.data <- read.csv('~/Documents/hiLo/data/meanLR/cbfData.csv')
+gmd.data <- read.csv('~/Documents/hiLo/data/meanLR/gmdData.csv')
+reho.data <- read.csv('~/Documents/hiLo/data/meanLR/rehoData.csv')
+alff.data <- read.csv('~/Documents/hiLo/data/meanLR/alffData.csv')
+tr.data <- read.csv('~/Documents/hiLo/data/meanLR/jlfTRData.csv')
+nback.data <- read.csv('~/Documents/hiLo/data/meanLR/nbackData.csv')
+idemo.data <- read.csv('~/Documents/hiLo/data/meanLR/idemoData.csv')
 
-vol.data <- read.csv('~/dataPrepForHiLoPaper/data/meanLRVolandAgeReg/volumeData.csv')
-cbf.data <- read.csv('~/dataPrepForHiLoPaper/data/meanLRVolandAgeReg/cbfData.csv')
-cbf.data$pcasl_jlf_cbf_MeanGM <- cbf.data$pcaslMeanGMValue
-gmd.data <- read.csv('~/dataPrepForHiLoPaper/data/meanLRVolandAgeReg/gmdData.csv')
-tr.data <- read.csv('~/dataPrepForHiLoPaper/data/meanLRVolandAgeReg/jlfTRData.csv')
-alff.data <- read.csv('~/dataPrepForHiLoPaper/data/meanLRVolandAgeReg/alffData.csv')
-reho.data <- read.csv('~/dataPrepForHiLoPaper/data/meanLRVolandAgeReg/rehoData.csv')
-fa.data <- read.csv('~/dataPrepForHiLoPaper/data/meanLRVolandAgeReg/jhuFATracts.csv')
-colnames(fa.data) <- gsub(x=colnames(fa.data), pattern='jhutract', replacement='jlf')
+#fa.data <- read.csv('~/dataPrepForHiLoPaper/data/meanLRVolandAgeReg/jhuFATracts.csv')
+#colnames(fa.data) <- gsub(x=colnames(fa.data), pattern='jhutract', replacement='jlf')
 all.data <- merge(vol.data, cbf.data, by=intersect(names(vol.data), names(cbf.data)))
 all.data <- merge(all.data, gmd.data, by=intersect(names(all.data), names(gmd.data)))
 all.data <- merge(all.data, tr.data, by=intersect(names(all.data), names(tr.data)))
 all.data <- merge(all.data, alff.data)
 all.data <- merge(all.data, reho.data)
+all.data <- merge(all.data, nback.data)
+all.data <- merge(all.data, idemo.data)
 all.data2 <- merge(vol.data, reho.data)
 
 runTpotOnAll <- function(x, y, nFold=10, grepID){
@@ -34,7 +38,7 @@ runTpotOnAll <- function(x, y, nFold=10, grepID){
   #inputY <- as.matrix(scale(y))
   inputY <- as.matrix(y)
 
-  # Now we need to loop thorugh each fold and get our output fit stats
+  # Now we need to loop through each fold and get our output fit stats
   for(i in 1:nFold){
     index <- unlist(folds[[i]])
     trainX <- inputX[index,]
@@ -44,7 +48,7 @@ runTpotOnAll <- function(x, y, nFold=10, grepID){
     colnames(for.lm)[1] <- 'y'
 
     # Now grab our lambda to use
-    fit.cv <- cv.glmnet(x=trainX, y=trainY, alpha=0,nfolds=10)
+    fit.cv <- cv.glmnet(x=trainX, y=trainY, alpha=0, nfolds=10)
     lambdaVal <- fit.cv$lambda[which(fit.cv$cvm==min(fit.cv$cvm))]
     modelFit <- glmnet(x=trainX, y=trainY, alpha=0, lambda=lambdaVal)
     #modelFit <- lm(y~/., data=for.lm)
@@ -64,22 +68,23 @@ runTpotOnAll <- function(x, y, nFold=10, grepID){
 ## Set up a parallel backend
 cl <- makeCluster(32)
 registerDoParallel(cl)
-dataNames <- c('vol.data','cbf.data','gmd.data','tr.data','reho.data', 'alff.data')
-outName <- c('Volume', 'CBF', 'GMD', 'MD', 'ReHo', 'ALFF','All')
-grepValue <- c(rep('_jlf_', 7), '_jlf_')
-allIterations <- matrix(NA, nrow=7, ncol=126)
+dataNames <- c('vol.data', 'cbf.data', 'gmd.data', 'tr.data', 'reho.data',
+  'alff.data', 'nback.data', 'idemo.data', 'all.data')
+outName <- c('Volume', 'CBF', 'GMD', 'MD', 'ReHo', 'ALFF', 'NBack', 'IdEmo', 'All')
+grepValue <- rep('_jlf_', 8)
+allIterations <- matrix(NA, nrow=9, ncol=126)
 index <- c(6,21,35,35,21,7,1)
 indexF <- c(1,7,22,42,58,64,126)
 indexE <- c(6,21,41,56,63,64,127)
 row.check <- 1
 col.check <- 1
-for(i in 1:6){
+for (i in 1:8) {
   to.add <- combn(dataNames,i)
   allIterations[1:row.check,indexF[i]:indexE[i]] <- to.add
   row.check <- row.check+1
   col.check <- col.check+index[i]
 }
-dataNames <- c('vol.data','cbf.data','gmd.data','tr.data','reho.data', 'alff.data','all.data')
+
 allR <- foreach (q=1:2000, .combine='rbind',.packages=c('foreach', 'doParallel', 'glmnet','psych','reshape2', 'caret','MASS', 'methods', 'ggplot2', 'rpart'),.export=ls(envir=globalenv())) %dopar%{
   outMat <- matrix(NA, ncol=5, nrow=7)
   for(i in 1:length(dataNames)){
@@ -103,7 +108,8 @@ allR <- foreach (q=1:2000, .combine='rbind',.packages=c('foreach', 'doParallel',
   }
   print(outMat)
 }
-write.csv(allR, "allIndivRValsMALE.csv", quote=F, row.names=T)
+
+write.csv(allR, "~/Documents/hiLo/data/allIndivRValsMALE.csv", quote=F, row.names=T)
 orig <- allR
 allR <- as.data.frame(allR)
 allR <- dcast(V2 ~ V1, data=allR, value.var='V3')
@@ -113,7 +119,7 @@ outMin <- round(apply(allR, 2, min), digits=2)
 outMax <- round(apply(allR, 2, max), digits=2)
 outSD <- round(apply(allR, 2, sd), digits=3)
 output <- cbind(orig[1:7,4], orig[1:7,5], outMean[2:8], outMedian[2:8], outMin[2:8], outMax[2:8], outSD[2:8])
-write.csv(output, 'tmpAllRValsMaleAR.csv', quote=F, row.names=F)
+write.csv(output, "~/Documents/hiLo/data/tmpAllRValsMaleAR.csv", quote=F, row.names=F)
 ## Now plot these values
 rownames(output) <- NULL
 colnames(output) <- c('n','p','Mean','Median','Min','Max','SD')
@@ -130,7 +136,7 @@ outplot <- ggplot(output, aes(x=modal, y=Mean)) +
                  position=position_dodge(.9)) +
   coord_cartesian(ylim=c(0, .23)) +
   theme(axis.text.x = element_text(angle = 90, hjust = 1, face="bold"))
-pdf("maleCVRSquaredVals.pdf", width=20, height=12)
+pdf("~/Documents/hiLo/plots/maleCVRSquaredVals.pdf", width=20, height=12)
 print(outplot)
 dev.off()
 
@@ -157,7 +163,7 @@ allRN <- foreach (q=1:2000, .combine='rbind',.packages=c('foreach', 'doParallel'
   }
   print(outMat)
 }
-write.csv(allRN, "allIndivRValsMALEPERM.csv", quote=F, row.names=T)
+write.csv(allRN, "~/Documents/hiLo/data/allIndivRValsMALEPERM.csv", quote=F, row.names=T)
 ## Now plot the null vs the real ditribution
 origN <- allRN
 allRN <- as.data.frame(allRN)
@@ -197,7 +203,7 @@ out.plot.male <- ggplot(toPlot, aes(x=value, group=Outcome, fill=Outcome)) +
   coord_cartesian(ylim=c(0,250),xlim=c(-.1,.25)) +
   ggtitle("Male") +
   xlab(bquote('CV R'^2)) + theme(legend.position="none")
-pdf("maleCVRSquaredVals2.pdf", width=8, height=6)
+pdf("~/Documents/hiLo/plots/maleCVRSquaredVals2.pdf", width=8, height=6)
 print(out.plot.male)
 dev.off()
 
@@ -225,7 +231,7 @@ allR <- foreach (q=1:2000, .combine='rbind',.packages=c('foreach', 'doParallel',
   }
   print(outMat)
 }
-write.csv(allR, "allIndivRValsFemale.csv", quote=F, row.names=T)
+write.csv(allR, "~/Documents/hiLo/data/allIndivRValsFemale.csv", quote=F, row.names=T)
 orig <- allR
 allR <- as.data.frame(allR)
 allR <- dcast(V2 ~ V1, data=allR, value.var='V3')
@@ -235,7 +241,7 @@ outMin <- round(apply(allR, 2, min), digits=2)
 outMax <- round(apply(allR, 2, max), digits=2)
 outSD <- round(apply(allR, 2, sd), digits=3)
 output <- cbind(orig[1:7,4], orig[1:7,5], outMean[2:8], outMedian[2:8], outMin[2:8], outMax[2:8], outSD[2:8])
-write.csv(output, 'tmpAllRValsFemaleAR.csv', quote=F, row.names=F)
+write.csv(output, '~/Documents/hiLo/plots/tmpAllRValsFemaleAR.csv', quote=F, row.names=F)
 ## Now plot these values
 rownames(output) <- NULL
 colnames(output) <- c('n','p','Mean','Median','Min','Max','SD')
@@ -250,7 +256,7 @@ outplot <- ggplot(output, aes(x=modal, y=Mean)) +
   geom_errorbar(aes(ymin=Mean-SD, ymax=Mean+SD), width=.2,
                  position=position_dodge(.9)) +
   coord_cartesian(ylim=c(0, .25))
-pdf("femaleCVRSquaredVals.pdf")
+pdf("~/Documents/hiLo/plots/femaleCVRSquaredVals.pdf")
 print(outplot)
 dev.off()
 
@@ -279,7 +285,7 @@ allRN <- foreach (q=1:2000, .combine='rbind',.packages=c('foreach', 'doParallel'
 }
 
 ## Now plot the null vs the real ditribution
-write.csv(allRN, "allIndivRValsFEMALEPERM.csv", quote=F, row.names=T)
+write.csv(allRN, "~/Documents/hiLo/data/allIndivRValsFEMALEPERM.csv", quote=F, row.names=T)
 origN <- allRN
 allRN <- as.data.frame(allRN)
 allRN <- dcast(V2 ~ V1, data=allRN, value.var='V3')
@@ -315,7 +321,7 @@ out.plot.female <- ggplot(toPlot, aes(x=value, group=Outcome, fill=Outcome)) +
   xlab(bquote('CV R'^2)) + theme(legend.position="none") +
   ylab("")
 
-pdf("CVRSquaredVals2.pdf",height=6, width=12)
+pdf("~/Documents/hiLo/plots/CVRSquaredVals2.pdf",height=6, width=12)
 multiplot(out.plot.male, out.plot.female, cols=2)
 dev.off()
 

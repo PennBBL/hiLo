@@ -2,7 +2,7 @@
 ### and averages the left and right hemispheres, weighting by volume
 ###
 ### Ellyn Butler
-### February 10, 2020
+### February 10, 2020 - March 19, 2020
 
 # What machine are you working on?
 galton=FALSE
@@ -19,18 +19,27 @@ if (galton == TRUE) {
   source("~/Documents/ButlerPlotFuncs/facetnested.R")
 	vol_df <- read.csv("/Users/butellyn/Documents/age_prediction/data/n1601_imagingclinicalcognitive_20190130.csv")
 	nback_df <- read.csv('/Users/butellyn/Documents/hiLo/data/task/n2416_nback2minus0_20191118.csv')
-	nback_quality_df <- read.csv('/Users/butellyn/Documents/hiLo/data/task/nback2416QA_2018-10-21.csv')
+	#nback_quality_df <- read.csv('/Users/butellyn/Documents/hiLo/data/task/nback2416QA_2018-10-21.csv')
+  nback_quality_df <- read.csv('/Users/butellyn/Documents/hiLo/data/task/n1601_nback_qa_20200319.csv')
+  nback_quality_df <- nback_quality_df[,c("bblid", "scanid", "nbackrelMeanRMSMotion2",
+                        "nbackrelMaxRMSMotion2", "nbackZerobackNrExclude",
+                        "nbackIncompleteBehExclude", "nbackExclude2")]
+  colnames(nback_quality_df) <- c("bblid", "scanid", "nbackRelMeanRMSMotion",
+                        "nbackRelMaxRMSMotion", "nbackZerobackNrExclude",
+                        "nbackIncompleteBehExclude", "nbackExclude")
 }
 
 colnames(nback_df)[colnames(nback_df) == "id0"] <- "bblid"
 colnames(nback_df)[colnames(nback_df) == "id1"] <- "scanid"
-nback_quality_df <- nback_quality_df[nback_quality_df$scanid %in% vol_df$scanid, ]
+#nback_quality_df <- nback_quality_df[nback_quality_df$scanid %in% vol_df$scanid, ]
 
 nback_df <- nback_df[nback_df$scanid %in% vol_df$scanid, ]
 vol_df <- vol_df[vol_df$scanid %in% nback_df$scanid, ]
 vol_df <- vol_df[,c("bblid", grep("mprage_jlf_vol", colnames(vol_df), value=TRUE))]
 vol_df <- vol_df[,!(colnames(vol_df) %in% grep("WM", colnames(vol_df), value=TRUE))]
 vol_df <- vol_df[,!(colnames(vol_df) %in% paste0("mprage_jlf_vol_", c("ICV", "TBV", "TBGM")))]
+nback_df <- arrange(nback_df, bblid)
+vol_df <- arrange(vol_df, bblid)
 
 sigchange_vec <- grep("sigchange", colnames(nback_df), value=TRUE)
 signames <- c()
@@ -71,7 +80,8 @@ other_df <- other_df[other_df$scanid %in% nback.modal.data$scanid,]
 nback.modal.data <- merge(nback.modal.data, other_df)
 
 # Apply time and quality exclusions
-nback.modal.data <- nback.modal.data[nback.modal.data$nbackFcExclude == 0 & nback.modal.data$nbackFcExcludeVoxelwise == 0 & nback.modal.data$nbackNoDataExclude == 0 & nback.modal.data$nbackRelMeanRMSMotionExclude == 0 & nback.modal.data$nbackNSpikesMotionExclude == 0 & nback.modal.data$nbackVoxelwiseCoverageExclude == 0 ,]
+#nback.modal.data <- nback.modal.data[nback.modal.data$nbackFcExclude == 0 & nback.modal.data$nbackFcExcludeVoxelwise == 0 & nback.modal.data$nbackNoDataExclude == 0 & nback.modal.data$nbackRelMeanRMSMotionExclude == 0 & nback.modal.data$nbackNSpikesMotionExclude == 0 & nback.modal.data$nbackVoxelwiseCoverageExclude == 0 ,]
+nback.modal.data <- nback.modal.data[nback.modal.data$nbackExclude == 0,]
 nback.modal.data$absagediff <- abs(nback.modal.data$ageAtCnb1 - nback.modal.data$ageAtGo1Scan)
 nback.modal.data <- nback.modal.data[nback.modal.data$absagediff <= 12,]
 nback.modal.data <- nback.modal.data[!is.na(nback.modal.data$ageAtCnb1),]
