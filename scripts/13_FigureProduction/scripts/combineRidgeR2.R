@@ -79,38 +79,40 @@ results_df$Modality <- ordered(results_df$Modality, levels=c('Volume', 'GMD', 'M
 ################ Plot ################
 # TO DO: Add legends
 
-#results_df1 <- results_df[results_df$Group %in% c("Brain", "Age", "AgeBrain"),],
-out.plot_brain_age_agebrain <- ggplot(results_df, aes(x=RSq, group=Group, fill=Group)) +
-  geom_density(data=results_df[results_df$Group=='Age' & results_df$Sex=='Male',], fill='black') +
-  geom_density(data=results_df[results_df$Group=='AgeBrain' & results_df$Sex=='Male',], fill='steelblue2', alpha=.5) +
-  geom_density(data=results_df[results_df$Group=='Brain' & results_df$Sex=='Male',], fill='darkseagreen2', alpha=.5) +
-  geom_density(data=results_df[results_df$Group=='Age' & results_df$Sex=='Female',], fill='black') +
-  geom_density(data=results_df[results_df$Group=='AgeBrain' & results_df$Sex=='Female',], fill='violetred1', alpha=.5) +
-  geom_density(data=results_df[results_df$Group=='Brain' & results_df$Sex=='Female',], fill='bisque', alpha=.5) +
+#results_df1 <- results_df[results_df$Group %in% c("Brain", "Age", "AgeBrain"),]
+#'black', 'steelblue2', 'darkseagreen2', 'black', 'violetred1', 'bisque'
+colsfill_manu <- c('Brain'='black', 'Age'='gray62', 'AgeBrain'='white')
+out.plot_brain_age_agebrain <- ggplot(results_df, aes(x=RSq)) +
+  geom_density(aes(fill='Brain', group=1), data=results_df[results_df$Group=='Brain' & results_df$Sex=='Male',]) +
+  geom_density(aes(fill='Age', group=1), data=results_df[results_df$Group=='Age' & results_df$Sex=='Male',], alpha=.7) +
+  geom_density(aes(fill='AgeBrain', group=1), data=results_df[results_df$Group=='AgeBrain' & results_df$Sex=='Male',], alpha=.7) +
+  geom_density(aes(fill='Brain', group=1), data=results_df[results_df$Group=='Brain' & results_df$Sex=='Female',]) +
+  geom_density(aes(fill='Age', group=1), data=results_df[results_df$Group=='Age' & results_df$Sex=='Female',], alpha=.7) +
+  geom_density(aes(fill='AgeBrain', group=1), data=results_df[results_df$Group=='AgeBrain' & results_df$Sex=='Female',], alpha=.7) +
+  scale_fill_manual(values=colsfill_manu, breaks=c("Brain", "Age", "AgeBrain"), name="Variables") +
+  scale_colour_manual(values=c('black', 'black', 'black', 'black')) +
   theme_linedraw() +
   facet_grid(Modality ~ Sex) +
   coord_cartesian(ylim=c(0,25),xlim=c(-.1,.6)) +
-  xlab(bquote('CV R'^2)) + theme(axis.text.y = element_text(size=7), legend.position='none') +
+  xlab(bquote('CV R'^2)) + theme(axis.text.y = element_text(size=7), legend.position='bottom') +
   ylab('') +
   geom_vline(data = toPlotVals[toPlotVals$Group == 'Age' & toPlotVals$Sex == 'Male', ],
     mapping = aes(xintercept = RSq), linetype = 'dashed', color='black') +
   geom_vline(data = toPlotVals[toPlotVals$Group == 'AgeBrain' & toPlotVals$Sex == 'Male', ],
-    mapping = aes(xintercept = RSq), linetype = 'dashed', color='steelblue2') +
+    mapping = aes(xintercept = RSq), linetype = 'dashed', color='black') +
   geom_vline(data = toPlotVals[toPlotVals$Group == 'Brain' & toPlotVals$Sex == 'Male', ],
-    mapping = aes(xintercept = RSq), linetype = 'dashed', color='darkseagreen2') +
+    mapping = aes(xintercept = RSq), linetype = 'dashed', color='black') +
   geom_vline(data = toPlotVals[toPlotVals$Group == 'Age' & toPlotVals$Sex == 'Female', ],
     mapping = aes(xintercept = RSq), linetype = 'dashed', color='black') +
   geom_vline(data = toPlotVals[toPlotVals$Group == 'AgeBrain' & toPlotVals$Sex == 'Female', ],
-    mapping = aes(xintercept = RSq), linetype = 'dashed', color='violetred1') +
+    mapping = aes(xintercept = RSq), linetype = 'dashed', color='black') +
   geom_vline(data = toPlotVals[toPlotVals$Group == 'Brain' & toPlotVals$Sex == 'Female', ],
-    mapping = aes(xintercept = RSq), linetype = 'dashed', color='bisque')
+    mapping = aes(xintercept = RSq), linetype = 'dashed', color='black')
 
 results_df2 <- results_df[results_df$Group %in% c("QA", "QABrain", "AgeQA", "AgeQABrain"),]
 results_df2$Group <- ordered(results_df2$Group, levels=c("QA", "QABrain", "AgeQA", "AgeQABrain"))
 colsfill <- c("QA"='black', "QABrain"='aquamarine4', "AgeQA"='aquamarine3', "AgeQABrain"='aquamarine')
-
-
-out.plot_qa_qabrain_ageqa_ageqabrain <- ggplot(results_df2, aes(x=RSq)) +#, fill=Group)) +
+out.plot_qa_qabrain_ageqa_ageqabrain <- ggplot(results_df2, aes(x=RSq)) +
   geom_density(aes(fill='QA', group=1), data=results_df2[results_df2$Group=='QA' & results_df2$Sex=='Male',]) +
   geom_density(aes(fill='QABrain', group=1), alpha=.6, data=results_df2[results_df2$Group=='QABrain' & results_df2$Sex=='Male',]) +
   geom_density(aes(fill='AgeQA', group=1), alpha=.6, data=results_df2[results_df2$Group=='AgeQA' & results_df2$Sex=='Male',]) +
@@ -144,7 +146,7 @@ out.plot_qa_qabrain_ageqa_ageqabrain <- ggplot(results_df2, aes(x=RSq)) +#, fill
     mapping = aes(xintercept = RSq), linetype = 'dashed', color='black')
 
 
-png(file='~/Documents/hiLo/plots/figure7_color.png', height=160, width=120, units='mm', res=800)
+png(file='~/Documents/hiLo/plots/figure7.png', height=180, width=120, units='mm', res=800)
 out.plot_brain_age_agebrain
 dev.off()
 
@@ -161,52 +163,4 @@ dev.off()
 
 
 
-
-
-boo_plot <- ggplot(results_df2, aes(x=RSq, group=Group)) +
-  geom_density(aes(colour=Group), alpha=.6) +
-  scale_fill_manual(values=colsfill) +
-  scale_colour_manual(values=c('black', 'black', 'black', 'black')) +
-  theme_linedraw() +
-  facet_grid(Modality ~ Sex) +
-  coord_cartesian(ylim=c(0,25),xlim=c(-.1,.6)) +
-  xlab(bquote('CV R'^2)) + theme(axis.text.y = element_text(size=7), legend.position='bottom') +
-  ylab('') +
-  geom_vline(data = toPlotVals,
-    mapping = aes(xintercept = RSq), linetype = 'dashed', color='black') +
-  geom_vline(data = toPlotVals[toPlotVals$Group == 'QABrain' & toPlotVals$Sex == 'Male', ],
-    mapping = aes(xintercept = RSq), linetype = 'dashed', color='black') +
-  geom_vline(data = toPlotVals[toPlotVals$Group == 'AgeQA' & toPlotVals$Sex == 'Male', ],
-    mapping = aes(xintercept = RSq), linetype = 'dashed', color='black') +
-  geom_vline(data = toPlotVals[toPlotVals$Group == 'AgeQABrain' & toPlotVals$Sex == 'Male', ],
-    mapping = aes(xintercept = RSq), linetype = 'dashed', color='black') +
-  geom_vline(data = toPlotVals[toPlotVals$Group == 'QA' & toPlotVals$Sex == 'Female', ],
-    mapping = aes(xintercept = RSq), linetype = 'dashed', color='black') +
-  geom_vline(data = toPlotVals[toPlotVals$Group == 'QABrain' & toPlotVals$Sex == 'Female', ],
-    mapping = aes(xintercept = RSq), linetype = 'dashed', color='black') +
-  geom_vline(data = toPlotVals[toPlotVals$Group == 'AgeQA' & toPlotVals$Sex == 'Female', ],
-    mapping = aes(xintercept = RSq), linetype = 'dashed', color='black') +
-  geom_vline(data = toPlotVals[toPlotVals$Group == 'AgeQABrain' & toPlotVals$Sex == 'Female', ],
-    mapping = aes(xintercept = RSq), linetype = 'dashed', color='black')
-
-
-
-
-
-
-
-p <- ggplot(data=data,aes(x=a)) +
-  geom_bar(stat="identity", aes(y=h, fill = "BAR"),colour="#333333")+ #green
-  geom_line(aes(y=b, colour="LINE1"),size=1.0) +   #red
-  geom_point(aes(y=b, colour="LINE1"),size=3) +           #red
-  geom_errorbar(aes(ymin=d, ymax=e, colour="LINE1"), width=0.1, size=.8) +
-  geom_line(aes(y=c, colour="LINE2"),size=1.0) +   #blue
-  geom_point(aes(y=c,colour="LINE2"),size=3) +           #blue
-  geom_errorbar(aes(ymin=f, ymax=g,colour="LINE2"), width=0.1, size=.8) +
-  scale_colour_manual(name="Error Bars",values=cols) + scale_fill_manual(name="Bar",values=cols) +
-  ylab("Symptom severity") + xlab("PHQ-9 symptoms") +
-  ylim(0,1.6) +
-  theme_bw() +
-  theme(axis.title.x = element_text(size = 15, vjust=-.2)) +
-  theme(axis.title.y = element_text(size = 15, vjust=0.3))
     #
