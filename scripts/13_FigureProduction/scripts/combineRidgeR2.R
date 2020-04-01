@@ -32,11 +32,11 @@ age_agebrain_df[age_agebrain_df$Group == 'Yes', 'Group'] <- 'Age'
 qa_qabrain_df[qa_qabrain_df$Group == 'No', 'Group'] <- 'QABrain'
 qa_qabrain_df[qa_qabrain_df$Group == 'Yes', 'Group'] <- 'QA'
 
-df <- rbind(brain_df, ageqa_ageqabrain_df)
-df <- rbind(df, age_agebrain_df)
-df <- rbind(df, qa_qabrain_df)
-df <- df[df$Group != 'Yes',]
-rownames(df) <- 1:nrow(df)
+final_df <- rbind(brain_df, ageqa_ageqabrain_df)
+final_df <- rbind(final_df, age_agebrain_df)
+final_df <- rbind(final_df, qa_qabrain_df)
+final_df <- final_df[final_df$Group != 'Yes',]
+row.names(final_df) <- 1:nrow(final_df)
 
 ################ Summaries ################
 brain_toPlot <- read.csv('~/Documents/hiLo/data/r2results/permutationSummary_half_NoReg.csv')
@@ -68,7 +68,7 @@ toPlot <- rbind(toPlot, qa_qabrain_toPlot)
 toPlot <- toPlot[toPlot$Group != 'Yes',]
 rownames(toPlot) <- 1:nrow(toPlot)
 
-results_df <- df
+results_df <- final_df
 toPlotVals <- toPlot
 
 write.csv(toPlotVals[,c("Modality", "Sex", "Group", "RSq")], file='~/Documents/hiLo/data/r2results/summary_R2.csv', row.names=FALSE)

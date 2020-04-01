@@ -65,11 +65,14 @@ final_data$Count2 <- factor(final_data$Count2, levels=c("0 Not PFIT", "1 Not PFI
   "3 Not PFIT", "4 Not PFIT", "5 Not PFIT", "6 Not PFIT", "0 PFIT", "1 PFIT", "2 PFIT",
   "3 PFIT", "4 PFIT", "5 PFIT", "6 PFIT"))
 
+#agg.data <- aggregate(Count2 ~ area, data = final_data, first)
+
 p <- ggseg(final_data, atlas="micCort", mapping=aes(fill=Count2), hemisphere="left", size=.1, colour="black") +
   scale_fill_manual(values=c("antiquewhite1", "#fddbc7", "#f4a582", "#d6604d", "#b2182b", "#67001f", "black",
     "white", "aliceblue", "#d1e5f0", "#92c5de", "#4393c3", "#2166ac", "#053061"), drop=FALSE) +
   facet_wrap(~Gender, ncol=1) + labs(fill="# Modalities >.4") +
-  theme(text=element_text(size=14,  family="Arial"), axis.title.x=element_blank(), axis.text.x=element_blank())
+  theme(text=element_text(size=14,  family="Arial"), axis.title.x=element_blank(), axis.text.x=element_blank()) #+
+  #geom_sf(aes(label=as.character(area))) + geom_sf_label(aes(label=as.character(area)))
 
 
 
