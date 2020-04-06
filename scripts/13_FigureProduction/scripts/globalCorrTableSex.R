@@ -1,10 +1,9 @@
 ### This script creates a correlation plot of the global values
 ###
 ### Ellyn Butler
-### February 27, 2020 - March 9, 2020
+### February 27, 2020 - April 6, 2020
 
 library('ggplot2')
-library('ggcorrplot')
 
 # Load csv with Adon's global metrics
 img.data <- read.csv('~/Documents/hiLo/data/n1601_hiLoDataDump_2018-09-20.csv')
@@ -24,7 +23,7 @@ img.data <- merge(img.data, idemo.data)
 global.values <- c('mprage_jlf_vol_TBV','mprage_jlf_gmd_MeanGMD','dti_jlf_tr_MeanTR',
   'pcasl_jlf_cbf_MeanGMCBF','rest_jlf_alff_MeanALFF','rest_jlf_reho_MeanReho',
   'sigchange_contrast4_2back0back_mean_miccai_ave_MFG',
-  'sigchange_cope1_task_mean_miccai_ave_Limbic')
+  'sigchange_cope1_task_mean_miccai_ave_AAE')
 img.data <- img.data[img.data$dti64Exclude == 0 & img.data$restExclude == 0 &
   img.data$t1Exclude == 0 & img.data$pcaslExclude == 0, ]
 img.data <- img.data[!is.na(img.data$mprage_jlf_vol_TBV) & !is.na(img.data$mprage_jlf_gmd_MeanGMD) &
@@ -32,7 +31,7 @@ img.data <- img.data[!is.na(img.data$mprage_jlf_vol_TBV) & !is.na(img.data$mprag
   !is.na(img.data$rest_jlf_alff_MeanALFF) & !is.na(img.data$rest_jlf_reho_MeanReho) &
   !is.na(img.data$sigchange_contrast4_2back0back_mean_miccai_ave_MFG) &
   !is.na(img.data$sigchange_cope1_task_mean_miccai_ave_FuG),]
-rownames(img.data) <- 1:nrow(img.data)
+row.names(img.data) <- 1:nrow(img.data)
 
 # Get (subset of) limbic IdEmo activation
 vol.data <- read.csv('~/Documents/hiLo/data/meanLR/volumeData.csv')
@@ -40,67 +39,60 @@ shortregs <-  c("AIns", "Amygdala", "Ent")
 volregs <- paste0("mprage_jlf_vol_", shortregs)
 idemoregs <- paste0("sigchange_cope1_task_mean_miccai_ave_", shortregs)
 vol.data <- vol.data[vol.data$bblid %in% img.data$bblid,]
-rownames(img.data) <- 1:nrow(img.data)
-rownames(vol.data) <- 1:nrow(vol.data)
+row.names(img.data) <- 1:nrow(img.data)
+row.names(vol.data) <- 1:nrow(vol.data)
 
 tmp <- 0
 for (i in 1:length(volregs)) {
   tmp <- tmp + vol.data[,volregs[i]]*img.data[,idemoregs[i]]
 }
 tmp <- tmp/sum(vol.data[, volregs])
-img.data$sigchange_cope1_task_mean_miccai_ave_Limbic <- tmp
+img.data$sigchange_cope1_task_mean_miccai_ave_AAE <- tmp
 
-# Makes plots to show limbic is not good
-for (i in 1:length(idemoregs)) {
-  p_tmp <- ggplot(img.data, aes_string(idemoregs[i])) +
-    geom_histogram(bins=100) + theme_linedraw() + ggtitle(paste0("IdEmo: ", shortregs[i])) +
-    coord_cartesian(xlim=c(-2, 2))
-  assign(paste0("p_", shortregs[i]), p_tmp)
-}
 
-p_limbic <- ggplot(img.data, aes(sigchange_cope1_task_mean_miccai_ave_Limbic)) +
-  geom_histogram(bins=100) + theme_linedraw() + ggtitle("IdEmo: Limbic")
-
-#pdf(file="~/Documents/hiLo/plots/limbTBVsFuG.pdf", width=15, height=20)
-#grid.arrange(p_ACgG, p_PCgG, p_AIns, p_Amygdala, p_Ent, p_Hippocampus, p_MCgG, p_PHG, p_PIns, p_SCA, p_limbic, p_FuG, nrow=4, ncol=3)
-#dev.off()
-
-img.data <- img.data[, global.values]
-colnames(img.data) <- c("TBV", "GMD", "MD", "CBF", "ALFF", "ReHo", "NB MFG", "Id AAE")
-
-corr <- cor(img.data)
-
-p <- ggcorrplot(corr)
-
-png("~/Documents/hiLo/plots/corrplot_color.png", width=90, height=70, units='mm', res=800)
-p
-dev.off()
-
-corr2 <- round(corr, digits=3)
-corr2 <- data.frame(corr2)
-colnames(corr2) <- c("TBV", "GMD", "MD", "CBF", "ALFF", "ReHo", "NB MFG", "Id AAE")
-
+img.data <- img.data[, c(global.values, "sex")]
+colnames(img.data) <- c("TBV", "GMD", "MD", "CBF", "ALFF", "ReHo", "NB MFG", "Id AAE", "sex")
 
 #### Get Bonferroni-corrected p
+corr <- data.frame(matrix(NA, nrow=8, ncol=8))
+names(corr) <- c("TBV", "GMD", "MD", "CBF", "ALFF", "ReHo", "NB MFG", "Id AAE")
+row.names(corr) <- names(corr)
 
-# Number of comparisons: 28
-for (i in 1:ncol(img.data)) {
-  for (j in 1:ncol(img.data)) {
-    if (j < i) {
-      pv <- (cor.test(img.data[,colnames(img.data)[i]], img.data[,colnames(img.data)[j]])$p.value)*28
-      if (pv < .001) {
-        sig <- "***"
-        corr2[i, j] <- paste0(corr2[i, j], sig)
-      } else if (pv < .01) {
-        sig <- "**"
-        corr2[i, j] <- paste0(corr2[i, j], sig)
-      } else if (pv < .05) {
-        sig <- "*"
-        corr2[i, j] <- paste0(corr2[i, j], sig)
-      }
+sigfunc <- function(pv, corr, corr_val) {
+  corr_val <- round(corr_val, digits=3)
+  if (pv < .001) {
+    sig <- "***"
+    corr[i, j] <- paste0(corr_val, sig)
+  } else if (pv < .01) {
+    sig <- "**"
+    corr[i, j] <- paste0(corr_val, sig)
+  } else if (pv < .05) {
+    sig <- "*"
+    corr[i, j] <- paste0(corr_val, sig)
+  } else {
+    corr[i, j] <- corr_val
+  }
+  corr
+}
+
+# Number of comparisons: 56
+for (i in 1:ncol(corr)) {
+  for (j in 1:ncol(corr)) {
+    if (j < i) { # Female
+      female_test <- cor.test(img.data[img.data$sex == 2, names(img.data)[i]],
+        img.data[img.data$sex == 2, names(img.data)[j]])
+      pv <- (female_test$p.value)*56
+      corr_val <- female_test$estimate[[1]]
+      corr <- sigfunc(pv, corr, corr_val)
+    } else if (j > i) { # Male
+      male_test <- cor.test(img.data[img.data$sex == 1, names(img.data)[i]],
+        img.data[img.data$sex == 1, names(img.data)[j]])
+      pv <- (male_test$p.value)*56
+      corr_val <- male_test$estimate[[1]]
+      corr <- sigfunc(pv, corr, corr_val)
     }
   }
 }
 
 
-write.csv(corr2, "~/Documents/hiLo/tables/globalCorr.csv")
+write.csv(corr, "~/Documents/hiLo/tables/globalCorrSex.csv")
