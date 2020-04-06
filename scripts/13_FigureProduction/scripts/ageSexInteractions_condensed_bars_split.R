@@ -377,21 +377,21 @@ if (galton == TRUE) {
 	wmcer_plot
 	dev.off()
 } else if (mymachine == TRUE) {
-	pdf(paste0('/Users/butellyn/Documents/hiLo/plots/beta_HiLo_Age_condensed_bars_struc_', Sys.Date(), '.pdf'), width=9, height=7)
-	struc_plot
-	dev.off()
+	#pdf(paste0('/Users/butellyn/Documents/hiLo/plots/beta_HiLo_Age_condensed_bars_struc_', Sys.Date(), '.pdf'), width=9, height=7)
+	#struc_plot
+	#dev.off()
 
-	pdf(paste0('/Users/butellyn/Documents/hiLo/plots/beta_HiLo_Age_condensed_bars_func_', Sys.Date(), '.pdf'), width=9, height=7)
-	func_plot
-	dev.off()
+	#pdf(paste0('/Users/butellyn/Documents/hiLo/plots/beta_HiLo_Age_condensed_bars_func_', Sys.Date(), '.pdf'), width=9, height=7)
+	#func_plot
+	#dev.off()
 
-	pdf(paste0('/Users/butellyn/Documents/hiLo/plots/beta_HiLo_Age_condensed_bars_task_', Sys.Date(), '.pdf'), width=9, height=7)
-	task_plot
-	dev.off()
+	#pdf(paste0('/Users/butellyn/Documents/hiLo/plots/beta_HiLo_Age_condensed_bars_task_', Sys.Date(), '.pdf'), width=9, height=7)
+	#task_plot
+	#dev.off()
 
-	pdf(paste0('/Users/butellyn/Documents/hiLo/plots/beta_HiLo_Age_condensed_bars_wmcer_', Sys.Date(), '.pdf'), width=14, height=5)
-	wmcer_plot
-	dev.off()
+	#pdf(paste0('/Users/butellyn/Documents/hiLo/plots/beta_HiLo_Age_condensed_bars_wmcer_', Sys.Date(), '.pdf'), width=14, height=5)
+	#wmcer_plot
+	#dev.off()
 
 	png('/Users/butellyn/Documents/hiLo/plots/figure3_color.png', units="mm", width=220, height=150, res=800)
 	struc_plot

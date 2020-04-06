@@ -1,95 +1,62 @@
 ### This script merges some of the densities
 ###
 ### Ellyn Butler
-### March 12, 2020 - March 16, 2020
+### March 12, 2020 - April 3, 2020
 
 
 library('ggplot2')
 library('gridExtra')
+library('dplyr')
 
-################ Results ################
-brain_df <- read.csv('~/Documents/hiLo/data/r2results/permutationResults_half_NoReg.csv')
-ageqa_ageqabrain_df <- read.csv('~/Documents/hiLo/data/r2results/permutationResults_half_AgeQA_strongNull_OLSNoPenalizeAgeQA.csv')
-age_agebrain_df <- read.csv('~/Documents/hiLo/data/r2results/permutationResults_half_Age_strongNull_OLSNoPenalizeAge.csv')
-qa_qabrain_df <- read.csv('~/Documents/hiLo/data/r2results/permutationResults_half_QA_strongNull_OLSNoPenalizeQA.csv')
+results_df <- read.csv('~/Documents/hiLo/data/r2results/results_ridgeRSq_combined.csv')
+toPlotVals <- read.csv('~/Documents/hiLo/data/r2results/summary_ridgeRSq_combined.csv')
+toPlotVals <- toPlotVals[,c("Modality", "Sex", "Group", "RSq")]
 
-brain_df$Permuted <- as.character(brain_df$Permuted)
-ageqa_ageqabrain_df$Null <- as.character(ageqa_ageqabrain_df$Null)
-age_agebrain_df$Null <- as.character(age_agebrain_df$Null)
-qa_qabrain_df$Null <- as.character(qa_qabrain_df$Null)
+toPlotVals2 <- data.frame(matrix(NA, nrow=18, ncol=4))
+names(toPlotVals2) <- names(toPlotVals)
+toPlotVals2$Modality <- c('Volume', 'Volume', 'GMD', 'GMD', 'MD', 'MD', 'CBF',
+  'CBF', 'ALFF', 'ALFF', 'ReHo', 'ReHo', 'NBack', 'NBack', 'IdEmo', 'IdEmo', 'All', 'All')
+toPlotVals2$Sex <- rep(c("Female", "Male"), 9)
+toPlotVals2$Group <- 'AgeBrain Minus Age'
+toPlotVals2$RSq <- toPlotVals[toPlotVals$Group == "AgeBrain", "RSq"] - toPlotVals[toPlotVals$Group == "Age", "RSq"]
 
-names(brain_df)[names(brain_df) == 'Permuted'] <- 'Group'
-names(ageqa_ageqabrain_df)[names(ageqa_ageqabrain_df) == 'Null'] <- 'Group'
-names(age_agebrain_df)[names(age_agebrain_df) == 'Null'] <- 'Group'
-names(qa_qabrain_df)[names(qa_qabrain_df) == 'Null'] <- 'Group'
+toPlotVals <- rbind(toPlotVals, toPlotVals2)
+toPlotVals <- arrange(toPlotVals, Group, Sex)
 
-brain_df[brain_df$Group == 'No', 'Group'] <- 'Brain'
-ageqa_ageqabrain_df[ageqa_ageqabrain_df$Group == 'No', 'Group'] <- 'AgeQABrain'
-ageqa_ageqabrain_df[ageqa_ageqabrain_df$Group == 'Yes', 'Group'] <- 'AgeQA'
+write.csv(toPlotVals, file='~/Documents/hiLo/data/r2results/summary_R2.csv', row.names=FALSE)
 
-age_agebrain_df[age_agebrain_df$Group == 'No', 'Group'] <- 'AgeBrain'
-age_agebrain_df[age_agebrain_df$Group == 'Yes', 'Group'] <- 'Age'
-qa_qabrain_df[qa_qabrain_df$Group == 'No', 'Group'] <- 'QABrain'
-qa_qabrain_df[qa_qabrain_df$Group == 'Yes', 'Group'] <- 'QA'
 
-final_df <- rbind(brain_df, ageqa_ageqabrain_df)
-final_df <- rbind(final_df, age_agebrain_df)
-final_df <- rbind(final_df, qa_qabrain_df)
-final_df <- final_df[final_df$Group != 'Yes',]
-row.names(final_df) <- 1:nrow(final_df)
 
-################ Summaries ################
-brain_toPlot <- read.csv('~/Documents/hiLo/data/r2results/permutationSummary_half_NoReg.csv')
-ageqa_ageqabrain_toPlot <- read.csv('~/Documents/hiLo/data/r2results/permutationSummary_half_AgeQA_strongNull_OLSNoPenalizeAgeQA.csv')
-age_agebrain_toPlot <- read.csv('~/Documents/hiLo/data/r2results/permutationSummary_half_Age_strongNull_OLSNoPenalizeAge.csv')
-qa_qabrain_toPlot <- read.csv('~/Documents/hiLo/data/r2results/permutationSummary_half_QA_strongNull_OLSNoPenalizeQA.csv')
+#AgeBrain Minus Age
+diff_df <- data.frame(matrix(NA, nrow=18000, ncol=5))
+names(diff_df) <- names(results_df)
+diff_df$Modality <- c(rep("Volume", 2000), rep("GMD", 2000),
+  rep("MD", 2000), rep("CBF", 2000), rep("ALFF", 2000), rep("ReHo", 2000),
+  rep("NBack", 2000), rep("IdEmo", 2000), rep("All", 2000))
+diff_df$Sex <- rep(c("Female", "Male"), 9000)
+diff_df$Group <- rep("AgeBrain Minus Age", 18000)
+diff_df$Run <- rep(1:1000, 18)
+diff_df$RSq <- results_df[results_df$Group == "AgeBrain", "RSq"] - results_df[results_df$Group == "Age", "RSq"]
 
-brain_toPlot$Permuted <- as.character(brain_toPlot$Permuted)
-ageqa_ageqabrain_toPlot$Null <- as.character(ageqa_ageqabrain_toPlot$Null)
-age_agebrain_toPlot$Null <- as.character(age_agebrain_toPlot$Null)
-qa_qabrain_toPlot$Null <- as.character(qa_qabrain_toPlot$Null)
-
-names(brain_toPlot)[names(brain_toPlot) == 'Permuted'] <- 'Group'
-names(ageqa_ageqabrain_toPlot)[names(ageqa_ageqabrain_toPlot) == 'Null'] <- 'Group'
-names(age_agebrain_toPlot)[names(age_agebrain_toPlot) == 'Null'] <- 'Group'
-names(qa_qabrain_toPlot)[names(qa_qabrain_toPlot) == 'Null'] <- 'Group'
-
-brain_toPlot[brain_toPlot$Group == 'No', 'Group'] <- 'Brain'
-ageqa_ageqabrain_toPlot[ageqa_ageqabrain_toPlot$Group == 'No', 'Group'] <- 'AgeQABrain'
-ageqa_ageqabrain_toPlot[ageqa_ageqabrain_toPlot$Group == 'Yes', 'Group'] <- 'AgeQA'
-age_agebrain_toPlot[age_agebrain_toPlot$Group == 'No', 'Group'] <- 'AgeBrain'
-age_agebrain_toPlot[age_agebrain_toPlot$Group == 'Yes', 'Group'] <- 'Age'
-qa_qabrain_toPlot[qa_qabrain_toPlot$Group == 'No', 'Group'] <- 'QABrain'
-qa_qabrain_toPlot[qa_qabrain_toPlot$Group == 'Yes', 'Group'] <- 'QA'
-
-toPlot <- rbind(brain_toPlot, ageqa_ageqabrain_toPlot)
-toPlot <- rbind(toPlot, age_agebrain_toPlot)
-toPlot <- rbind(toPlot, qa_qabrain_toPlot)
-toPlot <- toPlot[toPlot$Group != 'Yes',]
-rownames(toPlot) <- 1:nrow(toPlot)
-
-results_df <- final_df
-toPlotVals <- toPlot
-
-write.csv(toPlotVals[,c("Modality", "Sex", "Group", "RSq")], file='~/Documents/hiLo/data/r2results/summary_R2.csv', row.names=FALSE)
+results_df <- rbind(results_df, diff_df)
 
 results_df$Modality <- ordered(results_df$Modality, levels=c('Volume', 'GMD', 'MD',
   'CBF', 'ALFF', 'ReHo', 'NBack', 'IdEmo', 'All'))
 
-################ Plot ################
-# TO DO: Add legends
 
-#results_df1 <- results_df[results_df$Group %in% c("Brain", "Age", "AgeBrain"),]
-#'black', 'steelblue2', 'darkseagreen2', 'black', 'violetred1', 'bisque'
-colsfill_manu <- c('Brain'='black', 'Age'='gray62', 'AgeBrain'='white')
+################ Plot ################
+
+colsfill_manu <- c('AgeBrain Minus Age'='black', 'Brain'='gray20', 'Age'='gray62', 'AgeBrain'='white')
 out.plot_brain_age_agebrain <- ggplot(results_df, aes(x=RSq)) +
-  geom_density(aes(fill='Brain', group=1), data=results_df[results_df$Group=='Brain' & results_df$Sex=='Male',]) +
+  geom_density(aes(fill='AgeBrain Minus Age', group=1), data=results_df[results_df$Group=='AgeBrain Minus Age' & results_df$Sex=='Male',]) + ####
+  geom_density(aes(fill='Brain', group=1), data=results_df[results_df$Group=='Brain' & results_df$Sex=='Male',], alpha=.7) +
   geom_density(aes(fill='Age', group=1), data=results_df[results_df$Group=='Age' & results_df$Sex=='Male',], alpha=.7) +
   geom_density(aes(fill='AgeBrain', group=1), data=results_df[results_df$Group=='AgeBrain' & results_df$Sex=='Male',], alpha=.7) +
-  geom_density(aes(fill='Brain', group=1), data=results_df[results_df$Group=='Brain' & results_df$Sex=='Female',]) +
+  geom_density(aes(fill='AgeBrain Minus Age', group=1), data=results_df[results_df$Group=='AgeBrain Minus Age' & results_df$Sex=='Female',]) + ####
+  geom_density(aes(fill='Brain', group=1), data=results_df[results_df$Group=='Brain' & results_df$Sex=='Female',], alpha=.7) +
   geom_density(aes(fill='Age', group=1), data=results_df[results_df$Group=='Age' & results_df$Sex=='Female',], alpha=.7) +
   geom_density(aes(fill='AgeBrain', group=1), data=results_df[results_df$Group=='AgeBrain' & results_df$Sex=='Female',], alpha=.7) +
-  scale_fill_manual(values=colsfill_manu, breaks=c("Brain", "Age", "AgeBrain"), name="Variables") +
+  scale_fill_manual(values=colsfill_manu, breaks=c("AgeBrain Minus Age", "Brain", "Age", "AgeBrain"), name="Variables") +
   scale_colour_manual(values=c('black', 'black', 'black', 'black')) +
   theme_linedraw() +
   facet_grid(Modality ~ Sex) +
@@ -102,12 +69,16 @@ out.plot_brain_age_agebrain <- ggplot(results_df, aes(x=RSq)) +
     mapping = aes(xintercept = RSq), linetype = 'dashed', color='black') +
   geom_vline(data = toPlotVals[toPlotVals$Group == 'Brain' & toPlotVals$Sex == 'Male', ],
     mapping = aes(xintercept = RSq), linetype = 'dashed', color='black') +
+  geom_vline(data = toPlotVals[toPlotVals$Group == 'AgeBrain Minus Age' & toPlotVals$Sex == 'Male', ],
+    mapping = aes(xintercept = RSq), linetype = 'dashed', color='black') + #####
   geom_vline(data = toPlotVals[toPlotVals$Group == 'Age' & toPlotVals$Sex == 'Female', ],
     mapping = aes(xintercept = RSq), linetype = 'dashed', color='black') +
   geom_vline(data = toPlotVals[toPlotVals$Group == 'AgeBrain' & toPlotVals$Sex == 'Female', ],
     mapping = aes(xintercept = RSq), linetype = 'dashed', color='black') +
   geom_vline(data = toPlotVals[toPlotVals$Group == 'Brain' & toPlotVals$Sex == 'Female', ],
-    mapping = aes(xintercept = RSq), linetype = 'dashed', color='black')
+    mapping = aes(xintercept = RSq), linetype = 'dashed', color='black') +
+  geom_vline(data = toPlotVals[toPlotVals$Group == 'AgeBrain Minus Age' & toPlotVals$Sex == 'Female', ],
+    mapping = aes(xintercept = RSq), linetype = 'dashed', color='black') ####
 
 results_df2 <- results_df[results_df$Group %in% c("QA", "QABrain", "AgeQA", "AgeQABrain"),]
 results_df2$Group <- ordered(results_df2$Group, levels=c("QA", "QABrain", "AgeQA", "AgeQABrain"))

@@ -2,7 +2,7 @@
 ### reproduce the effects in Figure 5 in the first submission
 ###
 ### Ellyn Butler
-### March 4, 2020 - March 9, 2020
+### March 4, 2020 - April 1, 2020
 
 set.seed(20)
 

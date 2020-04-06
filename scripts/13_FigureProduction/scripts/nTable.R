@@ -95,6 +95,9 @@ for (mod in mods) {
   }
 }
 
+results_df$Proportion <- round(results_df$Proportion, digits=4)
+results_df$ProportionFullSample <- round(results_df$ProportionFullSample, digits=4)
+
 write.csv(results_df, file="~/Documents/hiLo/tables/proportionsMF-HiMeLo.csv", row.names=FALSE)
 
 
