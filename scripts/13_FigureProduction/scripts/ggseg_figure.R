@@ -84,6 +84,42 @@ dev.off()
 
 
 
+
+
+
+
+############ Check regions ############
+final_data$isTTG <- 0
+final_data$isPT <- 0
+final_data$isSMG <- 0
+final_data$isLiG <- 0
+final_data$isFuG <- 0
+final_data$isPHG <- 0
+final_data$isSCA <- 0
+for (i in 1:nrow(final_data)) {
+  if (final_data[i, "area"] == "TTG") { final_data[i, "isTTG"] <- 1 }
+  if (final_data[i, "area"] == "PT") { final_data[i, "isPT"] <- 1 }
+  if (final_data[i, "area"] == "SMG") { final_data[i, "isSMG"] <- 1 }
+  if (final_data[i, "area"] == "LiG") { final_data[i, "isLiG"] <- 1 }
+  if (final_data[i, "area"] == "FuG") { final_data[i, "isFuG"] <- 1 }
+  if (final_data[i, "area"] == "PHG") { final_data[i, "isPHG"] <- 1 }
+  if (final_data[i, "area"] == "SCA") { final_data[i, "isSCA"] <- 1 }
+}
+
+
+p_isTTG <- ggseg(final_data, atlas="micCort", mapping=aes(fill=isTTG), hemisphere="left", size=.1, colour="black") +
+  facet_wrap(~Gender, ncol=1) +
+  theme(text=element_text(size=14,  family="Arial"), axis.title.x=element_blank(), axis.text.x=element_blank())
+
+
+
+
+
+
+
+
+
+
 #scale_fill_manual(values=c("white", "lavenderblush", "lavenderblush2", "pink1", "pink2", "pink3", "pink4",
 #"white", "lightcyan1", "lightblue2", "cadetblue3", "steelblue2", "steelblue3", "darkslateblue"), drop=FALSE) +
 

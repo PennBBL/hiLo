@@ -1,7 +1,7 @@
 ### This script merges some of the densities
 ###
 ### Ellyn Butler
-### March 12, 2020 - April 3, 2020
+### March 12, 2020 - April 8, 2020
 
 
 library('ggplot2')
@@ -46,14 +46,15 @@ results_df$Modality <- ordered(results_df$Modality, levels=c('Volume', 'GMD', 'M
 
 ################ Plot ################
 
-colsfill_manu <- c('AgeBrain Minus Age'='black', 'Brain'='gray20', 'Age'='gray62', 'AgeBrain'='white')
+colsfill_manu <- c('Brain'='black', 'Age'='gray62', 'AgeBrain'='white')
+ann_text <- data.frame(Sex=factor(c("Female", "Male", "Female", "Female", "Female")),
+  Modality=factor(c(rep("Volume", 2), "GMD", "NBack", "All"), levels=unique(results_df$Modality)),
+  lab = "*", RSq=0)
 out.plot_brain_age_agebrain <- ggplot(results_df, aes(x=RSq)) +
-  geom_density(aes(fill='AgeBrain Minus Age', group=1), data=results_df[results_df$Group=='AgeBrain Minus Age' & results_df$Sex=='Male',]) + ####
-  geom_density(aes(fill='Brain', group=1), data=results_df[results_df$Group=='Brain' & results_df$Sex=='Male',], alpha=.7) +
+  geom_density(aes(fill='Brain', group=1), data=results_df[results_df$Group=='Brain' & results_df$Sex=='Male',]) +
   geom_density(aes(fill='Age', group=1), data=results_df[results_df$Group=='Age' & results_df$Sex=='Male',], alpha=.7) +
   geom_density(aes(fill='AgeBrain', group=1), data=results_df[results_df$Group=='AgeBrain' & results_df$Sex=='Male',], alpha=.7) +
-  geom_density(aes(fill='AgeBrain Minus Age', group=1), data=results_df[results_df$Group=='AgeBrain Minus Age' & results_df$Sex=='Female',]) + ####
-  geom_density(aes(fill='Brain', group=1), data=results_df[results_df$Group=='Brain' & results_df$Sex=='Female',], alpha=.7) +
+  geom_density(aes(fill='Brain', group=1), data=results_df[results_df$Group=='Brain' & results_df$Sex=='Female',]) +
   geom_density(aes(fill='Age', group=1), data=results_df[results_df$Group=='Age' & results_df$Sex=='Female',], alpha=.7) +
   geom_density(aes(fill='AgeBrain', group=1), data=results_df[results_df$Group=='AgeBrain' & results_df$Sex=='Female',], alpha=.7) +
   scale_fill_manual(values=colsfill_manu, breaks=c("AgeBrain Minus Age", "Brain", "Age", "AgeBrain"), name="Variables") +
@@ -69,16 +70,13 @@ out.plot_brain_age_agebrain <- ggplot(results_df, aes(x=RSq)) +
     mapping = aes(xintercept = RSq), linetype = 'dashed', color='black') +
   geom_vline(data = toPlotVals[toPlotVals$Group == 'Brain' & toPlotVals$Sex == 'Male', ],
     mapping = aes(xintercept = RSq), linetype = 'dashed', color='black') +
-  geom_vline(data = toPlotVals[toPlotVals$Group == 'AgeBrain Minus Age' & toPlotVals$Sex == 'Male', ],
-    mapping = aes(xintercept = RSq), linetype = 'dashed', color='black') + #####
   geom_vline(data = toPlotVals[toPlotVals$Group == 'Age' & toPlotVals$Sex == 'Female', ],
     mapping = aes(xintercept = RSq), linetype = 'dashed', color='black') +
   geom_vline(data = toPlotVals[toPlotVals$Group == 'AgeBrain' & toPlotVals$Sex == 'Female', ],
     mapping = aes(xintercept = RSq), linetype = 'dashed', color='black') +
   geom_vline(data = toPlotVals[toPlotVals$Group == 'Brain' & toPlotVals$Sex == 'Female', ],
     mapping = aes(xintercept = RSq), linetype = 'dashed', color='black') +
-  geom_vline(data = toPlotVals[toPlotVals$Group == 'AgeBrain Minus Age' & toPlotVals$Sex == 'Female', ],
-    mapping = aes(xintercept = RSq), linetype = 'dashed', color='black') ####
+  geom_text(data=ann_text, y=12, label="*", size=15)
 
 results_df2 <- results_df[results_df$Group %in% c("QA", "QABrain", "AgeQA", "AgeQABrain"),]
 results_df2$Group <- ordered(results_df2$Group, levels=c("QA", "QABrain", "AgeQA", "AgeQABrain"))
