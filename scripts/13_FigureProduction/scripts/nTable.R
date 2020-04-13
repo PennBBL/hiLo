@@ -2,7 +2,7 @@
 ### and after statistics, if requested): Sex x Hi-Me-Lo x Modality
 ###
 ### Ellyn Butler
-### March 20, 2020
+### March 20, 2020 - April 13, 2020
 
 library(tidyverse)
 
@@ -34,7 +34,9 @@ for (mod in mods) { assign(paste0(mod, "_df"), merge(get(paste0(mod, "_df")), hi
 Mods <- c(rep("Volume", 6), rep("GMD", 6), rep("MD", 6), rep("CBF", 6), rep("ALFF", 6), rep("ReHo", 6), rep("NBack", 6), rep("IdEmo", 6))
 Cogs <- rep(c("Hi", "Me", "Lo"), 16)
 Sexes <- rep(c("Female", "Female", "Female", "Male", "Male", "Male"), 8)
-results_df <- tibble(Modality=Mods, Sex=Sexes, Cognition=Cogs, N=rep(NA, 48))
+results_df <- data.frame(Modality=Mods, Sex=Sexes, Cognition=Cogs, N=rep(0, 48),
+	Proportion=rep(0, 48), ProportionFullSample=rep(0, 48), MeanAge=rep(0, 48),
+	MeanAgeFullSample=rep(0, 48))
 
 i=1
 for (mod in mods) {
@@ -79,26 +81,42 @@ i=1
 for (mod in mods) {
   for (sex in 2:1) {
     for (cog in c("Hi", "Me", "Lo")) {
+			### Proportions
       tmp_df <- get(paste0(mod, "_df"))
-      results_df[i, "ProportionFullSample"] <- nrow(cog_df[cog_df$CogGroup == cog & cog_df$sex == sex,])/nrow(cog_df)
+      results_df[i, "ProportionFullSample"] <- round(nrow(cog_df[cog_df$CogGroup == cog & cog_df$sex == sex,])/nrow(cog_df), digits=4)
       thisprop <- prop.test(x=c(nrow(cog_df[cog_df$CogGroup == cog & cog_df$sex == sex,]), as.numeric(results_df[i, "N"])), n=c(nrow(cog_df), nrow(tmp_df)))
-      print(thisprop$p.value)
-      if (thisprop$p.value < .001) {
+			results_df[i, "Proportion"] <- round(results_df[i, "Proportion"], digits=4)
+			if (thisprop$p.value < .001) {
         results_df[i, "Proportion"] <- paste0(results_df[i, "Proportion"], "***")
       } else if (thisprop$p.value < .01) {
         results_df[i, "Proportion"] <- paste0(results_df[i, "Proportion"], "**")
       } else if  (thisprop$p.value < .05) {
         results_df[i, "Proportion"] <- paste0(results_df[i, "Proportion"], "*")
       }
+
+			### Mean age
+			comb_df <- data.frame(age=c(cog_df[cog_df$CogGroup == cog & cog_df$sex == sex, "ageAtScan1"],
+				tmp_df[tmp_df$CogGroup == cog & tmp_df$sex == sex, "ageAtGo1Scan"]),
+				group=c(rep("Full", nrow(cog_df[cog_df$CogGroup == cog & cog_df$sex == sex, ])),
+				rep("Limited", nrow(tmp_df[tmp_df$CogGroup == cog & tmp_df$sex == sex, ]))))
+			thismean <- t.test(age ~ group, data=comb_df)
+			results_df[i, "MeanAge"] <- round(mean(tmp_df[tmp_df$CogGroup == cog & tmp_df$sex == sex, "ageAtGo1Scan"])/12, digits=1)
+			results_df[i, "MeanAgeFullSample"] <- round(mean(cog_df[cog_df$CogGroup == cog & cog_df$sex == sex, "ageAtScan1"])/12, digits=1)
+			if (thismean$p.value < .001) {
+        results_df[i, "MeanAge"] <- paste0(results_df[i, "MeanAge"], "***")
+      } else if (thismean$p.value < .01) {
+        results_df[i, "MeanAge"] <- paste0(results_df[i, "MeanAge"], "**")
+      } else if (thismean$p.value < .05) {
+        results_df[i, "MeanAge"] <- paste0(results_df[i, "MeanAge"], "*")
+      }
+
       i=i+1
     }
   }
 }
 
-results_df$Proportion <- round(results_df$Proportion, digits=4)
-results_df$ProportionFullSample <- round(results_df$ProportionFullSample, digits=4)
 
-write.csv(results_df, file="~/Documents/hiLo/tables/proportionsMF-HiMeLo.csv", row.names=FALSE)
+write.csv(results_df, file="~/Documents/hiLo/tables/proportionsMF_HiMeLo_Age.csv", row.names=FALSE)
 
 
 
