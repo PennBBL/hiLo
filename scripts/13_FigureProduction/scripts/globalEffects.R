@@ -22,21 +22,18 @@ nback.data <- read.csv('~/Documents/hiLo/data/meanLR/nbackData.csv')
 idemo.data <- read.csv('~/Documents/hiLo/data/meanLR/idemoData.csv')
 vol.data <- read.csv('~/Documents/hiLo/data/meanLR/volumeData.csv')
 
-nback.data <- merge(nback.data, vol.data[,c("bblid", "t1Exclude")])
-
 # Get (subset of) limbic IdEmo activation
 shortregs <-  c("AIns", "Amygdala", "Ent")
 volregs <- paste0("mprage_jlf_vol_", shortregs)
 idemoregs <- paste0("sigchange_cope1_task_mean_miccai_ave_", shortregs)
 vol.data <- vol.data[vol.data$bblid %in% idemo.data$bblid,]
-rownames(vol.data) <- 1:nrow(vol.data)
+row.names(vol.data) <- 1:nrow(vol.data)
 
-idemo.data <- merge(idemo.data, vol.data[,c("bblid", "t1Exclude")])
 idemo.data <- arrange(idemo.data, bblid)
 vol.data <- arrange(vol.data, bblid)
 
-rownames(idemo.data) <- 1:nrow(idemo.data)
-rownames(vol.data) <- 1:nrow(vol.data)
+row.names(idemo.data) <- 1:nrow(idemo.data)
+row.names(vol.data) <- 1:nrow(vol.data)
 
 tmp <- 0
 for (i in 1:length(volregs)) {
@@ -53,7 +50,10 @@ img.data <- merge(img.data, nback.data, all=T)
 img.data <- merge(img.data, idemo.data, all=T)
 img.data <- img.data[-which(is.na(img.data$F1_Exec_Comp_Cog_Accuracy)),]
 img.data <- img.data[-which(abs(img.data$ageAtCnb1 - img.data$ageAtScan1) > 12),]
-rownames(img.data) <- 1:nrow(img.data)
+row.names(img.data) <- 1:nrow(img.data)
+
+img.data$sex <- factor(img.data$sex)
+img.data$sex <- revalue(img.data$sex, c("2"="Female", "1"="Male"))
 
 
 #########################################################################
@@ -63,13 +63,14 @@ rownames(img.data) <- 1:nrow(img.data)
 img.data$ageYrs <- img.data$ageAtScan1/12
 img.data$ageBin <- NA
 img.data[img.data$ageYrs < 13, "ageBin"] <- "Children"
-img.data[img.data$ageYrs >= 13 & img.data$ageYrs < 18, "ageBin"] <- "Adols"
+img.data[img.data$ageYrs >= 13 & img.data$ageYrs < 18, "ageBin"] <- "Adolesc"
 img.data[img.data$ageYrs >= 18, "ageBin"] <- "Adults"
 
 
 #########################################################################
 # Add performance bin
 #########################################################################
+
 splits <- quantile(img.data$F1_Exec_Comp_Cog_Accuracy, c(.33, .66))
 img.data$perfBin <- NA
 for (i in 1:nrow(img.data)) {
@@ -96,16 +97,7 @@ img.data$mprage_jlf_vol_TBV <- img.data$mprage_jlf_vol_TBV/1000000
 
 index <- 1
 for (i in global.values) {
-  if (i == 'sigchange_contrast4_2back0back_mean_miccai_ave_MFG') {
-    tmp.data <- img.data[!is.na(img.data$nbackFcExclude) &
-      !is.na(img.data$nbackFcExcludeVoxelwise) & !is.na(img.data$nbackNoDataExclude) &
-      !is.na(img.data$nbackRelMeanRMSMotionExclude) & !is.na(img.data$nbackNSpikesMotionExclude) &
-      !is.na(img.data$nbackVoxelwiseCoverageExclude) ,]
-  } else if (i == 'sigchange_cope1_task_mean_miccai_ave_Limbic') {
-    tmp.data <- img.data[!is.na(img.data$idemoExclude), ]
-  } else { tmp.data <- img.data
-  }
-  tmpRow <- summarySE(data=tmp.data, groupvars=c('perfBin','sex'), measurevar=i, na.rm=T)
+  tmpRow <- summarySE(data=img.data, groupvars=c('perfBin','sex'), measurevar=i, na.rm=T)
   colnames(tmpRow)[4] <- 'mean'
   tmpRow$Value <- short.val[index]
   index <- index + 1
@@ -113,7 +105,9 @@ for (i in global.values) {
 }
 valsToPlot$Value <- factor(valsToPlot$Value, levels=short.val)
 valsToPlot$perfBin <- factor(valsToPlot$perfBin, levels=c('Lo','Me','Hi'))
-valsToPlot$sex <- factor(valsToPlot$sex,levels=c(1,2))
+valsToPlot$sex <- factor(valsToPlot$sex)
+#valsToPlot$sex <- revalue(valsToPlot$sex, c("2"="Female", "1"="Male"))
+
 ## Now prepare the plots in a loop
 ## this will be done in a loop because of the wild diff in axis values
 yLimLower <- c(1,.79,2.1,61,450,.15,0,0)
@@ -123,25 +117,24 @@ for (i in short.val) {
   ## First grab the values
   toPlot <- valsToPlot[which(valsToPlot$Value==i),]
   ## Now create the plot
-  outPlot <- ggplot(toPlot, aes(x=perfBin,y=mean,group=sex,fill=sex)) +
+  outPlot <- ggplot(toPlot, aes(x=perfBin, y=mean, group=sex, fill=sex)) +
 	geom_bar(stat="identity",
            position=position_dodge()) +
 	scale_fill_manual(name = "sex",
-                          values=c("1"="blue","2"="red")) +
+                          values=c("Female"="red", "Male"="blue")) +
 	geom_errorbar(aes(ymin=mean-ci, ymax=mean+ci),position=position_dodge(.9), width=.2) +
 	coord_cartesian(ylim=c(yLimLower[index],yLimUpper[index])) +
 	theme_bw() +
 	theme(legend.position="none",plot.title = element_text(hjust = 0.5),text = element_text(size=8,face='bold')) +
 	xlab("") +
-	ylab("") +
-	ggtitle(i)
+	ylab("")
   if (index == 1) {
-    outPlot <- outPlot + ggtitle(paste(short.val[index], "(million mm3)"))
+    outPlot <- outPlot + ggtitle(paste(short.val[index], "(liters)"))
   } else {
     outPlot <- outPlot + ggtitle(i)
   }
   index <- index+1
-  assign(paste(i, "Plot",sep=''),outPlot)
+  assign(paste0(i, "Plot"),outPlot)
 }
 
 #########################################################################
@@ -149,12 +142,12 @@ for (i in short.val) {
 # This will be cohen d values across the age bins
 #########################################################################
 cohenValues <- NULL
-sex.values <- c(1,2)
-age.values <- c("Children","Adols","Adults")
+sex.values <- c("Female", "Male")
+age.values <- c("Children", "Adolesc", "Adults")
 index <- 1
-for(g in global.values){
-  for(s in sex.values){
-    for(a in age.values){
+for (g in global.values) {
+  for (s in sex.values) {
+    for (a in age.values) {
       ## Isolate the data
       tmp.data <- img.data[which(img.data$ageBin==a & img.data$sex==s),]
       tmp.data <- tmp.data[-which(tmp.data$perfBin=='Me'),]
@@ -169,20 +162,20 @@ for(g in global.values){
   index <- index + 1
 }
 cohenValues <- data.frame(cohenValues)
-cohenValues$V2 <- factor(cohenValues$V2, levels=c("Children","Adols","Adults"))
-#cohenValues$V2 <- revalue(cohenValues$V2,c("Childhood"="Children","Adolescence"="Adols","Early Adulthood"="Young Adults"))
+cohenValues$V2 <- factor(cohenValues$V2, levels=c("Children","Adolesc","Adults"))
 cohenValues[,5:7] <- apply(cohenValues[,5:7],2,function(x) as.numeric(as.character(x)))
 
 ## Now create the plots
 index <- 1
 for (g in global.values) {
   toPlot <- cohenValues[which(cohenValues$V1==g),]
-  outPlot <- ggplot(toPlot,aes(x=V2,y=Hi,group=V3,fill=V3)) + #y=Lo*-1
+  outPlot <- ggplot(toPlot,aes(x=V2, y=Hi, group=V3, fill=V3)) + #y=Lo*-1
     geom_bar(stat="identity", position=position_dodge()) +
-	scale_fill_manual(name = "sex", values=c("1"="blue","2"="red")) +
+	scale_fill_manual(name = "sex", values=c("Female"="red", "Male"="blue")) +
   scale_y_continuous(limits=c(-.8, 1.4), breaks=round(seq(-.8,1.4,.2), digits=2)) +
 	theme_bw() +
-	theme(legend.position="none",plot.title = element_text(hjust = 0.5),text = element_text(size=8,face='bold')) +#,axis.text.x = element_text(size=20)) +
+	theme(legend.position="none", plot.title = element_text(hjust = 0.5),
+    text = element_text(size=8,face='bold')) +
 	xlab("") + ylab("") #+ ggtitle(short.val[index])
 	if (!(index %in% c(1, 4))) {
 	outPlot <- outPlot +
@@ -211,6 +204,16 @@ grid.arrange(
                         c(12, 13, 14, 16))
 )
 dev.off()
+
+
+
+
+
+
+
+
+
+
 
 ## Now plot one with a legend
 #outPlot <- ggplot(toPlot,aes(x=V2,y=Lo*-1,group=V3,fill=V3)) +
