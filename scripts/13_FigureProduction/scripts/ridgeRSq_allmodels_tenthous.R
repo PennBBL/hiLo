@@ -61,10 +61,7 @@ k=1
 a=1
 ###############
 for (dafr in dataframes) {
-  print(dafr)
-  ###############
   for (sex in c(2, 1)) {
-    print(sex)
     thisdf <- get(dafr)
     thisdf <- thisdf[thisdf$sex == sex, ]
     rownames(thisdf) <- 1:nrow(thisdf)
