@@ -1,89 +1,54 @@
 ### This script runs a series of regressions (OLS and ridge) to estimate
 ### out of sample R^2s for a variety of combinations of predictors
+### SET UP FOR PMACS
 ###
 ### Ellyn Butler
-### April 1, 2020
+### April 27, 2020
 
 set.seed(20)
 
 # Source my functions
-source("~/Documents/ButlerPlotFuncs/plotFuncs.R")
+source("~/ButlerPlotFuncs/plotFuncs.R")
 
 # Load libraries
 install_load('glmnet', 'ggplot2', 'reshape2', 'gridExtra', 'psych', 'dplyr',
   'caret', 'dfoptim', 'Rmisc', 'permute')
 
 # Load the non-age-regressed cognitive data
-cog.data <- read.csv("~/Documents/hiLo/data/cognitive/n1601_cnb_factor_scores_tymoore_20151006.csv")
+cog.data <- read.csv("~/hiLo/data/cognitive/n1601_cnb_factor_scores_tymoore_20151006.csv")
+cog.data <- cog.data[!is.na(cog.data$F1_Exec_Comp_Res_Accuracy),]
 
 # Load the data
-vol.data <- read.csv('~/Documents/hiLo/data/meanLR/volumeData.csv')
-vol.data <- merge(vol.data, cog.data, by="bblid")
-vol.data <- vol.data[!is.na(vol.data$F1_Exec_Comp_Res_Accuracy),]
-row.names(vol.data) <- 1:nrow(vol.data)
+modalities <- c('volume', 'gmd', 'md', 'cbf', 'alff', 'reho', 'nback', 'idemo')
 
-cbf.data <- read.csv('~/Documents/hiLo/data/meanLR/cbfData.csv')
-cbf.data <- merge(cbf.data, cog.data, by="bblid")
-cbf.data <- cbf.data[!is.na(cbf.data$F1_Exec_Comp_Res_Accuracy),]
-row.names(cbf.data) <- 1:nrow(cbf.data)
-
-gmd.data <- read.csv('~/Documents/hiLo/data/meanLR/gmdData.csv')
-gmd.data <- merge(gmd.data, cog.data, by="bblid")
-gmd.data <- gmd.data[!is.na(gmd.data$F1_Exec_Comp_Res_Accuracy),]
-row.names(gmd.data) <- 1:nrow(gmd.data)
-
-reho.data <- read.csv('~/Documents/hiLo/data/meanLR/rehoData.csv')
-reho.data <- merge(reho.data, cog.data, by="bblid")
-reho.data <- reho.data[!is.na(reho.data$F1_Exec_Comp_Res_Accuracy),]
-row.names(reho.data) <- 1:nrow(reho.data)
-
-alff.data <- read.csv('~/Documents/hiLo/data/meanLR/alffData.csv')
-alff.data <- merge(alff.data, cog.data, by="bblid")
-alff.data <- alff.data[!is.na(alff.data$F1_Exec_Comp_Res_Accuracy),]
-row.names(alff.data) <- 1:nrow(alff.data)
-
-md.data <- read.csv('~/Documents/hiLo/data/meanLR/jlfTRData.csv')
-md.data <- merge(md.data, cog.data, by="bblid")
-md.data <- md.data[!is.na(md.data$F1_Exec_Comp_Res_Accuracy),]
-row.names(md.data) <- 1:nrow(md.data)
-
-nback.data <- read.csv('~/Documents/hiLo/data/meanLR/nbackData2.csv')
-nback.data <- merge(nback.data, cog.data, by="bblid")
-nback.data <- nback.data[!is.na(nback.data$F1_Exec_Comp_Res_Accuracy),]
-row.names(nback.data) <- 1:nrow(nback.data)
-
-idemo.data <- read.csv('~/Documents/hiLo/data/meanLR/idemoData2.csv')
-idemo.data <- merge(idemo.data, cog.data, by="bblid")
-idemo.data <- idemo.data[!is.na(idemo.data$F1_Exec_Comp_Res_Accuracy),]
-row.names(idemo.data) <- 1:nrow(idemo.data)
-
-#nback.data <- nback.data[!is.na(nback.data$sigchange_contrast4_2back0back_mean_miccai_ave_Accumbens_Area),]
-#row.names(nback.data) <- 1:nrow(nback.data)
-
-#idemo.data <- idemo.data[!is.na(idemo.data$sigchange_cope1_task_mean_miccai_ave_Accumbens_Area),]
-#row.names(idemo.data) <- 1:nrow(idemo.data)
+for (modal in modalities) {
+  tmp_df <- read.csv(paste0('~/hiLo/data/meanLR/', modal, 'Data.csv'))
+  tmp_df <- merge(tmp_df, cog.data, by='bblid')
+  assign(paste0(modal, '.data'), tmp_df)
+}
 
 all.data <- Reduce(function(x, y, ...) merge(x, y, ...),
-  list(vol.data, cbf.data, gmd.data, reho.data, alff.data, md.data, nback.data, idemo.data))
+  list(volume.data, cbf.data, gmd.data, reho.data, alff.data, md.data, nback.data, idemo.data))
 
-dataframes <- c("vol.data", "gmd.data", "md.data", "cbf.data", "alff.data",
-  "reho.data", "nback.data", "idemo.data", "all.data")
+dataframes <- c(paste0(modalities, '.data'), 'all.data')
 
 # yvar
 yvar <- "F1_Exec_Comp_Res_Accuracy"
 
 # Create a dataframe for the results
-# 9 modalities, 2 perm statuses, 2 sexes, 1000 runs
-results_df <- data.frame(matrix(NA, nrow=126000, ncol=5))
+# 9 modalities, 2 perm statuses, 2 sexes, 10000 runs
+numits=10000
+
+results_df <- data.frame(matrix(NA, nrow=126*numits, ncol=5))
 colnames(results_df) <- c("Modality", "Sex", "Group", "Run", "RSq")
 
-results_df$Modality <- c(rep("Volume", 14000), rep("GMD", 14000), rep("MD", 14000),
-  rep("CBF", 14000), rep("ALFF", 14000), rep("ReHo", 14000), rep("NBack", 14000),
-  rep("IdEmo", 14000), rep("All", 14000))
-results_df$Sex <- rep(c(rep("Female", 7000), rep("Male", 7000)), 9)
-results_df$Group <- rep(c(rep("QA", 1000), rep("QABrain", 1000), rep("AgeQA", 1000),
-  rep("AgeQABrain", 1000), rep("Age", 1000), rep("AgeBrain", 1000), rep("Brain", 1000)), 18)
-results_df$Run <- rep(1:1000, 126)
+results_df$Modality <- c(rep("Volume", 14*numits), rep("GMD", 14*numits), rep("MD", 14*numits),
+  rep("CBF", 14*numits), rep("ALFF", 14*numits), rep("ReHo", 14*numits), rep("NBack", 14*numits),
+  rep("IdEmo", 14*numits), rep("All", 14*numits))
+results_df$Sex <- rep(c(rep("Female", 7*numits), rep("Male", 7*numits)), 9)
+results_df$Group <- rep(c(rep("QA", numits), rep("QABrain", numits), rep("AgeQA", numits),
+  rep("AgeQABrain", numits), rep("Age", numits), rep("AgeBrain", numits), rep("Brain", numits)), 18)
+results_df$Run <- rep(1:numits, 126)
 
 grepVals <- c('mprage_jlf_vol_', 'mprage_jlf_gmd_', 'dti_jlf_tr_', 'pcasl_jlf_cbf_',
   'rest_jlf_alff_', 'rest_jlf_reho_', 'sigchange_contrast4_2back0back_mean_miccai_ave_',
@@ -126,7 +91,7 @@ for (dafr in dataframes) {
     rownames(thisdf) <- 1:nrow(thisdf)
 
     ###############
-    for (run in 1:1000) {
+    for (run in 1:numits) {
       # Version with half and half
       folds2 <- createFolds(thisdf$F1_Exec_Comp_Res_Accuracy, k = 2, list = TRUE)
       test <- folds2[[1]]
@@ -170,7 +135,7 @@ for (dafr in dataframes) {
       SStot <- sum((y_test_df$F1_Exec_Comp_Res_Accuracy - mean(y_train_df$F1_Exec_Comp_Res_Accuracy))^2)
       results_df[k, "RSq"] <- 1 - SSres/SStot
 
-      ###### QABrain ###### k + 1000
+      ###### QABrain ###### k + numits
       if (a < 9) {
         x_train_input <- as.matrix(x_train_df[, c(qualitymetrics[a], xvars)])
         F1_Exec_Comp_Res_Accuracy <- y_train_df$F1_Exec_Comp_Res_Accuracy
@@ -199,9 +164,9 @@ for (dafr in dataframes) {
       # Calculate RSq
       SSres <- sum((y_test_df$F1_Exec_Comp_Res_Accuracy - y_test_predicted)^2)
       SStot <- sum((y_test_df$F1_Exec_Comp_Res_Accuracy - mean(y_train_df$F1_Exec_Comp_Res_Accuracy))^2)
-      results_df[k + 1000, "RSq"] <- 1 - SSres/SStot
+      results_df[k + numits, "RSq"] <- 1 - SSres/SStot
 
-      ###### AgeQA ###### k + 2000
+      ###### AgeQA ###### k + 2*numits
       if (a < 9) {
         thisfunc <- paste0("F1_Exec_Comp_Res_Accuracy ~ ", qualitymetrics[a], " + age + age2 + age3")
         ols_model <- lm(formula(thisfunc), data=train_df)
@@ -217,9 +182,9 @@ for (dafr in dataframes) {
       # Calculate RSq
       SSres <- sum((y_test_df$F1_Exec_Comp_Res_Accuracy - y_test_predicted)^2)
       SStot <- sum((y_test_df$F1_Exec_Comp_Res_Accuracy - mean(y_train_df$F1_Exec_Comp_Res_Accuracy))^2)
-      results_df[k + 2000, "RSq"] <- 1 - SSres/SStot
+      results_df[k + 2*numits, "RSq"] <- 1 - SSres/SStot
 
-      ###### AgeQABrain ###### k + 3000
+      ###### AgeQABrain ###### k + 3*numits
       if (a < 9) {
         x_train_input <- as.matrix(x_train_df[, c("age", "age2", "age3", qualitymetrics[a], xvars)])
         F1_Exec_Comp_Res_Accuracy <- y_train_df$F1_Exec_Comp_Res_Accuracy
@@ -248,18 +213,18 @@ for (dafr in dataframes) {
       # Calculate RSq
       SSres <- sum((y_test_df$F1_Exec_Comp_Res_Accuracy - y_test_predicted)^2)
       SStot <- sum((y_test_df$F1_Exec_Comp_Res_Accuracy - mean(y_train_df$F1_Exec_Comp_Res_Accuracy))^2)
-      results_df[k + 3000, "RSq"] <- 1 - SSres/SStot
+      results_df[k + 3*numits, "RSq"] <- 1 - SSres/SStot
 
-      ###### Age ###### k + 4000
+      ###### Age ###### k + 4*numits
       thisfunc <- "F1_Exec_Comp_Res_Accuracy ~ age + age2 + age3"
       ols_model <- lm(formula(thisfunc), data=train_df)
       y_test_predicted <- predict(ols_model, newdata=x_test_df)
       # Calculate the RSq change value
       SSres <- sum((y_test_df$F1_Exec_Comp_Res_Accuracy - y_test_predicted)^2)
       SStot <- sum((y_test_df$F1_Exec_Comp_Res_Accuracy - mean(y_train_df$F1_Exec_Comp_Res_Accuracy))^2)
-      results_df[k + 4000, "RSq"] <- 1 - SSres/SStot
+      results_df[k + 4*numits, "RSq"] <- 1 - SSres/SStot
 
-      ###### AgeBrain ###### k + 5000
+      ###### AgeBrain ###### k + 5*numits
       x_train_input <- as.matrix(x_train_df[, c("age", "age2", "age3", xvars)])
       F1_Exec_Comp_Res_Accuracy <- y_train_df$F1_Exec_Comp_Res_Accuracy
       #### Build the ridge model using only age, QA variables, and imaging variables
@@ -274,9 +239,9 @@ for (dafr in dataframes) {
       # Calculate the RSq change value
       SSres <- sum((y_test_df$F1_Exec_Comp_Res_Accuracy - y_test_predicted)^2)
       SStot <- sum((y_test_df$F1_Exec_Comp_Res_Accuracy - mean(y_train_df$F1_Exec_Comp_Res_Accuracy))^2)
-      results_df[k + 5000, "RSq"] <- 1 - SSres/SStot
+      results_df[k + 5*numits, "RSq"] <- 1 - SSres/SStot
 
-      ###### Brain ###### k + 6000
+      ###### Brain ###### k + 6*numits
       x_train_input <- as.matrix(x_train_df[,xvars])
       F1_Exec_Comp_Res_Accuracy <- y_train_df$F1_Exec_Comp_Res_Accuracy
 
@@ -290,11 +255,11 @@ for (dafr in dataframes) {
       # Calculate the RSq value
       SSres <- sum((y_test_df$F1_Exec_Comp_Res_Accuracy - y_test_predicted)^2)
       SStot <- sum((y_test_df$F1_Exec_Comp_Res_Accuracy - mean(y_train_df$F1_Exec_Comp_Res_Accuracy))^2)
-      results_df[k + 6000, "RSq"] <- 1 - SSres/SStot
+      results_df[k + 6*numits, "RSq"] <- 1 - SSres/SStot
 
       k=k+1
     }
-    k=k+6000
+    k=k+6*numits
   }
   a=a+1
 }
@@ -302,12 +267,12 @@ for (dafr in dataframes) {
 results_df$Modality <- ordered(results_df$Modality, levels=c("Volume", "GMD", "MD",
   "CBF", "ALFF", "ReHo", "NBack", "IdEmo", "All"))
 
-write.csv(results_df, file="~/Documents/hiLo/data/r2results/results_ridgeRSq_combined.csv", row.names=FALSE)
+write.csv(results_df, file="~/hiLo/data/r2results/results_ridgeRSq_combined_tenthous.csv", row.names=FALSE)
 
 toPlotVals <- summarySE(data=results_df[,c('Modality', 'Sex', 'Group', 'RSq')],
   groupvars=c('Modality', 'Sex', 'Group'), measurevar='RSq')
 
-write.csv(toPlotVals, file="~/Documents/hiLo/data/r2results/summary_ridgeRSq_combined.csv", row.names=FALSE)
+write.csv(toPlotVals, file="~/hiLo/data/r2results/summary_ridgeRSq_combined_tenthous.csv", row.names=FALSE)
 
 
 ##########################################
@@ -326,7 +291,7 @@ for (sex in c("Female", "Male")) {
     prop_df[i, "Prop"] <- sum((results_df[results_df$Sex == sex &
       results_df$Modality == mod & results_df$Group == "AgeBrain", "RSq"]) <
       results_df[results_df$Sex == sex & results_df$Modality == mod &
-      results_df$Group == "Age", "RSq"])/1000
+      results_df$Group == "Age", "RSq"])/numits
     prop_df[i, "mean_Age_rsq"] <- mean(results_df[results_df$Sex == sex &
       results_df$Modality == mod & results_df$Group == "Age", "RSq"])
     prop_df[i, "mean_AgeBrain_rsq"] <- mean(results_df[results_df$Sex == sex &
@@ -338,7 +303,7 @@ for (sex in c("Female", "Male")) {
 
 prop_df$MultiCompProp <- p.adjust(prop_df$Prop, method="fdr")
 
-write.csv(prop_df, file="~/Documents/hiLo/data/r2results/age_versus_agebrain.csv", row.names=FALSE)
+write.csv(prop_df, file="~/hiLo/data/r2results/age_versus_agebrain_tenthous.csv", row.names=FALSE)
 
 
 
