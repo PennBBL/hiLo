@@ -2,7 +2,7 @@
 ### age bins into single rows (within age bin age regression added)
 ###
 ### Ellyn Butler
-### December 12, 2019 - March 3, 2020
+### December 12, 2019 - April 27, 2020
 
 
 # What machine are you working on?
@@ -11,13 +11,14 @@ mymachine=TRUE
 
 ## Load Library(s)
 if (galton == TRUE) {
-	source("/home/butellyn/ButlerPlotFuncs/plotFuncs.R")
+	source("~/ButlerPlotFuncs/plotFuncs.R")
   stop("Facet nested isn't here yet")
 } else if (mymachine == TRUE) {
 	source("~/Documents/ButlerPlotFuncs/plotFuncs.R")
-  source("~/Documents/ButlerPlotFuncs/facetnested.R")
+  #source("~/Documents/ButlerPlotFuncs/facetnested.R")
 }
-install_load('plyr', 'ggplot2', 'reshape2', 'grid', 'gridExtra', 'labeling', 'data.table', 'ggrepel', 'DescTools', 'gtable')
+install_load('plyr', 'ggplot2', 'reshape2', 'grid', 'gridExtra', 'labeling',
+	'data.table', 'ggrepel', 'DescTools', 'gtable', 'ggh4x')
 
 # Now load the data
 if (galton == TRUE) {
@@ -330,13 +331,15 @@ task_plot <- ggplot(sum_df[sum_df$Modality %in% c("NBack", "IdEmo") & sum_df$Lob
 	labs(fill = "Group") + theme(axis.text.x = element_text(angle=90)) +
 	theme(legend.position="bottom", legend.box="vertical", axis.title.x=element_blank())
 
-boo <- sum_df[sum_df$Lobe %in% c("Cerebellum", "White Matter") & sum_df$Modality != "FA", ]
-boo$Modality <- as.character(boo$Modality)
-boo$Modality <- gsub("NBack", "NB", boo$Modality)
-boo$Modality <- gsub("IdEmo", "Id", boo$Modality)
-boo$Modality <- factor(boo$Modality)
-boo$Modality <- factor(boo$Modality, levels = c("Volume", "GMD", "MD", "CBF", "ALFF", "ReHo", "NB", "Id"))
-wmcer_plot <- ggplot(boo, aes(Abbrev, EffectSize, group=Group, colour=Group, fill=Group)) +
+wmcer_df <- sum_df[sum_df$Lobe %in% c("Cerebellum", "White Matter") & sum_df$Modality != "FA", ]
+wmcer_df$Modality <- as.character(wmcer_df$Modality)
+wmcer_df$Modality <- gsub("NBack", "NB", wmcer_df$Modality)
+wmcer_df$Modality <- gsub("IdEmo", "Id", wmcer_df$Modality)
+wmcer_df$Modality <- factor(wmcer_df$Modality)
+wmcer_df$Modality <- factor(wmcer_df$Modality, levels = c("Volume", "GMD", "MD", "CBF", "ALFF", "ReHo", "NB", "Id"))
+wmcer_df$Abbrev <- ordered(wmcer_df$Abbrev, levels=c("C1-5", "C6-7", "C8-10",
+	"CExt", "Fro", "Tmp", "Par", "Occ", "Ins", "Lim"))
+wmcer_plot <- ggplot(wmcer_df, aes(Abbrev, EffectSize, group=Group, colour=Group, fill=Group)) +
 	geom_bar(stat="identity", position="dodge") + scale_y_continuous(limits=c(-.8, 1.2), breaks=round(seq(-1.4, 1.4, .2), digits=1)) +
 	facet_nested(. ~ Lobe + Modality, scales="free", space="free_x") +
 	scale_shape_manual(values=c(17, 15, 16, 17, 15, 16)) +
@@ -377,22 +380,6 @@ if (galton == TRUE) {
 	wmcer_plot
 	dev.off()
 } else if (mymachine == TRUE) {
-	#pdf(paste0('/Users/butellyn/Documents/hiLo/plots/beta_HiLo_Age_condensed_bars_struc_', Sys.Date(), '.pdf'), width=9, height=7)
-	#struc_plot
-	#dev.off()
-
-	#pdf(paste0('/Users/butellyn/Documents/hiLo/plots/beta_HiLo_Age_condensed_bars_func_', Sys.Date(), '.pdf'), width=9, height=7)
-	#func_plot
-	#dev.off()
-
-	#pdf(paste0('/Users/butellyn/Documents/hiLo/plots/beta_HiLo_Age_condensed_bars_task_', Sys.Date(), '.pdf'), width=9, height=7)
-	#task_plot
-	#dev.off()
-
-	#pdf(paste0('/Users/butellyn/Documents/hiLo/plots/beta_HiLo_Age_condensed_bars_wmcer_', Sys.Date(), '.pdf'), width=14, height=5)
-	#wmcer_plot
-	#dev.off()
-
 	png('/Users/butellyn/Documents/hiLo/plots/figure3_color.png', units="mm", width=220, height=150, res=800)
 	struc_plot
 	dev.off()
