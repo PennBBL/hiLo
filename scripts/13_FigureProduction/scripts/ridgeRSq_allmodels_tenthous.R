@@ -277,7 +277,7 @@ write.csv(toPlotVals, file="~/hiLo/data/r2results/summary_ridgeRSq_combined_tent
 # Create a table of proportions age+brain less than age alone
 # Modality, Sex, Prop, MultCompProp (have to decide how to do this)
 
-prop_df <- tibble(Modality=rep(levels(results_df$Modality), 2),
+prop_df <- data.frame(Modality=rep(levels(results_df$Modality), 2),
   Sex=c(rep("Female", 9), rep("Male", 9)), Prop=rep(NA, 18),
   mean_Age_rsq=rep(NA, 18), mean_AgeBrain_rsq=rep(NA, 18),
   mean_AgeBrain_minus_Age_rsq=rep(NA, 18))
