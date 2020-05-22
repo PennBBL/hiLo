@@ -8,4 +8,7 @@
 library('ggseg')
 library('ggsegExtra')
 
-dt <- make_aparc_2_3datlas(annot="mic", subject="fsaverage") # Steps 1-2 completed
+# From a surface image
+dt <- make_aparc_2_3datlas(annot="mic", subject="fsaverage", surface="inflated") # Steps 1-2 completed
+
+dt2 <- make_ggseg3d_2_ggseg(ggseg3d_atlas = dt)

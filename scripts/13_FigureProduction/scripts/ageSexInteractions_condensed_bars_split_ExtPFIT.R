@@ -220,7 +220,7 @@ for (a in 1:8) {
 	for (j in 1:nrow(sum_df_tmp)) {
 		if (sum_df_tmp[j, "Abbrev"] %in% PFITregions) {
 			sum_df_tmp[j, "Importance"] <- "PF"
-		} else if (sum_df_tmp[j, "Abbrev"] %in% ExtPFITregions_exlamation) {
+		} else if (sum_df_tmp[j, "Abbrev"] %in% c(ExtPFITregions_exlamation, ExtPFITregions_question)) {
 			sum_df_tmp[j, "Importance"] <- "Ext"
 		} else {
       sum_df_tmp[j, "Importance"] <- "Not"
@@ -250,7 +250,7 @@ for (a in 1:8) {
 	write.csv(sum_df_tmp[,c("Modality", "Abbrev", "Lobe", "ageBin", "Importance", "Sex", "EffectSize")],
 		file=paste0("/Users/butellyn/Documents/hiLo/data/effsizes/", data.names[a], ".csv"), row.names=FALSE)
 
-	sum_df_tmp <- sum_df_tmp[sum_df_tmp$Importance == "PF" | sum_df_tmp$Abbrev %in% ExtPFITregions_exlamation | sum_df_tmp$Abbrev %in% c(cerebellum, whitematter),]
+	sum_df_tmp <- sum_df_tmp[sum_df_tmp$Importance == "PF" | sum_df_tmp$Abbrev %in% c(ExtPFITregions_exlamation, ExtPFITregions_question) | sum_df_tmp$Abbrev %in% c(cerebellum, whitematter),]
 	rownames(sum_df_tmp) <- 1:nrow(sum_df_tmp)
 
 	if (a == 1) {
