@@ -8,6 +8,8 @@
 library('ggseg')
 library('ggsegExtra')
 
+load("~/Documents/ggsegExtra/data/micCort.rda")
+
 # From a surface image
 dt <- make_aparc_2_3datlas(annot="mic", subject="fsaverage", surface="inflated") # Steps 1-2 completed
 
