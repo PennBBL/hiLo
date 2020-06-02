@@ -65,12 +65,12 @@ final_data$Top2 <- recode(final_data$Top2, "YesYes10"="PFIT 10", "YesYes40"="PFI
   "YesNo10"="ExtPFIT 10", "NoNo40"="Other", "NoNo50"="Other", "NoNo30"="Other",
   "YesYes20"="PFIT 20", "YesNo20"="ExtPFIT 20", "NoNo60"="Other", "YesYes50"="PFIT 50")
 final_data$Top2 <- ordered(final_data$Top2, c("PFIT 10", "PFIT 20", "PFIT 30",
-  "PFIT 40", "PFIT 50", "ExtPFIT 10", "ExtPFIT 20", "Other"))
+  "PFIT 40", "PFIT 50", "ExtPFIT 10", "ExtPFIT 20", "ExtPFIT 30", "Other"))
 
 p <- ggseg(final_data, atlas="micCort", mapping=aes(fill=Top2), hemisphere="left", size=.1,
   colour="black") +
-  scale_fill_manual(values=c("#2166ac", "#4393c3", "#92c5de", "#d1e5f0",
-    "aliceblue", "#67001f", "#b2182b", "cornsilk"), drop=FALSE) +
+  scale_fill_manual(values=c("#053061", "#2166ac", "#4393c3", "#92c5de", "#d1e5f0",
+    "#67001f", "#b2182b", "cornsilk"), drop=FALSE) +
   #labs(fill="Ranked Top #") +
   theme(text=element_text(size=14,  family="Arial"), axis.title.x=element_blank(), axis.text.x=element_blank(), legend.position="none")
 
@@ -111,18 +111,19 @@ aseg_data$Top <- as.character(aseg_data$Top)
 aseg_data$Top2 <- paste0(aseg_data$Important, aseg_data$PFIT, aseg_data$Top)
 aseg_data$Top2 <- recode(aseg_data$Top2, "YesYes10"="PFIT 10", "YesYes40"="PFIT 40",
   "YesNo10"="ExtPFIT 10", "NoNo40"="Other", "NoNo50"="Other", "NoNo30"="Other",
-  "YesYes20"="PFIT 20", "YesNo20"="ExtPFIT 20", "NoNo60"="Other",
-  "YesYes50"="PFIT 50")
+  "YesYes20"="PFIT 20", "YesNo20"="ExtPFIT 20", "YesNo30"="ExtPFIT 30",
+  "NoNo60"="Other", "YesYes50"="PFIT 50")
 aseg_data$Top2 <- ordered(aseg_data$Top2, c("PFIT 10", "PFIT 20", "PFIT 30",
-  "PFIT 40", "PFIT 50", "ExtPFIT 10", "ExtPFIT 20", "Other"))
+  "PFIT 40", "PFIT 50", "ExtPFIT 10", "ExtPFIT 20", "ExtPFIT 30", "Other"))
 aseg_data <- aseg_data[!is.na(aseg_data$Top2),]
 
 
 p_subcort <- ggseg(aseg_data, atlas="aseg", hemisphere=c("left", "right"),
   mapping=aes(fill=Top2), size=.1, colour="black", na.rm=TRUE) +
-  scale_fill_manual(values=c("#2166ac", "#4393c3", "#92c5de", "#d1e5f0",
-    "aliceblue", "#67001f", "#b2182b", "cornsilk"), labels=c("PFIT 10", "PFIT 20",
-    "PFIT 30", "PFIT 40", "PFIT 50", "ExtPFIT 10", "ExtPFIT 20", "Other"), drop=FALSE) +
+  scale_fill_manual(values=c("#053061", "#2166ac", "#4393c3", "#92c5de", "#d1e5f0",
+    "#67001f", "#b2182b", "#d6604d", "cornsilk"), breaks=c("PFIT 10", "PFIT 20",
+    "PFIT 30", "PFIT 40", "PFIT 50", "ExtPFIT 10", "ExtPFIT 20", "ExtPFIT 30",
+    "Other"), drop=FALSE) +
   labs(fill="Ranked Top #") +
   theme(text=element_text(size=14,  family="Arial"), axis.title.x=element_blank(),
     axis.text.x=element_blank())
