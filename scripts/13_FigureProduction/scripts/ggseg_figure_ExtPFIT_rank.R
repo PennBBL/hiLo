@@ -1,7 +1,7 @@
 ### This script creates (hopefully) the final ggseg figure
 ###
 ### Ellyn Butler
-### January 29, 2020 - June 1, 2020
+### January 29, 2020 - June 2, 2020
 
 library('ggseg')
 library('ggplot2')
@@ -119,7 +119,7 @@ aseg_data <- aseg_data[!is.na(aseg_data$Top2),]
 
 
 p_subcort <- ggseg(aseg_data, atlas="aseg", hemisphere=c("left", "right"),
-  mapping=aes(fill=Top2), size=.1, colour="black", na.rm=TRUE) +
+  mapping=aes(fill=Top2), size=.1, colour="black") +
   scale_fill_manual(values=c("#053061", "#2166ac", "#4393c3", "#92c5de", "#d1e5f0",
     "#67001f", "#b2182b", "#d6604d", "cornsilk"), breaks=c("PFIT 10", "PFIT 20",
     "PFIT 30", "PFIT 40", "PFIT 50", "ExtPFIT 10", "ExtPFIT 20", "ExtPFIT 30",
