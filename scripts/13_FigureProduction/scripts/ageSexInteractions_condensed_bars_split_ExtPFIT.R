@@ -182,7 +182,7 @@ for (a in 1:8) {
 		sum_df_tmp[seq(i, i+length(colstouse)*5, length(colstouse)), "Abbrev"] <- intname
 
 		if (intname %in% basgang) {
-      sum_df_tmp[seq(i, i+length(colstouse)*5, length(colstouse)), "Lobe"] <- "Basal Ganglia"
+      sum_df_tmp[seq(i, i+length(colstouse)*5, length(colstouse)), "Lobe"] <- "Baso-Striatal"
 		} else if (intname %in% limbic) {
       sum_df_tmp[seq(i, i+length(colstouse)*5, length(colstouse)), "Lobe"] <- "Limbic"
 		} else if (intname %in% front) {
@@ -261,14 +261,14 @@ for (a in 1:8) {
 }
 
 
-sum_df$Lobe <- factor(sum_df$Lobe, levels = c("Basal Ganglia", "Limbic", "Frontal", "Temporal", "Parietal", "Occipital", "Cerebellum", "White Matter"))
+sum_df$Lobe <- factor(sum_df$Lobe, levels = c("Baso-Striatal", "Limbic", "Frontal", "Temporal", "Parietal", "Occipital", "Cerebellum", "White Matter"))
 sum_df$Modality <- factor(sum_df$Modality, levels = c("Volume", "GMD", "MD", "CBF", "ALFF", "ReHo", "NBack", "IdEmo", "FA"))
 sum_df$Importance <- ordered(sum_df$Importance, levels=c("PF", "Ext"))
 sum_df$Group <- paste(sum_df$Sex, sum_df$ageBin)
 sum_df$Group <- ordered(sum_df$Group, levels=c("Female Children", "Female Adolescents", "Female Adults", "Male Children", "Male Adolescents", "Male Adults"))
 sum_df$Sex <- factor(sum_df$Sex)
 
-struc_plot <- ggplot(sum_df[sum_df$Modality %in% c("Volume", "GMD", "MD") & sum_df$Lobe %in% c("Basal Ganglia", "Limbic", "Frontal", "Temporal", "Parietal", "Occipital"), ],
+struc_plot <- ggplot(sum_df[sum_df$Modality %in% c("Volume", "GMD", "MD") & sum_df$Lobe %in% c("Baso-Striatal", "Limbic", "Frontal", "Temporal", "Parietal", "Occipital"), ],
 		aes(Abbrev, EffectSize, group=Group, colour=Group, fill=Group)) +
 	geom_bar(stat="identity", position="dodge") + scale_y_continuous(limits=c(-1.5, 1.5), breaks=round(seq(-1.5, 1.5, .5), digits=1)) +
 	facet_nested(Modality ~ Lobe + Importance, scales="free", space="free_x") +
@@ -283,7 +283,7 @@ struc_plot <- ggplot(sum_df[sum_df$Modality %in% c("Volume", "GMD", "MD") & sum_
 	scale_fill_manual(values=c("pink", "violetred1", "red3", "lightsteelblue1", "steelblue2", "blue4"),
 			guide = guide_legend(nrow=1))
 
-func_plot <- ggplot(sum_df[sum_df$Modality %in% c("CBF", "ALFF", "ReHo") & sum_df$Lobe %in% c("Basal Ganglia", "Limbic", "Frontal", "Temporal", "Parietal", "Occipital"), ],
+func_plot <- ggplot(sum_df[sum_df$Modality %in% c("CBF", "ALFF", "ReHo") & sum_df$Lobe %in% c("Baso-Striatal", "Limbic", "Frontal", "Temporal", "Parietal", "Occipital"), ],
 		aes(Abbrev, EffectSize, group=Group, colour=Group, fill=Group)) +
 	geom_bar(stat="identity", position="dodge") + scale_y_continuous(limits=c(-1, 1), breaks=round(seq(-1, 1, .2), digits=1)) +
 	facet_nested(Modality ~ Lobe + Importance, scales="free", space="free_x") +
@@ -296,7 +296,7 @@ func_plot <- ggplot(sum_df[sum_df$Modality %in% c("CBF", "ALFF", "ReHo") & sum_d
 	labs(fill = "Group") + theme(axis.text.x = element_text(angle=90)) +
 	theme(legend.position="bottom", legend.box="vertical", axis.title.x=element_blank())
 
-task_plot <- ggplot(sum_df[sum_df$Modality %in% c("NBack", "IdEmo") & sum_df$Lobe %in% c("Basal Ganglia", "Limbic", "Frontal", "Temporal", "Parietal", "Occipital"), ],
+task_plot <- ggplot(sum_df[sum_df$Modality %in% c("NBack", "IdEmo") & sum_df$Lobe %in% c("Baso-Striatal", "Limbic", "Frontal", "Temporal", "Parietal", "Occipital"), ],
 		aes(Abbrev, EffectSize, group=Group, colour=Group, fill=Group)) +
 	geom_bar(stat="identity", position="dodge") + scale_y_continuous(limits=c(-.8, 1.2), breaks=round(seq(-1.4, 1.4, .2), digits=1)) +
 	facet_nested(Modality ~ Lobe + Importance, scales="free", space="free_x") +
@@ -358,23 +358,23 @@ if (galton == TRUE) {
 	wmcer_plot
 	dev.off()
 } else if (mymachine == TRUE) {
-	png('/Users/butellyn/Documents/hiLo/plots/figure3_color_ExtPFIT.png', units="mm", width=220, height=150, res=800)
+	png('~/Documents/hiLo/plots/figure3_color_ExtPFIT.png', units="mm", width=220, height=150, res=800)
 	struc_plot
 	dev.off()
 
-	png('/Users/butellyn/Documents/hiLo/plots/figure4_color_ExtPFIT.png', units="mm", width=220, height=150, res=800)
+	png('~/Documents/hiLo/plots/figure4_color_ExtPFIT.png', units="mm", width=220, height=150, res=800)
 	func_plot
 	dev.off()
 
-	png('/Users/butellyn/Documents/hiLo/plots/figure5_color_ExtPFIT.png', units="mm", width=220, height=150, res=800)
+	png('~/Documents/hiLo/plots/figure5_color_ExtPFIT.png', units="mm", width=220, height=150, res=800)
 	task_plot
 	dev.off()
 
-	png('/Users/butellyn/Documents/hiLo/plots/figure6_color_ExtPFIT.png', units="mm", width=220, height=100, res=800)
+	png('~/Documents/hiLo/plots/figure6_color_ExtPFIT.png', units="mm", width=220, height=100, res=800)
 	wmcer_plot
 	dev.off()
 
-	#png('/Users/butellyn/Documents/hiLo/plots/fa_color.png', units="mm", width=140, #height=60, res=800)
+	#png('~/Documents/hiLo/plots/fa_color.png', units="mm", width=140, #height=60, res=800)
 	#fa_plot
 	#dev.off()
 }
