@@ -50,16 +50,16 @@ colsfill_manu <- c('Brain'='black', 'Age'='gray62', 'AgeBrain'='white')
 ann_text <- data.frame(Sex=factor(c("Female", "Male", "Female", "Female", "Female")),
   Modality=factor(c(rep("Volume", 2), "GMD", "NBack", "All"), levels=unique(results_df$Modality)),
   lab = "*", RSq=0)
-out.plot_brain_age_agebrain <- ggplot(results_df, aes(x=RSq)) +
+out.plot_brain_age_agebrain <- ggplot(results_df, aes(x=RSq)) + theme_linedraw() +
   geom_density(aes(fill='Brain', group=1), data=results_df[results_df$Group=='Brain' & results_df$Sex=='Male',]) +
   geom_density(aes(fill='Age', group=1), data=results_df[results_df$Group=='Age' & results_df$Sex=='Male',], alpha=.7) +
   geom_density(aes(fill='AgeBrain', group=1), data=results_df[results_df$Group=='AgeBrain' & results_df$Sex=='Male',], alpha=.7) +
   geom_density(aes(fill='Brain', group=1), data=results_df[results_df$Group=='Brain' & results_df$Sex=='Female',]) +
   geom_density(aes(fill='Age', group=1), data=results_df[results_df$Group=='Age' & results_df$Sex=='Female',], alpha=.7) +
   geom_density(aes(fill='AgeBrain', group=1), data=results_df[results_df$Group=='AgeBrain' & results_df$Sex=='Female',], alpha=.7) +
-  scale_fill_manual(values=colsfill_manu, breaks=c("AgeBrain Minus Age", "Brain", "Age", "AgeBrain"), name="Variables") +
+  scale_fill_manual(values=colsfill_manu, breaks=c("Brain", "Age", "AgeBrain"),
+    name="Variables", labels = c("Brain", "Age", "Age + Brain")) +
   scale_colour_manual(values=c('black', 'black', 'black', 'black')) +
-  theme_linedraw() +
   facet_grid(Modality ~ Sex) +
   coord_cartesian(ylim=c(0,25),xlim=c(-.1,.6)) +
   xlab(bquote('CV R'^2)) + theme(axis.text.y = element_text(size=7), legend.position='bottom') +
@@ -115,7 +115,7 @@ out.plot_qa_qabrain_ageqa_ageqabrain <- ggplot(results_df2, aes(x=RSq)) +
     mapping = aes(xintercept = RSq), linetype = 'dashed', color='black')
 
 
-png(file='~/Documents/hiLo/plots/figure7.png', height=180, width=120, units='mm', res=800)
+tiff(file='~/Documents/hiLo/plots/figure7.tiff', height=180, width=120, units='mm', res=300)
 out.plot_brain_age_agebrain
 dev.off()
 

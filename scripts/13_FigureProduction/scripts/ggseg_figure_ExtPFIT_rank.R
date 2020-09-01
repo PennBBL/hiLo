@@ -3,7 +3,7 @@
 ### Ellyn Butler
 ### January 29, 2020 - June 2, 2020
 
-library('ggseg')
+library('ggseg') # Version:
 library('ggplot2')
 library('dplyr')
 library('ggpubr')
@@ -66,6 +66,8 @@ final_data$Top2 <- recode(final_data$Top2, "YesYes10"="PFIT 10", "YesYes40"="PFI
   "YesYes20"="PFIT 20", "YesNo20"="ExtPFIT 20", "NoNo60"="Other", "YesYes50"="PFIT 50")
 final_data$Top2 <- ordered(final_data$Top2, c("PFIT 10", "PFIT 20", "PFIT 30",
   "PFIT 40", "PFIT 50", "ExtPFIT 10", "ExtPFIT 20", "ExtPFIT 30", "Other"))
+
+micCort2 <- as_ggseg_atlas(micCort)
 
 p <- ggseg(final_data, atlas="micCort", mapping=aes(fill=Top2), hemisphere="left", size=.1,
   colour="black") +
@@ -136,6 +138,6 @@ p_subcort <- ggseg(aseg_data, atlas="aseg", hemisphere=c("left", "right"),
 
 
 
-png(file="~/Documents/hiLo/plots/figure2_color_ExtPFIT_rank.png", units="mm", width=150, height=140, res=800)
+tiff(file="~/Documents/hiLo/plots/figure2_color_ExtPFIT_rank.tiff", units="mm", width=150, height=140, res=300)
 ggarrange(p, p_subcort, nrow= 2, labels = c("A", "B"))
 dev.off()
