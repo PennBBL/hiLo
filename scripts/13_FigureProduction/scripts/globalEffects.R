@@ -176,6 +176,7 @@ row.names(cohenValues) <- 1:nrow(cohenValues)
 index <- 1
 for (g in global.values) {
   toPlot <- cohenValues[which(cohenValues$Region==g),]
+  toPlot$Sex <- relevel(toPlot$Sex, 'Male')
   outPlot <- ggplot(toPlot, aes(x=AgeGroup, y=Effect, group=Sex, fill=Sex)) + #y=Lo*-1
       geom_bar(stat='identity', position=position_dodge()) +
 	   scale_fill_manual(name = 'sex', values=c('Female'='gray62', 'Male'='black')) +
@@ -197,7 +198,7 @@ for (g in global.values) {
 }
 
 ## Now plot everything
-tiff('~/Documents/hiLo/plots/figure1.tiff',width=180, height=170, units='mm', res=300)
+tiff('~/Documents/hiLo/plots/figure1.tif',width=180, height=170, units='mm', res=300)
 grid.arrange(
   grobs=list(TBVPlot,GMDPlot,MDPlot,
           TBVPlotD,GMDPlotD,MDPlotD,
